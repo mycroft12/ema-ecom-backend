@@ -1,2 +1,2 @@
-@org.springframework.modulith.ApplicationModule(displayName = "Authentication")
+@org.springframework.modulith.ApplicationModule(displayName = "Auth")
 package com.mycroft.ema.ecom.auth;
