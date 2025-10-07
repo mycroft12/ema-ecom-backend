@@ -13,14 +13,21 @@ import java.math.BigDecimal;
 @Setter
 public class Product extends BaseEntity {
   @Column(nullable = false)
-  private String name;
+  private String title;
+
+  private String reference;
 
   private String description;
 
-  @Column(nullable = false)
-  private BigDecimal price;
+  @Column(precision = 18, scale = 2)
+  private BigDecimal buyPrice;
 
-  private String photoUrl; // single photo
+  @Column(precision = 18, scale = 2)
+  private BigDecimal sellPrice;
 
-  private boolean active = true;
+  @Column(precision = 18, scale = 2)
+  private BigDecimal affiliateCommission;
+
+  @Column(columnDefinition = "bytea")
+  private byte[] picture; // blob stored as PostgreSQL bytea
 }

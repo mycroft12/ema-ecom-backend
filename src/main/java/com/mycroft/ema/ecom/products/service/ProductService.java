@@ -15,10 +15,10 @@ public class ProductService {
   private final ProductRepository repo; private final ProductMapper mapper;
   public ProductService(ProductRepository repo, ProductMapper mapper){ this.repo=repo; this.mapper=mapper; }
 
-  public Page<ProductViewDto> search(String q, Boolean active, Pageable pageable){
-    Specification<Product> byName = (root, cq, cb) -> q==null ? null : cb.like(cb.lower(root.get("name")), "%"+q.toLowerCase()+"%");
-    Specification<Product> byActive = (root, cq, cb) -> active==null?null: cb.equal(root.get("active"), active);
-    Specification<Product> spec = Specification.allOf(byName, byActive);
+  public Page<ProductViewDto> search(String q, Pageable pageable){
+    Specification<Product> byTitle = (root, cq, cb) -> q==null ? null : cb.like(cb.lower(root.get("title")), "%"+q.toLowerCase()+"%");
+    Specification<Product> byReference = (root, cq, cb) -> q==null ? null : cb.like(cb.lower(root.get("reference")), "%"+q.toLowerCase()+"%");
+    Specification<Product> spec = Specification.anyOf(byTitle, byReference);
     return repo.findAll(spec, pageable).map(mapper::toView);
   }
   public ProductViewDto create(ProductCreateDto dto){ return mapper.toView(repo.save(mapper.toEntity(dto))); }

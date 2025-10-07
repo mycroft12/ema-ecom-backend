@@ -8,6 +8,7 @@ public record EmployeeCreateDto(
         @NotBlank String lastName,
         @NotNull EmployeeType type,
         String companyName,
-        @Pattern(regexp="^\\+?[0-9 .-]{6,}$", message="invalid phone") String phone,
+        @Pattern(regexp="^\\+?[0-9 .-]{6,}$", message="invalid phone")
+        String phone,
         @Email String email
 ) {}

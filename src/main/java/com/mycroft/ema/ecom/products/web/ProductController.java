@@ -19,9 +19,8 @@ public class ProductController {
   @GetMapping
   @PreAuthorize("hasAuthority('product:read')")
   public PageResponse<ProductViewDto> search(@RequestParam(required = false) String q,
-                                             @RequestParam(required = false) Boolean active,
                                              Pageable pageable){
-    return PageResponse.of(service.search(q, active, pageable));
+    return PageResponse.of(service.search(q, pageable));
   }
 
   @GetMapping("/{id}")

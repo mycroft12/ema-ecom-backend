@@ -5,9 +5,10 @@ import java.util.UUID;
 
 public record ProductViewDto(
         UUID id,
-        String name,
+        String title,
+        String reference,
         String description,
-        BigDecimal price,
-        String photoUrl,
-        boolean active
+        BigDecimal buyPrice,
+        BigDecimal sellPrice,
+        BigDecimal affiliateCommission
 ) {}
