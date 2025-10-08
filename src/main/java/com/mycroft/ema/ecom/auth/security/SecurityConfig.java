@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean; import org.springframework.c
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +22,7 @@ public class SecurityConfig {
 
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
-    http.csrf(csrf -> csrf.disable());
+    http.csrf(AbstractHttpConfigurer::disable);
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     http.authorizeHttpRequests(auth -> auth
         .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/actuator/health").permitAll()
@@ -40,8 +41,16 @@ public class SecurityConfig {
   }
 
   static class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtService jwt; private final UserRepository users; private final AccessControlService ac;
-    JwtAuthenticationFilter(JwtService jwt, UserRepository users, AccessControlService ac){ this.jwt=jwt; this.users=users; this.ac=ac; }
+    private final JwtService jwt;
+    private final UserRepository users;
+    private final AccessControlService ac;
+
+    JwtAuthenticationFilter(JwtService jwt, UserRepository users, AccessControlService ac){
+      this.jwt=jwt;
+      this.users=users;
+      this.ac=ac;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws ServletException, IOException {
       var header = req.getHeader("Authorization");
