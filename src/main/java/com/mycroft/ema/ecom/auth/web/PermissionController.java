@@ -1,43 +1,48 @@
 package com.mycroft.ema.ecom.auth.web;
 
-import com.mycroft.ema.ecom.auth.domain.Permission; import com.mycroft.ema.ecom.auth.repo.PermissionRepository;
-import com.mycroft.ema.ecom.common.error.NotFoundException;
+import com.mycroft.ema.ecom.auth.domain.Permission;
+import com.mycroft.ema.ecom.auth.service.PermissionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.web.bind.annotation.*;
 import java.util.List; import java.util.UUID;
 
-@RestController @RequestMapping("/api/permissions")
+@RestController
+@RequestMapping("/api/permissions")
+@Tag(name = "Permissions", description = "Manage granular permissions")
 public class PermissionController {
 
-  private final PermissionRepository perms;
+  private final PermissionService perms;
 
-  public PermissionController(PermissionRepository perms){
+  public PermissionController(PermissionService perms){
     this.perms=perms;
   }
 
   @GetMapping
   @PreAuthorize("hasAuthority('permission:read')")
+  @Operation(summary = "List permissions")
   public List<Permission> findAll(){
     return perms.findAll();
   }
 
   @PostMapping
   @PreAuthorize("hasAuthority('permission:create')")
+  @Operation(summary = "Create permission")
   public Permission create(@RequestBody Permission p){
-    return perms.save(p);
+    return perms.create(p);
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("hasAuthority('permission:update')")
+  @Operation(summary = "Update permission")
   public Permission update(@PathVariable UUID id, @RequestBody Permission p){
-    var existing = perms.findById(id).orElseThrow(() -> new NotFoundException("Permission not found"));
-    existing.setName(p.getName());
-    existing.setDescription(p.getDescription());
-    return perms.save(existing);
+    return perms.update(id, p);
   }
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasAuthority('permission:delete')")
+  @Operation(summary = "Delete permission")
   public void delete(@PathVariable UUID id){
-    perms.deleteById(id);
+    perms.delete(id);
   }
 }

@@ -1,27 +1,15 @@
 package com.mycroft.ema.ecom.rules.service;
 
-import com.mycroft.ema.ecom.common.error.NotFoundException;
-import com.mycroft.ema.ecom.rules.domain.Rule;
 import com.mycroft.ema.ecom.rules.dto.*;
-import com.mycroft.ema.ecom.rules.repo.RuleRepository;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
-@Service
-public class RuleService {
-  private final RuleRepository repo; private final RuleMapper mapper; private final RuleEngine engine;
-  public RuleService(RuleRepository repo, RuleMapper mapper, RuleEngine engine){ this.repo=repo; this.mapper=mapper; this.engine=engine; }
-  public Page<RuleViewDto> search(String q, Boolean active, Pageable pageable){
-    Specification<Rule> byName = (root, cq, cb) -> q==null? null : cb.like(cb.lower(root.get("name")), "%"+q.toLowerCase()+"%");
-    Specification<Rule> byActive = (root, cq, cb) -> active==null?null:cb.equal(root.get("active"), active);
-    Specification<Rule> spec = Specification.allOf(byName, byActive);
-    return repo.findAll(spec, pageable).map(mapper::toView);
-  }
-  public RuleViewDto create(RuleCreateDto dto){ return mapper.toView(repo.save(mapper.toEntity(dto))); }
-  public RuleViewDto update(UUID id, RuleUpdateDto dto){ var r = repo.findById(id).orElseThrow(()->new NotFoundException("Rule not found")); mapper.updateEntity(dto, r); return mapper.toView(repo.save(r)); }
-  public void delete(UUID id){ repo.deleteById(id); }
-  public RuleViewDto get(UUID id){ return repo.findById(id).map(mapper::toView).orElseThrow(()->new NotFoundException("Rule not found")); }
+public interface RuleService {
+  Page<RuleViewDto> search(String q, Boolean active, Pageable pageable);
+  RuleViewDto create(RuleCreateDto dto);
+  RuleViewDto update(UUID id, RuleUpdateDto dto);
+  void delete(UUID id);
+  RuleViewDto get(UUID id);
 }
