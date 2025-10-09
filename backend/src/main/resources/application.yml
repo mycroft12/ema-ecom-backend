@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: ema-ecom
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        connection:
+          provider_disables_autocommit: true
+  flyway:
+    enabled: true
+  web:
+    resources:
+      static-locations: classpath:/resources-static/,classpath:/static/,classpath:/public/
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    enabled: true
+# Swagger UI: http://localhost:8080/swagger-ui.html
+
+app:
+  jwt:
+    issuer: ema-ecom
+    access-ttl-seconds: 900

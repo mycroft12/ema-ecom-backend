@@ -1,0 +1,9 @@
+[
+  {
+    "context": ["/api", "/v3/api-docs", "/swagger-ui", "/swagger-ui.html", "/actuator"],
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+]

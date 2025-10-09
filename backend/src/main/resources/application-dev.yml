@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ema_ecom
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: false
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+      minimum-idle: 0
+      maximum-pool-size: 5
+      pool-name: HikariPool
+      initialization-fail-timeout: 0
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    clean-disabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        boot:
+          allow_jdbc_metadata_access: true
+
+app:
+  jwt:
+    secret: dev-change-me

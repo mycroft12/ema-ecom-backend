@@ -1,4 +1,9 @@
+# General
 HELP.md
+.DS_Store
+*.log
+
+# Maven/Java
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,3 +36,25 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Environment files
+.env
+.env.*
+
+# Frontend / Angular
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.angular/
+frontend/**/.cache/
+frontend/**/coverage/
+frontend/**/out-tsc/
+frontend/**/npm-debug.log*
+frontend/**/yarn-error.log*
+frontend/**/pnpm-debug.log*
+
+# Root-level Node artifacts (if any)
+node_modules/
+dist/
+.angular/
+.cache/
+coverage/

@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: ema-ecom
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://db:5432/emaecom}
+    username: ${DB_USER:ema}
+    password: ${DB_PASSWORD:ema}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+    show-sql: false
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    issuer: ${JWT_ISSUER:ema-ecom}
+    access-ttl-seconds: ${JWT_ACCESS_TTL_SECONDS:900}
+    secret: ${JWT_SECRET:CHANGE_ME}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://your-frontend-domain}
+
+logging:
+  level:
+    root: INFO
+
+debug: false

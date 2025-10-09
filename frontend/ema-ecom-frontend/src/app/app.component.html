@@ -1,0 +1,15 @@
+<nav>
+  <a routerLink="/">Home</a>
+  <a routerLink="/products" *ngIf="auth.hasAny(['product:read'])">Products</a>
+  <a routerLink="/employees" *ngIf="auth.hasAny(['employee:read'])">Employees</a>
+  <a routerLink="/roles" *ngIf="auth.hasAny(['role:read'])">Roles</a>
+  <a routerLink="/rules" *ngIf="auth.hasAny(['rule:read'])">Rules</a>
+  <a routerLink="/import" *ngIf="auth.hasAny(['import:configure'])">Import</a>
+  <span style="float:right">
+    <span *ngIf="!auth.isAuthenticated()"><a routerLink="/login">Login</a></span>
+    <span *ngIf="auth.isAuthenticated()">{{auth.username()}} | <a href="" (click)="$event.preventDefault(); logout()">Logout</a></span>
+  </span>
+</nav>
+<div class="container">
+  <router-outlet></router-outlet>
+</div>

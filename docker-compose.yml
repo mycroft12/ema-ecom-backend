@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ema_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-emaecom}
+      POSTGRES_USER: ${DB_USER:-ema}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ema}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ema}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    image: ema-ecom-app:latest
+    container_name: ema_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-emaecom}
+      DB_USER: ${DB_USER:-ema}
+      DB_PASSWORD: ${DB_PASSWORD:-ema}
+      JWT_SECRET: ${JWT_SECRET:-change_me}
+      JWT_ISSUER: ema-ecom
+      # In single-package mode, the SPA is served by the backend, so CORS is usually not required
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost}
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:
