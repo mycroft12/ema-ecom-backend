@@ -1,10 +1,8 @@
 package com.mycroft.ema.ecom.auth.service;
 
-import com.mycroft.ema.ecom.auth.domain.Role;
 import com.mycroft.ema.ecom.auth.domain.User;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public interface UserService {

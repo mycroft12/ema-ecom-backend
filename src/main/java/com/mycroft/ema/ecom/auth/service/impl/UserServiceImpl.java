@@ -25,7 +25,10 @@ public class UserServiceImpl implements UserService {
   public List<User> findAll(){ return users.findAll(); }
 
   @Override
-  public User get(UUID id){ return users.findById(id).orElseThrow(() -> new NotFoundException("User not found")); }
+  public User get(UUID id){
+    return users.findById(id).orElseThrow(
+            () -> new NotFoundException("User not found"));
+  }
 
   @Override
   public User create(User u){

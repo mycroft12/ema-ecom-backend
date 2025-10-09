@@ -4,19 +4,28 @@ import com.mycroft.ema.ecom.auth.repo.UserRepository;
 import com.mycroft.ema.ecom.auth.service.AccessControlService;
 import com.mycroft.ema.ecom.auth.service.JwtService;
 import com.mycroft.ema.ecom.auth.domain.User;
-import jakarta.servlet.FilterChain; import jakarta.servlet.ServletException; import jakarta.servlet.http.HttpServletRequest; import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Bean; import org.springframework.context.annotation.Configuration;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain; import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException; import java.util.Collection;
 
 @Configuration
+@EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
 public class SecurityConfig {
   @Bean PasswordEncoder passwordEncoder(){ return new BCryptPasswordEncoder(); }
 
@@ -32,12 +41,26 @@ public class SecurityConfig {
     return http.build();
   }
 
-  @Bean JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwt, UserRepository users, AccessControlService ac){ return new JwtAuthenticationFilter(jwt, users, ac); }
+  @Bean
+  JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwt, UserRepository users, AccessControlService ac){
+    return new JwtAuthenticationFilter(jwt, users, ac);
+  }
 
   static class JwtAuthenticationToken extends AbstractAuthenticationToken {
-    private final User principal; JwtAuthenticationToken(User user, Collection<SimpleGrantedAuthority> auth){ super(auth); this.principal=user; setAuthenticated(true);}
-    @Override public Object getCredentials(){ return ""; }
-    @Override public Object getPrincipal(){ return principal; }
+    private final User principal;
+
+    JwtAuthenticationToken(User user, Collection<SimpleGrantedAuthority> auth){
+      super(auth); this.principal=user; setAuthenticated(true);
+    }
+
+    @Override public Object getCredentials(){
+      return "";
+    }
+
+    @Override public Object getPrincipal(){
+      return principal;
+    }
+
   }
 
   static class JwtAuthenticationFilter extends OncePerRequestFilter {

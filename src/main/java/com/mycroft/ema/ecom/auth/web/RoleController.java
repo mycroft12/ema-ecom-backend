@@ -4,8 +4,10 @@ import com.mycroft.ema.ecom.auth.domain.Role;
 import com.mycroft.ema.ecom.auth.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.web.bind.annotation.*;
-import java.util.List; import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/roles")

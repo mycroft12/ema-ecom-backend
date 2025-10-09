@@ -14,21 +14,40 @@ import java.util.UUID;
 
 @Service
 public class RuleServiceImpl implements RuleService {
-  private final RuleRepository repo; private final RuleMapper mapper; private final RuleEngine engine;
-  public RuleServiceImpl(RuleRepository repo, RuleMapper mapper, RuleEngine engine){ this.repo=repo; this.mapper=mapper; this.engine=engine; }
+  private final RuleRepository repo;
+  private final RuleMapper mapper;
+  private final RuleEngine engine;
+
+  public RuleServiceImpl(RuleRepository repo, RuleMapper mapper, RuleEngine engine){
+    this.repo=repo; this.mapper=mapper; this.engine=engine;
+  }
+
   @Override
   public Page<RuleViewDto> search(String q, Boolean active, Pageable pageable){
-    Specification<Rule> byName = (root, cq, cb) -> q==null? null : cb.like(cb.lower(root.get("name")), "%"+q.toLowerCase()+"%");
-    Specification<Rule> byActive = (root, cq, cb) -> active==null?null:cb.equal(root.get("active"), active);
+    Specification<Rule> byName = (root, cq, cb) ->
+            q==null? null : cb.like(cb.lower(root.get("name")), "%"+q.toLowerCase()+"%");
+    Specification<Rule> byActive = (root, cq, cb) ->
+            active==null?null:cb.equal(root.get("active"), active);
     Specification<Rule> spec = Specification.allOf(byName, byActive);
     return repo.findAll(spec, pageable).map(mapper::toView);
   }
   @Override
   public RuleViewDto create(RuleCreateDto dto){ return mapper.toView(repo.save(mapper.toEntity(dto))); }
+
   @Override
-  public RuleViewDto update(UUID id, RuleUpdateDto dto){ var r = repo.findById(id).orElseThrow(()->new NotFoundException("Rule not found")); mapper.updateEntity(dto, r); return mapper.toView(repo.save(r)); }
+  public RuleViewDto update(UUID id, RuleUpdateDto dto){
+    var r = repo.findById(id)
+          .orElseThrow(()->new NotFoundException("Rule not found"));
+    mapper.updateEntity(dto, r);
+    return mapper.toView(repo.save(r));
+  }
+
   @Override
   public void delete(UUID id){ repo.deleteById(id); }
+
   @Override
-  public RuleViewDto get(UUID id){ return repo.findById(id).map(mapper::toView).orElseThrow(()->new NotFoundException("Rule not found")); }
+  public RuleViewDto get(UUID id){
+    return repo.findById(id).map(mapper::toView)
+            .orElseThrow(()->new NotFoundException("Rule not found"));
+  }
 }
