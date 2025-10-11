@@ -7,7 +7,7 @@ set -euo pipefail
 #   ./run-dev.sh --with-db  # also starts Postgres via docker-compose (service: db)
 
 ROOT_DIR=$(cd "$(dirname "$0")" && pwd)
-FRONT_DIR="$ROOT_DIR/frontend/ema-ecom-frontend"
+FRONT_DIR="$ROOT_DIR/frontend"
 SPRING_PROFILES_ACTIVE="dev"
 
 if [[ "${1:-}" == "--with-db" ]]; then

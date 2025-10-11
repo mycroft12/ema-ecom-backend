@@ -3,9 +3,9 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-home',
   standalone: true,
+  imports: [],
   template: `
-    <h2>Welcome to EMA E-commerce</h2>
-    <p>This is a starter UI. Use the navigation to explore modules.</p>
+    <div class="p-3"></div>
   `
 })
 export class HomeComponent {}

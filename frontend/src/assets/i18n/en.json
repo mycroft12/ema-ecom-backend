@@ -1,0 +1,39 @@
+{
+  "app": {
+    "title": "EMA E-commerce",
+    "login": "Login",
+    "logout": "Logout",
+    "language": "Language"
+  },
+  "auth": {
+    "username": "Username",
+    "password": "Password",
+    "placeholder": {
+      "username": "jane.doe",
+      "password": "••••••••"
+    },
+    "signIn": "Sign In",
+    "signingIn": "Signing In...",
+    "forgot": "Forgot password?",
+    "needAccount": "Need an account? Contact admin",
+    "loginTitle": "Login.",
+    "errors": {
+      "serverUnreachable": "Cannot reach server. Please check your connection.",
+      "unexpected": "Unexpected error. Please try again later.",
+      "invalid": "Invalid username or password."
+    }
+  },
+  "forgot": {
+    "title": "Forgot password",
+    "identifier": "Username or Email",
+    "send": "Send reset request",
+    "sending": "Sending...",
+    "info": "If an account exists for the provided identifier, you will receive instructions to reset your password.",
+    "backToLogin": "Back to Login"
+  },
+  "error": {
+    "auth": {
+      "badCredentials": "Invalid username or password."
+    }
+  }
+}

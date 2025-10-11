@@ -1,15 +1,25 @@
-<nav>
-  <a routerLink="/">Home</a>
-  <a routerLink="/products" *ngIf="auth.hasAny(['product:read'])">Products</a>
-  <a routerLink="/employees" *ngIf="auth.hasAny(['employee:read'])">Employees</a>
-  <a routerLink="/roles" *ngIf="auth.hasAny(['role:read'])">Roles</a>
-  <a routerLink="/rules" *ngIf="auth.hasAny(['rule:read'])">Rules</a>
-  <a routerLink="/import" *ngIf="auth.hasAny(['import:configure'])">Import</a>
-  <span style="float:right">
-    <span *ngIf="!auth.isAuthenticated()"><a routerLink="/login">Login</a></span>
-    <span *ngIf="auth.isAuthenticated()">{{auth.username()}} | <a href="" (click)="$event.preventDefault(); logout()">Logout</a></span>
-  </span>
-</nav>
-<div class="container">
+<p-menubar>
+  <ng-template pTemplate="start">
+    <a routerLink="/" class="flex align-items-center gap-2 no-underline text-color">
+      <i class="pi pi-shopping-bag text-2xl"></i>
+      <span class="font-bold">{{ 'app.title' | translate }}</span>
+    </a>
+  </ng-template>
+
+  <ng-template pTemplate="end">
+    <div class="flex align-items-center gap-2">
+      <p-dropdown [options]="lang.languages" optionLabel="label" optionValue="code" [(ngModel)]="selectedLang" (onChange)="onLangChange($event.value)" styleClass="w-12rem"></p-dropdown>
+      <ng-container *ngIf="!auth.isAuthenticated(); else userTpl">
+        <a *ngIf="!isLoginPage" routerLink="/login" pButton [label]="('app.login' | translate)" icon="pi pi-user" class="p-button-text"></a>
+      </ng-container>
+      <ng-template #userTpl>
+        <span class="mr-2">{{auth.username()}}</span>
+        <button pButton (click)="logout()" [label]="('app.logout' | translate)" icon="pi pi-sign-out" class="p-button-text"></button>
+      </ng-template>
+    </div>
+  </ng-template>
+</p-menubar>
+
+<div class="p-3">
   <router-outlet></router-outlet>
 </div>

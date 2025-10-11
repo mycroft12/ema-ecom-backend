@@ -7,10 +7,13 @@ import { RolesPageComponent } from './features/roles/roles-page.component';
 import { RulesPageComponent } from './features/rules/rules-page.component';
 import { ImportTemplatePageComponent } from './features/import/import-template-page.component';
 import { permissionGuard } from './core/permission.guard';
+import { ForgotPasswordComponent } from './auth/forgot-password.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
+  { path: '', component: LoginComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'home', component: HomeComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'products', component: ProductsPageComponent, canActivate: [permissionGuard], data: { permissions: ['product:read'] } },
   { path: 'employees', component: EmployeesPageComponent, canActivate: [permissionGuard], data: { permissions: ['employee:read'] } },
   { path: 'roles', component: RolesPageComponent, canActivate: [permissionGuard], data: { permissions: ['role:read'] } },

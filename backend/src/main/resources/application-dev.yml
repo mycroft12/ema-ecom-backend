@@ -23,7 +23,19 @@ spring:
       hibernate:
         boot:
           allow_jdbc_metadata_access: true
+  mail:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 app:
   jwt:
     secret: dev-change-me
+  frontend-base-url: http://localhost:4200

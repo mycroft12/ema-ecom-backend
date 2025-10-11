@@ -9,6 +9,7 @@ import java.util.Set;
 @Getter @Setter
 public class User extends BaseEntity {
   @Column(unique = true, nullable = false) private String username;
+  @Column(unique = true) private String email; // optional but unique when set
   @Column(nullable = false) private String password; // bcrypt
   @Column(nullable = false) private boolean enabled = true;
 

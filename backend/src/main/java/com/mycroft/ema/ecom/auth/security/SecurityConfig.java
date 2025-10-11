@@ -36,7 +36,7 @@ public class SecurityConfig {
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     http.authorizeHttpRequests(auth -> auth
         .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/swagger","/swagger-ui","/actuator/health").permitAll()
-        .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/refresh").permitAll()
+        .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/refresh","/api/auth/forgot-password").permitAll()
         .anyRequest().authenticated());
     http.addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
     return http.build();

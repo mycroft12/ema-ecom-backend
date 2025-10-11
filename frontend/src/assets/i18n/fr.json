@@ -1,0 +1,39 @@
+{
+  "app": {
+    "title": "EMA E-commerce",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "language": "Langue"
+  },
+  "auth": {
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "placeholder": {
+      "username": "••••••••",
+      "password": "••••••••"
+    },
+    "signIn": "Se connecter",
+    "signingIn": "Connexion...",
+    "forgot": "Mot de passe oublié ?",
+    "needAccount": "Besoin d'un compte ? Contactez l'admin",
+    "loginTitle": "Connexion.",
+    "errors": {
+      "serverUnreachable": "Serveur inaccessible. Veuillez vérifier votre connexion.",
+      "unexpected": "Erreur inattendue. Veuillez réessayer plus tard.",
+      "invalid": "Nom d'utilisateur ou mot de passe invalide."
+    }
+  },
+  "forgot": {
+    "title": "Mot de passe oublié",
+    "identifier": "Nom d'utilisateur ou Email",
+    "send": "Envoyer la demande de réinitialisation",
+    "sending": "Envoi...",
+    "info": "Si un compte existe pour l'identifiant fourni, vous recevrez des instructions pour réinitialiser votre mot de passe.",
+    "backToLogin": "Retour à la connexion"
+  },
+  "error": {
+    "auth": {
+      "badCredentials": "Nom d'utilisateur ou mot de passe invalide."
+    }
+  }
+}

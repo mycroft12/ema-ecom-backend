@@ -17,6 +17,10 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${environment.apiBase}/api/auth/login`, { username, password });
   }
 
+  forgotPassword(identifier: string){
+    return this.http.post<void>(`${environment.apiBase}/api/auth/forgot-password`, { identifier });
+  }
+
   saveToken(token: string){ localStorage.setItem(this.tokenKey, token); }
   getToken(): string | null { return localStorage.getItem(this.tokenKey); }
   logout(){ localStorage.removeItem(this.tokenKey); window.location.href = '/login'; }
