@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PanelMenuModule } from 'primeng/panelmenu';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NavService } from '../core/navigation/nav.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -53,7 +54,19 @@ import { NavService } from '../core/navigation/nav.service';
     </div>
   `
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit, OnDestroy {
   menu = this.nav.menuItems();
-  constructor(private nav: NavService) {}
+  private sub?: Subscription;
+  constructor(private nav: NavService, private translate: TranslateService) {}
+
+  ngOnInit(): void {
+    // Rebuild the menu whenever translations or language change to avoid showing raw keys like 'menu.home'.
+    this.sub = new Subscription();
+    this.sub.add(this.translate.onLangChange.subscribe(() => (this.menu = this.nav.menuItems())));
+    this.sub.add(this.translate.onTranslationChange.subscribe(() => (this.menu = this.nav.menuItems())));
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
 }

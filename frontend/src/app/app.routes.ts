@@ -6,6 +6,7 @@ import { EmployeesPageComponent } from './features/employees/employees-page.comp
 import { RolesPageComponent } from './features/roles/roles-page.component';
 import { RulesPageComponent } from './features/rules/rules-page.component';
 import { ImportTemplatePageComponent } from './features/import/import-template-page.component';
+import { DeliveryPageComponent } from './features/delivery/delivery-page.component';
 import { permissionGuard } from './core/permission.guard';
 import { ForgotPasswordComponent } from './auth/forgot-password.component';
 
@@ -19,4 +20,5 @@ export const routes: Routes = [
   { path: 'roles', component: RolesPageComponent, canActivate: [permissionGuard], data: { permissions: ['role:read'] } },
   { path: 'rules', component: RulesPageComponent, canActivate: [permissionGuard], data: { permissions: ['rule:read'] } },
   { path: 'import', component: ImportTemplatePageComponent, canActivate: [permissionGuard], data: { permissions: ['import:configure'] } },
+  { path: 'delivery', component: DeliveryPageComponent, canActivate: [permissionGuard], data: { permissions: ['delivery:read'] } },
 ];
