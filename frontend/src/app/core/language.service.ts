@@ -6,10 +6,10 @@ export type LangCode = 'en' | 'fr' | 'ar';
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private readonly key = 'ema_lang';
-  readonly languages: { code: LangCode; label: string }[] = [
-    { code: 'en', label: 'English' },
-    { code: 'fr', label: 'Français' },
-    { code: 'ar', label: 'العربية' }
+  readonly languages: { code: LangCode; label: string; flagUrl: string; flagEmoji: string }[] = [
+    { code: 'en', label: 'English', flagUrl: '/assets/flags/en.svg', flagEmoji: '🇬🇧' },
+    { code: 'fr', label: 'Français', flagUrl: '/assets/flags/fr.svg', flagEmoji: '🇫🇷' },
+    { code: 'ar', label: 'العربية', flagUrl: '/assets/flags/ar.svg', flagEmoji: '🇸🇦' }
   ];
 
   constructor(private translate: TranslateService) {

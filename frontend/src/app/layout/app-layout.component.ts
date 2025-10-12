@@ -8,18 +8,18 @@ import { PanelMenuModule } from 'primeng/panelmenu';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DividerModule } from 'primeng/divider';
 import { AvatarModule } from 'primeng/avatar';
-import { SelectModule } from 'primeng/select';
 import { MenuModule } from 'primeng/menu';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { LanguageService, LangCode } from '../core/language.service';
+import { LanguageService } from '../core/language.service';
 import { NavService } from '../core/navigation/nav.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../core/auth.service';
+import { LanguageSwitcherComponent } from '../shared/language-switcher.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, SelectModule, MenuModule, FormsModule, TranslateModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, FormsModule, TranslateModule, LanguageSwitcherComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen flex flex-column">
@@ -34,7 +34,7 @@ import { AuthService } from '../core/auth.service';
         </ng-template>
         <ng-template pTemplate="end">
           <div class="flex align-items-center gap-2">
-            <p-select [options]="lang.languages" optionLabel="label" optionValue="code" [(ngModel)]="selectedLang" (onChange)="onLangChange($event.value)" styleClass="w-12rem" [ariaLabel]="'app.language' | translate"></p-select>
+            <app-language-switcher></app-language-switcher>
             <button pButton type="button" icon="pi pi-bell" class="p-button-text" aria-label="Notifications"></button>
             <button pButton type="button" icon="pi pi-moon" class="p-button-text" (click)="toggleTheme()" [ariaLabel]="themeLabel()"></button>
             <button pButton type="button" class="p-button-text flex align-items-center gap-2" (click)="profileMenu.toggle($event)" aria-haspopup="true" [ariaLabel]="auth.username()">
@@ -67,7 +67,7 @@ import { AuthService } from '../core/auth.service';
       <!-- Footer -->
       <div class="p-3 text-600 text-sm border-top-1 surface-border flex justify-content-between">
         <span>v0.0.1</span>
-        <span>{{ selectedLang }}</span>
+        <span>{{ lang.current() }}</span>
       </div>
     </div>
   `
@@ -76,10 +76,8 @@ export class AppLayoutComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   sidebarOpen = false;
-  selectedLang: LangCode;
   profileItems = [] as any[];
   constructor(public lang: LanguageService, public nav: NavService, public auth: AuthService, private translate: TranslateService){
-    this.selectedLang = this.lang.current();
     this.buildProfileItems();
     // Rebuild menu items when language changes for dynamic translation
     this.translate.onLangChange.subscribe(() => this.buildProfileItems());
@@ -88,8 +86,6 @@ export class AppLayoutComponent {
   }
 
   toggleSidebar(){ this.sidebarOpen = !this.sidebarOpen; }
-
-  onLangChange(code: LangCode){ this.lang.use(code); this.selectedLang = code; }
 
   // Simple theme toggle stub persisted locally
   toggleTheme(){

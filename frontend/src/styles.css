@@ -23,4 +23,67 @@ a:hover { text-decoration: underline; }
 .mb-2 { margin-bottom: .5rem; }
 .mb-3 { margin-bottom: 1rem; }
 
+/* Navbar theme overrides */
+:root {
+  --navbar-bg: #0b5d4f; /* dark green-ish */
+  --navbar-text: #ffffff;
+}
+
+/* PrimeNG Menubar override to apply dark green-ish background */
+.p-menubar {
+  background-color: var(--navbar-bg) !important;
+  border-color: rgba(0,0,0,0.15) !important;
+  color: var(--navbar-text) !important;
+}
+
+/* Ensure text and icons inside navbar are readable */
+.p-menubar, .p-menubar * {
+  --text-color: var(--navbar-text);
+}
+.p-menubar .p-menuitem-link, 
+.p-menubar .p-menuitem-text, 
+.p-menubar .p-menuitem-icon, 
+.p-menubar .p-submenu-icon,
+.p-menubar a,
+.p-menubar .text-color {
+  color: var(--navbar-text) !important;
+}
+
+/* Buttons in the menubar (e.g., bell, theme toggle) */
+.p-menubar .p-button.p-button-text {
+  color: var(--navbar-text) !important;
+}
+
+/* Divider/border lines within menubar should be subtle */
+.p-menubar .p-divider-horizontal {
+  border-top-color: rgba(255,255,255,0.2) !important;
+}
+
+/* Language Select: compact size and flag alignment */
+.lang-select.p-select,
+.lang-select .p-select-label {
+  font-size: 0.85rem;
+}
+.lang-select .p-select-label,
+.lang-select .p-select-trigger {
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+}
+.lang-select .lang-flag-img {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+}
+.lang-select .lang-label {
+  font-size: 0.85rem;
+}
+
+/* Make the select control narrower */
+.lang-select {
+  width: 8rem !important;
+  min-width: 8rem !important;
+}
+
 /* Remove legacy nav styles (replaced by PrimeNG Menubar) */

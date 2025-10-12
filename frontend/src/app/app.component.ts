@@ -8,11 +8,12 @@ import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService, LangCode } from './core/language.service';
+import {LanguageSwitcherComponent} from "./shared/language-switcher.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NgIf, FormsModule, MenubarModule, ButtonModule, DropdownModule, TranslateModule],
+  imports: [RouterOutlet, RouterLink, NgIf, FormsModule, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })

@@ -14,10 +14,10 @@ export class NavService {
       { labelKey: 'menu.home', icon: 'pi pi-home', route: '/home' },
       { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: ['product:read'] },
       { labelKey: 'menu.employees', icon: 'pi pi-users', route: '/employees', permissions: ['employee:read'] },
-      { labelKey: 'menu.roles', icon: 'pi pi-id-card', route: '/roles', permissions: ['role:read'] },
-      { labelKey: 'menu.rules', icon: 'pi pi-sliders-h', route: '/rules', permissions: ['rule:read'] },
-      { labelKey: 'menu.import', icon: 'pi pi-upload', route: '/import', permissions: ['import:configure'] },
       { labelKey: 'menu.delivery', icon: 'pi pi-truck', route: '/delivery', permissions: ['delivery:read'] },
+      { labelKey: 'menu.rules', icon: 'pi pi-sliders-h', route: '/rules', permissions: ['rule:read'] },
+      { labelKey: 'menu.roles', icon: 'pi pi-id-card', route: '/roles', permissions: ['role:read'] },
+      { labelKey: 'menu.import', icon: 'pi pi-upload', route: '/import', permissions: ['import:configure'] },
     ];
   }
 
