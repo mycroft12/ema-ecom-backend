@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 
 interface LoginRequest { username: string; password: string; }
 interface LoginResponse { accessToken: string; }
-interface JwtPayload { sub: string; roles?: string[]; permissions?: string[]; name?: string; exp?: number; }
+interface JwtPayload { sub: string; roles?: string[]; permissions?: string[]; name?: string; exp?: number; username?: string; preferred_username?: string; }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -26,7 +26,16 @@ export class AuthService {
   logout(){ localStorage.removeItem(this.tokenKey); window.location.href = '/login'; }
   isAuthenticated(): boolean { const t = this.getToken(); if(!t) return false; try{ const d = jwtDecode<JwtPayload>(t); return !this.isExpired(d); }catch{ return false; } }
   private isExpired(d: JwtPayload){ return !!d.exp && d.exp * 1000 < Date.now(); }
-  username(): string { const t = this.getToken(); if(!t) return ''; try{ const d = jwtDecode<JwtPayload>(t); return d.name || d.sub; }catch{ return ''; } }
+  username(): string { 
+    const t = this.getToken(); 
+    if(!t) return ''; 
+    try{ 
+      const d = jwtDecode<JwtPayload>(t) as JwtPayload & Record<string, any>; 
+      return d.name || d.username || d.preferred_username || d.sub; 
+    }catch{ 
+      return ''; 
+    } 
+  }
   permissions(): string[] { const t = this.getToken(); if(!t) return []; try{ const d = jwtDecode<JwtPayload>(t); return d.permissions || []; }catch{ return []; } }
   hasAny(perms: string[]): boolean { const p = this.permissions(); return perms.some(x => p.includes(x)); }
 }

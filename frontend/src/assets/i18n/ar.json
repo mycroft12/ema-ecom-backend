@@ -5,6 +5,19 @@
     "logout": "تسجيل الخروج",
     "language": "اللغة"
   },
+  "menu": {
+    "home": "الصفحة الرئيسية",
+    "products": "المنتجات",
+    "employees": "الموظفون",
+    "roles": "الملفات",
+    "rules": "القواعد",
+    "import": "استيراد",
+    "delivery": "التسليم"
+  },
+  "profile": {
+    "update": "تحديث",
+    "disconnect": "تسجيل الخروج"
+  },
   "auth": {
     "username": "اسم المستخدم",
     "password": "كلمة المرور",

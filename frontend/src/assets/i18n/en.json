@@ -5,6 +5,19 @@
     "logout": "Logout",
     "language": "Language"
   },
+  "menu": {
+    "home": "Home",
+    "products": "Products",
+    "employees": "Employees",
+    "roles": "Profils",
+    "rules": "Rules",
+    "import": "Import",
+    "delivery": "Delivery"
+  },
+  "profile": {
+    "update": "Update",
+    "disconnect": "Disconnect"
+  },
   "auth": {
     "username": "Username",
     "password": "Password",

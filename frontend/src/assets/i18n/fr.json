@@ -5,6 +5,19 @@
     "logout": "Déconnexion",
     "language": "Langue"
   },
+  "menu": {
+    "home": "Accueil",
+    "products": "Produits",
+    "employees": "Employés",
+    "roles": "Profils",
+    "rules": "Règles",
+    "import": "Import",
+    "delivery": "Livraison"
+  },
+  "profile": {
+    "update": "Mettre à jour",
+    "disconnect": "Déconnexion"
+  },
   "auth": {
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",

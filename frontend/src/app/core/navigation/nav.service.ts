@@ -1,0 +1,62 @@
+import { Injectable } from '@angular/core';
+import { MenuItem } from 'primeng/api';
+import { NavItem } from './nav.model';
+import { AuthService } from '../auth.service';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+
+@Injectable({ providedIn: 'root' })
+export class NavService {
+  constructor(private auth: AuthService, private translate: TranslateService) {}
+
+  private allItems(): NavItem[] {
+    return [
+      { labelKey: 'menu.home', icon: 'pi pi-home', route: '/home' },
+      { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: ['product:read'] },
+      { labelKey: 'menu.employees', icon: 'pi pi-users', route: '/employees', permissions: ['employee:read'] },
+      { labelKey: 'menu.roles', icon: 'pi pi-id-card', route: '/roles', permissions: ['role:read'] },
+      { labelKey: 'menu.rules', icon: 'pi pi-sliders-h', route: '/rules', permissions: ['rule:read'] },
+      { labelKey: 'menu.import', icon: 'pi pi-upload', route: '/import', permissions: ['import:configure'] },
+      { labelKey: 'menu.delivery', icon: 'pi pi-truck', route: '/delivery', permissions: ['delivery:read'] },
+    ];
+  }
+
+  private allowed(item: NavItem): boolean {
+    const req = item.permissions || [];
+    return req.length === 0 || this.auth.hasAny(req);
+  }
+
+  private toMenuItem(item: NavItem): MenuItem | null {
+    if (!this.allowed(item)) return null;
+    const children = (item.children || []).map((c) => this.toMenuItem(c)).filter(Boolean) as MenuItem[];
+    const menuItem: MenuItem = {
+      label: this.translate.instant(item.labelKey),
+      icon: item.icon,
+      routerLink: item.route,
+      items: children.length ? children : undefined
+    };
+    return menuItem;
+  }
+
+  // Expose a MenuItem[] for PanelMenu with translated labels
+  menuItems(): MenuItem[] {
+    return this.allItems().map((i) => this.toMenuItem(i)).filter(Boolean) as MenuItem[];
+  }
+
+  // Build breadcrumb model from route data recursively with translated labels
+  breadcrumbsFromRoute(root: ActivatedRouteSnapshot): MenuItem[] {
+    const out: MenuItem[] = [];
+    const t = this.translate;
+    function traverse(node?: ActivatedRouteSnapshot) {
+      if (!node) return;
+      const key = node.data && node.data['breadcrumb'];
+      if (key) {
+        out.push({ label: t.instant(key) });
+      }
+      const firstChild = node.firstChild;
+      if (firstChild) traverse(firstChild);
+    }
+    traverse(root);
+    return out;
+  }
+}
