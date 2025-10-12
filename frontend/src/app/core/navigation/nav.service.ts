@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { NavItem } from './nav.model';
 import { AuthService } from '../auth.service';
-import { ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class NavService {
-  constructor(private auth: AuthService, private translate: TranslateService) {}
+  constructor(private auth: AuthService, private translate: TranslateService, private router: Router) {}
 
   private allItems(): NavItem[] {
     return [
@@ -44,7 +44,13 @@ export class NavService {
     const menuItem: MenuItem = {
       label: this.translate.instant(item.labelKey),
       icon: item.icon,
-      routerLink: item.route,
+      routerLink: item.route, // keep routerLink for standard navigation
+      command: () => {
+        if (item.route) {
+          // Ensure absolute navigation
+          this.router.navigateByUrl(item.route);
+        }
+      },
       items: children.length ? children : undefined
     };
     return menuItem;
