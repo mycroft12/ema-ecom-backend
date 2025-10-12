@@ -23,7 +23,19 @@ export class NavService {
 
   private allowed(item: NavItem): boolean {
     const req = item.permissions || [];
-    return req.length === 0 || this.auth.hasAny(req);
+    // If no specific permissions required, always allow
+    if (req.length === 0) return true;
+    // If user's token has no permissions claim, optimistically show the item (UI visibility)
+    // This avoids empty menus when backend doesn't yet populate permissions.
+    try {
+      const userPerms = this.auth.permissions();
+      if (!userPerms || userPerms.length === 0) return true;
+    } catch {
+      // In case of any parsing error, do not block the menu visibility
+      return true;
+    }
+    // Otherwise enforce permission check
+    return this.auth.hasAny(req);
   }
 
   private toMenuItem(item: NavItem): MenuItem | null {

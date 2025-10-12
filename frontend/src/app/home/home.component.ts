@@ -22,30 +22,12 @@ import { Subscription } from 'rxjs';
         <h2 class="mt-0">{{ 'menu.home' | translate }}</h2>
         <p class="text-600 mb-4">{{ 'app.title' | translate }}</p>
         <div class="grid">
-          <div class="col-12 lg:col-4">
-            <div class="p-3 border-1 surface-border border-round surface-card">
-              <div class="text-600 mb-2">{{ 'menu.products' | translate }}</div>
-              <a routerLink="/products" class="p-button p-component">
-                <span class="p-button-icon pi pi-box mr-2" aria-hidden="true"></span>
-                <span class="p-button-label">{{ 'menu.products' | translate }}</span>
-              </a>
-            </div>
-          </div>
-          <div class="col-12 lg:col-4">
-            <div class="p-3 border-1 surface-border border-round surface-card">
-              <div class="text-600 mb-2">{{ 'menu.employees' | translate }}</div>
-              <a routerLink="/employees" class="p-button p-component">
-                <span class="p-button-icon pi pi-users mr-2" aria-hidden="true"></span>
-                <span class="p-button-label">{{ 'menu.employees' | translate }}</span>
-              </a>
-            </div>
-          </div>
-          <div class="col-12 lg:col-4">
-            <div class="p-3 border-1 surface-border border-round surface-card">
-              <div class="text-600 mb-2">{{ 'menu.delivery' | translate }}</div>
-              <a routerLink="/delivery" class="p-button p-component">
-                <span class="p-button-icon pi pi-truck mr-2" aria-hidden="true"></span>
-                <span class="p-button-label">{{ 'menu.delivery' | translate }}</span>
+          <div class="col-12 sm:col-6 lg:col-4 xl:col-3" *ngFor="let f of featureTiles">
+            <div class="p-3 border-1 surface-border border-round surface-card h-full">
+              <div class="text-600 mb-2">{{ f.label }}</div>
+              <a [routerLink]="f.routerLink" class="p-button p-component">
+                <span class="p-button-icon" [ngClass]="f.icon + ' mr-2'" aria-hidden="true"></span>
+                <span class="p-button-label">{{ f.label }}</span>
               </a>
             </div>
           </div>
@@ -56,14 +38,34 @@ import { Subscription } from 'rxjs';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   menu = this.nav.menuItems();
+  featureTiles = this.buildTiles();
   private sub?: Subscription;
   constructor(private nav: NavService, private translate: TranslateService) {}
 
+  private buildTiles() {
+    // Use translated MenuItem model from NavService and exclude Home itself
+    const items = this.nav.menuItems();
+    // MenuItem type is loose; pick fields we need safely
+    return items
+      .filter((i) => (i as any).routerLink && (i as any).routerLink !== '/home')
+      .map((i) => ({
+        label: (i as any).label as string,
+        icon: (i as any).icon as string,
+        routerLink: (i as any).routerLink as string
+      }));
+  }
+
   ngOnInit(): void {
-    // Rebuild the menu whenever translations or language change to avoid showing raw keys like 'menu.home'.
+    // Rebuild the menu and tiles whenever translations or language change to avoid showing raw keys like 'menu.home'.
     this.sub = new Subscription();
-    this.sub.add(this.translate.onLangChange.subscribe(() => (this.menu = this.nav.menuItems())));
-    this.sub.add(this.translate.onTranslationChange.subscribe(() => (this.menu = this.nav.menuItems())));
+    this.sub.add(this.translate.onLangChange.subscribe(() => {
+      this.menu = this.nav.menuItems();
+      this.featureTiles = this.buildTiles();
+    }));
+    this.sub.add(this.translate.onTranslationChange.subscribe(() => {
+      this.menu = this.nav.menuItems();
+      this.featureTiles = this.buildTiles();
+    }));
   }
 
   ngOnDestroy(): void {
