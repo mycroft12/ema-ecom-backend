@@ -60,6 +60,15 @@ public class DevAdminInitializer implements CommandLineRunner {
         });
     }
 
+    private void addForeignKeyIfMissing(String table, String constraintName, String column, String refTable, String refColumn, String onDelete) {
+        Boolean exists = jdbc.queryForObject("select exists(select 1 from pg_constraint where conname = ?)", Boolean.class, constraintName);
+        if (exists == null || !exists) {
+            String sql = String.format("alter table %s add constraint %s foreign key (%s) references %s(%s)%s",
+                    table, constraintName, column, refTable, refColumn, (onDelete != null ? " on delete " + onDelete : ""));
+            jdbc.execute(sql);
+        }
+    }
+
     private void ensureSchema(){
         // Create tables if they do not exist (id UUID, audit fields, minimal columns)
         // Note: we keep DDL minimal and idempotent for dev.
@@ -72,12 +81,12 @@ public class DevAdminInitializer implements CommandLineRunner {
         jdbc.execute("create table if not exists users_roles (user_id uuid not null, role_id uuid not null, primary key (user_id, role_id))");
         // Refresh tokens table (used by auth service)
         jdbc.execute("create table if not exists refresh_tokens (id uuid primary key, created_at timestamp not null default now(), updated_at timestamp not null default now(), token text not null unique, revoked boolean not null default false, expires_at timestamp not null, user_id uuid not null)");
-        // Add FKs if missing (try-catch to ignore if already there)
-        try { jdbc.execute("alter table roles_permissions add constraint fk_rp_role foreign key (role_id) references roles(id)"); } catch (Exception ignored) {}
-        try { jdbc.execute("alter table roles_permissions add constraint fk_rp_perm foreign key (permission_id) references permissions(id)"); } catch (Exception ignored) {}
-        try { jdbc.execute("alter table users_roles add constraint fk_ur_user foreign key (user_id) references users(id)"); } catch (Exception ignored) {}
-        try { jdbc.execute("alter table users_roles add constraint fk_ur_role foreign key (role_id) references roles(id)"); } catch (Exception ignored) {}
-        try { jdbc.execute("alter table refresh_tokens add constraint fk_rt_user foreign key (user_id) references users(id) on delete cascade"); } catch (Exception ignored) {}
+        // Add FKs if missing without causing transaction aborts (check catalog to avoid errors)
+        addForeignKeyIfMissing("roles_permissions", "fk_rp_role", "role_id", "roles", "id", null);
+        addForeignKeyIfMissing("roles_permissions", "fk_rp_perm", "permission_id", "permissions", "id", null);
+        addForeignKeyIfMissing("users_roles", "fk_ur_user", "user_id", "users", "id", null);
+        addForeignKeyIfMissing("users_roles", "fk_ur_role", "role_id", "roles", "id", null);
+        addForeignKeyIfMissing("refresh_tokens", "fk_rt_user", "user_id", "users", "id", "cascade");
         // Useful indexes
         try { jdbc.execute("create index if not exists idx_refresh_tokens_user_id on refresh_tokens(user_id)"); } catch (Exception ignored) {}
         try { jdbc.execute("create index if not exists idx_refresh_tokens_token on refresh_tokens(token)"); } catch (Exception ignored) {}
