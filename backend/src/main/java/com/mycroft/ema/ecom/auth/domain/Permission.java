@@ -11,5 +11,4 @@ import lombok.Getter; import lombok.Setter;
 public class Permission extends BaseEntity {
   @Column(unique = true, nullable = false)
   private String name; // e.g. employee:create
-  private String description;
 }

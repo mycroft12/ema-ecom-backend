@@ -5,7 +5,7 @@ spring:
     active: dev
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate:
@@ -13,7 +13,7 @@ spring:
         connection:
           provider_disables_autocommit: true
   flyway:
-    enabled: true
+    enabled: false
   web:
     resources:
       static-locations: classpath:/resources-static/,classpath:/static/,classpath:/public/
@@ -30,3 +30,15 @@ app:
   jwt:
     issuer: ema-ecom
     access-ttl-seconds: 900
+  auth:
+    admin:
+      username: admin
+      password: admin
+  minio:
+    # Example MinIO config (override in application-dev.yml or environment)
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket: ema-ecom
+    # Optional public base URL (e.g., served via Nginx)
+    public-base-url: http://localhost:9000/ema-ecom

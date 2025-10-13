@@ -23,7 +23,7 @@ public class PermissionServiceImpl implements PermissionService {
   @Override
   public Permission update(UUID id, Permission p){
     var existing = perms.findById(id).orElseThrow(() -> new NotFoundException("Permission not found"));
-    existing.setName(p.getName()); existing.setDescription(p.getDescription());
+    existing.setName(p.getName());
     return perms.save(existing);
   }
 

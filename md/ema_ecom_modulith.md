@@ -886,49 +886,109 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID>, JpaSp
 ```
 
 **src/main/java/com/mycroft/ema/ecom/employees/service/EmployeeService.java**
+
 ```java
 package com.mycroft.ema.ecom.employees.service;
 
 import com.mycroft.ema.ecom.common.error.NotFoundException;
-import com.mycroft.ema.ecom.employees.domain.Employee; import com.mycroft.ema.ecom.employees.domain.EmployeeType;
-import com.mycroft.ema.ecom.employees.dto.*; import com.mycroft.ema.ecom.employees.repo.EmployeeRepository;
-import org.springframework.data.domain.Page; import org.springframework.data.domain.Pageable; import org.springframework.data.jpa.domain.Specification;
+import com.mycroft.ema.ecom.employees.domain.Employee;
+import com.mycroft.ema.ecom.employees.domain.EmployeeType;
+import com.mycroft.ema.ecom.employees.repo.EmployeeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import java.util.UUID; import static com.mycroft.ema.ecom.employees.repo.EmployeeRepository.*;
+
+import java.util.UUID;
 
 @Service
 public class EmployeeService {
-  private final EmployeeRepository repo; private final EmployeeMapper mapper;
-  public EmployeeService(EmployeeRepository repo, EmployeeMapper mapper){ this.repo=repo; this.mapper=mapper; }
+    private final EmployeeRepository repo;
+    private final EmployeeMapper mapper;
 
-  public Page<EmployeeViewDto> search(String q, EmployeeType type, Pageable pageable){
-    Specification<Employee> spec = Specification.where(firstNameLike(q)).or(lastNameLike(q)).and(typeEq(type));
-    return repo.findAll(spec, pageable).map(mapper::toView);
-  }
-  public EmployeeViewDto create(EmployeeCreateDto dto){ return mapper.toView(repo.save(mapper.toEntity(dto))); }
-  public EmployeeViewDto update(UUID id, EmployeeUpdateDto dto){ var e = repo.findById(id).orElseThrow(()->new NotFoundException("Employee not found")); mapper.updateEntity(dto, e); return mapper.toView(repo.save(e)); }
-  public void delete(UUID id){ repo.deleteById(id); }
-  public EmployeeViewDto get(UUID id){ return repo.findById(id).map(mapper::toView).orElseThrow(()->new NotFoundException("Employee not found")); }
+    public EmployeeService(EmployeeRepository repo, EmployeeMapper mapper) {
+        this.repo = repo;
+        this.mapper = mapper;
+    }
+
+    public Page<EmployeeViewDto> search(String q, EmployeeType type, Pageable pageable) {
+        Specification<Employee> spec = Specification.where(firstNameLike(q)).or(lastNameLike(q)).and(typeEq(type));
+        return repo.findAll(spec, pageable).map(mapper::toView);
+    }
+
+    public EmployeeViewDto create(EmployeeCreateDto dto) {
+        return mapper.toView(repo.save(mapper.toEntity(dto)));
+    }
+
+    public EmployeeViewDto update(UUID id, EmployeeUpdateDto dto) {
+        var e = repo.findById(id).orElseThrow(() -> new NotFoundException("Employee not found"));
+        mapper.updateEntity(dto, e);
+        return mapper.toView(repo.save(e));
+    }
+
+    public void delete(UUID id) {
+        repo.deleteById(id);
+    }
+
+    public EmployeeViewDto get(UUID id) {
+        return repo.findById(id).map(mapper::toView).orElseThrow(() -> new NotFoundException("Employee not found"));
+    }
 }
 ```
 
 **src/main/java/com/mycroft/ema/ecom/employees/web/EmployeeController.java**
+
 ```java
 package com.mycroft.ema.ecom.employees.web;
 
-import com.mycroft.ema.ecom.common.web.PageResponse; import com.mycroft.ema.ecom.employees.domain.EmployeeType; import com.mycroft.ema.ecom.employees.dto.*; import com.mycroft.ema.ecom.employees.service.EmployeeService;
-import jakarta.validation.Valid; import org.springframework.data.domain.Pageable; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.web.bind.annotation.*;
+import com.mycroft.ema.ecom.common.web.PageResponse;
+import com.mycroft.ema.ecom.employees.domain.EmployeeType;
+import com.mycroft.ema.ecom.employees.service.EmployeeService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.UUID;
 
-@RestController @RequestMapping("/api/employees")
+@RestController
+@RequestMapping("/api/employees")
 public class EmployeeController {
-  private final EmployeeService service; public EmployeeController(EmployeeService service){ this.service=service; }
-  @GetMapping @PreAuthorize("hasAuthority('employee:read')")
-  public PageResponse<EmployeeViewDto> search(@RequestParam(required=false) String q, @RequestParam(required=false) EmployeeType type, Pageable pageable) { return PageResponse.of(service.search(q, type, pageable)); }
-  @GetMapping("/{id}") @PreAuthorize("hasAuthority('employee:read')") public EmployeeViewDto get(@PathVariable UUID id){ return service.get(id); }
-  @PostMapping @PreAuthorize("hasAuthority('employee:create')") public EmployeeViewDto create(@Valid @RequestBody EmployeeCreateDto dto){ return service.create(dto); }
-  @PutMapping("/{id}") @PreAuthorize("hasAuthority('employee:update')") public EmployeeViewDto update(@PathVariable UUID id, @Valid @RequestBody EmployeeUpdateDto dto){ return service.update(id, dto); }
-  @DeleteMapping("/{id}") @PreAuthorize("hasAuthority('employee:delete')") public void delete(@PathVariable UUID id){ service.delete(id); }
+    private final EmployeeService service;
+
+    public EmployeeController(EmployeeService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('employee:read')")
+    public PageResponse<EmployeeViewDto> search(@RequestParam(required = false) String q, @RequestParam(required = false) EmployeeType type, Pageable pageable) {
+        return PageResponse.of(service.search(q, type, pageable));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('employee:read')")
+    public EmployeeViewDto get(@PathVariable UUID id) {
+        return service.get(id);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('employee:create')")
+    public EmployeeViewDto create(@Valid @RequestBody EmployeeCreateDto dto) {
+        return service.create(dto);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('employee:update')")
+    public EmployeeViewDto update(@PathVariable UUID id, @Valid @RequestBody EmployeeUpdateDto dto) {
+        return service.update(id, dto);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('employee:delete')")
+    public void delete(@PathVariable UUID id) {
+        service.delete(id);
+    }
 }
 ```
 
@@ -992,43 +1052,107 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 ```
 
 **src/main/java/com/mycroft/ema/ecom/products/service/ProductService.java**
+
 ```java
 package com.mycroft.ema.ecom.products.service;
 
-import com.mycroft.ema.ecom.common.error.NotFoundException; import com.mycroft.ema.ecom.products.domain.Product; import com.mycroft.ema.ecom.products.dto.*; import com.mycroft.ema.ecom.products.repo.ProductRepository;
-import org.springframework.data.domain.*; import org.springframework.data.jpa.domain.Specification; import org.springframework.stereotype.Service;
+import com.mycroft.ema.ecom.common.error.NotFoundException;
+import com.mycroft.ema.ecom.products.domain.Product;
+import com.mycroft.ema.ecom.products.repo.ProductRepository;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
 import java.util.UUID;
 
 @Service
 public class ProductService {
-  private final ProductRepository repo; private final ProductMapper mapper; public ProductService(ProductRepository repo, ProductMapper mapper){ this.repo=repo; this.mapper=mapper; }
-  public Page<ProductViewDto> search(String q, Boolean active, Pageable pageable){
-    Specification<Product> spec = Specification.where((root, cq, cb) -> q==null ? null : cb.like(cb.lower(root.get("name")), "%"+q.toLowerCase()+"%"))
-        .and((root, cq, cb) -> active==null?null: cb.equal(root.get("active"), active));
-    return repo.findAll(spec, pageable).map(mapper::toView);
-  }
-  public ProductViewDto create(ProductCreateDto dto){ return mapper.toView(repo.save(mapper.toEntity(dto))); }
-  public ProductViewDto update(UUID id, ProductUpdateDto dto){ var p = repo.findById(id).orElseThrow(()->new NotFoundException("Product not found")); mapper.updateEntity(dto, p); return mapper.toView(repo.save(p)); }
-  public void delete(UUID id){ repo.deleteById(id); }
-  public ProductViewDto get(UUID id){ return repo.findById(id).map(mapper::toView).orElseThrow(()->new NotFoundException("Product not found")); }
+    private final ProductRepository repo;
+    private final ProductMapper mapper;
+
+    public ProductService(ProductRepository repo, ProductMapper mapper) {
+        this.repo = repo;
+        this.mapper = mapper;
+    }
+
+    public Page<ProductViewDto> search(String q, Boolean active, Pageable pageable) {
+        Specification<Product> spec = Specification.where((root, cq, cb) -> q == null ? null : cb.like(cb.lower(root.get("name")), "%" + q.toLowerCase() + "%"))
+                .and((root, cq, cb) -> active == null ? null : cb.equal(root.get("active"), active));
+        return repo.findAll(spec, pageable).map(mapper::toView);
+    }
+
+    public ProductViewDto create(ProductCreateDto dto) {
+        return mapper.toView(repo.save(mapper.toEntity(dto)));
+    }
+
+    public ProductViewDto update(UUID id, ProductUpdateDto dto) {
+        var p = repo.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
+        mapper.updateEntity(dto, p);
+        return mapper.toView(repo.save(p));
+    }
+
+    public void delete(UUID id) {
+        repo.deleteById(id);
+    }
+
+    public ProductViewDto get(UUID id) {
+        return repo.findById(id).map(mapper::toView).orElseThrow(() -> new NotFoundException("Product not found"));
+    }
 }
 ```
 
 **src/main/java/com/mycroft/ema/ecom/products/web/ProductController.java**
+
 ```java
 package com.mycroft.ema.ecom.products.web;
 
-import com.mycroft.ema.ecom.common.web.PageResponse; import com.mycroft.ema.ecom.products.dto.*; import com.mycroft.ema.ecom.products.service.ProductService;
-import jakarta.validation.Valid; import org.springframework.data.domain.Pageable; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.web.bind.annotation.*; import java.util.UUID;
+import com.mycroft.ema.ecom.common.web.PageResponse;
+import com.mycroft.ema.ecom.products.service.ProductService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-@RestController @RequestMapping("/api/products")
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/products")
 public class ProductController {
-  private final ProductService service; public ProductController(ProductService service){ this.service=service; }
-  @GetMapping @PreAuthorize("hasAuthority('product:read')") public PageResponse<ProductViewDto> search(@RequestParam(required=false) String q, @RequestParam(required=false) Boolean active, Pageable pageable){ return PageResponse.of(service.search(q, active, pageable)); }
-  @GetMapping("/{id}") @PreAuthorize("hasAuthority('product:read')") public ProductViewDto get(@PathVariable UUID id){ return service.get(id); }
-  @PostMapping @PreAuthorize("hasAuthority('product:create')") public ProductViewDto create(@Valid @RequestBody ProductCreateDto dto){ return service.create(dto); }
-  @PutMapping("/{id}") @PreAuthorize("hasAuthority('product:update')") public ProductViewDto update(@PathVariable UUID id, @Valid @RequestBody ProductUpdateDto dto){ return service.update(id, dto); }
-  @DeleteMapping("/{id}") @PreAuthorize("hasAuthority('product:delete')") public void delete(@PathVariable UUID id){ service.delete(id); }
+    private final ProductService service;
+
+    public ProductController(ProductService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('product:read')")
+    public PageResponse<ProductViewDto> search(@RequestParam(required = false) String q, @RequestParam(required = false) Boolean active, Pageable pageable) {
+        return PageResponse.of(service.search(q, active, pageable));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('product:read')")
+    public ProductViewDto get(@PathVariable UUID id) {
+        return service.get(id);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('product:create')")
+    public ProductViewDto create(@Valid @RequestBody ProductCreateDto dto) {
+        return service.create(dto);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('product:update')")
+    public ProductViewDto update(@PathVariable UUID id, @Valid @RequestBody ProductUpdateDto dto) {
+        return service.update(id, dto);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('product:delete')")
+    public void delete(@PathVariable UUID id) {
+        service.delete(id);
+    }
 }
 ```
 
