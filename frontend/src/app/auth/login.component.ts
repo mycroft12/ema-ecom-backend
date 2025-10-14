@@ -72,7 +72,7 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.auth.login(this.username, this.password).subscribe({
       next: (res) => {
-        this.auth.saveToken(res.accessToken);
+        this.auth.saveLoginResponse(res);
         this.loading = false;
         this.router.navigateByUrl('/home');
       },
