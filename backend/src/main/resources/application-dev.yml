@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ema_ecom
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:5432/emaecom
+    username: ema
+    password: ema
     driver-class-name: org.postgresql.Driver
     hikari:
       auto-commit: false
