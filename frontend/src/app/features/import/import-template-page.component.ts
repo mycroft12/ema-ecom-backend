@@ -240,19 +240,32 @@ export class ImportTemplatePageComponent implements OnInit {
       this.error = !this.domain ? 'import.domainPlaceholder' : 'import.error';
       return;
     }
-    const form = new FormData();
-    form.append('file', file);
-    form.append('domain', this.domain);
-    this.loading = true;
-    this.http.post('/api/import/configure', form).subscribe({
-      next: (res) => { 
-        this.result = res; 
-        this.loading = false; 
-        this.success = 'import.success';
-      },
-      error: (err) => { 
-        this.error = err?.error?.message || 'import.error'; 
-        this.loading = false; 
+
+    // Get the display name of the domain for the confirmation message
+    const domainDisplayName = this.translate.instant(this.getDomainDisplayName(this.domain));
+
+    // Show confirmation dialog before proceeding
+    this.confirmationService.confirm({
+      message: this.translate.instant('import.confirmUpload', { domain: domainDisplayName }),
+      header: this.translate.instant('import.confirmUploadHeader'),
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        // User confirmed, proceed with upload
+        const form = new FormData();
+        form.append('file', file);
+        form.append('domain', this.domain);
+        this.loading = true;
+        this.http.post('/api/import/configure', form).subscribe({
+          next: (res) => { 
+            this.result = res; 
+            this.loading = false; 
+            this.success = 'import.success';
+          },
+          error: (err) => { 
+            this.error = err?.error?.message || 'import.error'; 
+            this.loading = false; 
+          }
+        });
       }
     });
   }

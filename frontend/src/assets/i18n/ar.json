@@ -126,6 +126,8 @@
     "resetError": "فشل في إعادة تعيين الجدول",
     "configuredDomains": "المجالات المهيأة",
     "domainConfigured": "تم تهيئة مجال {{domain}} وهو جاهز للاستخدام.",
-    "adminOnly": "خيارات المسؤول"
+    "adminOnly": "خيارات المسؤول",
+    "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",
+    "confirmUploadHeader": "تأكيد رفع النموذج"
   }
 }

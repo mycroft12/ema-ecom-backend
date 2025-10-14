@@ -126,6 +126,8 @@
     "resetError": "Failed to reset table",
     "configuredDomains": "Configured Domains",
     "domainConfigured": "The {{domain}} domain is configured and ready to use.",
-    "adminOnly": "Admin Options"
+    "adminOnly": "Admin Options",
+    "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",
+    "confirmUploadHeader": "Confirm Template Upload"
   }
 }

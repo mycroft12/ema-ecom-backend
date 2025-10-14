@@ -126,6 +126,8 @@
     "resetError": "Échec de la réinitialisation de la table",
     "configuredDomains": "Domaines configurés",
     "domainConfigured": "Le domaine {{domain}} est configuré et prêt à être utilisé.",
-    "adminOnly": "Options d'administrateur"
+    "adminOnly": "Options d'administrateur",
+    "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",
+    "confirmUploadHeader": "Confirmer le téléversement du modèle"
   }
 }
