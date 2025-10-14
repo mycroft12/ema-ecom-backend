@@ -30,6 +30,7 @@
           [showUploadButton]="false"
           [showCancelButton]="false"
           [auto]="false"
+          [chooseLabel]="('products.btnChooseFile' | translate)"
         >
           <ng-template pTemplate="content">
             <div class="flex align-items-center justify-content-center flex-column">
@@ -54,7 +55,7 @@
         }
 
         <div class="flex justify-content-end mt-4">
-          <p-button [label]="('products.btnConfigure' | translate)" icon="pi pi-check" [disabled]="!selectedFile() || isUploading()" [loading]="isUploading()" (onClick)="uploadTemplate()" />
+          <p-button [label]="('products.btnConfigure' | translate)" icon="pi pi-check" severity="primary" [raised]="true" size="large" [disabled]="!selectedFile() || isUploading()" [loading]="isUploading()" (onClick)="uploadTemplate()" />
         </div>
       </div>
     </p-card>

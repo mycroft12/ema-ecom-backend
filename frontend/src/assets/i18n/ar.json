@@ -42,6 +42,7 @@
     "validateBeforeApply": "التحقق من النموذج قبل التطبيق",
     "dragDrop": "اسحب وأفلت الملفات هنا أو انقر للاختيار",
     "acceptedFormats": "الصيغ المدعومة: ‎.xlsx, ‎.xls, ‎.csv (الحد الأقصى 10 ميجابايت)",
+    "btnChooseFile": "اختر النموذج",
     "btnConfigure": "تأكيد التهيئة",
     "btnDelete": "حذف",
     "btnCustomFilters": "فلاتر مخصصة",
@@ -91,5 +92,24 @@
     "opGreaterThan": "أكبر من",
     "opLessThan": "أقل من",
     "valuePlaceholder": "القيمة"
+  },
+  "import": {
+    "title": "استيراد نموذج",
+    "description": "قم برفع ملف Excel/CSV لتحليل الأعمدة وتهيئة جدول المجال.",
+    "domainLabel": "المكوّن",
+    "domainPlaceholder": "اختر المكوّن",
+    "domainProduct": "المنتجات",
+    "domainEmployee": "الموظفون",
+    "domainDelivery": "التوصيل",
+    "fileLabel": "ملف النموذج",
+    "chooseLabel": "اختر النموذج",
+    "uploadLabel": "تحليل وتهيئة",
+    "cancelLabel": "إلغاء",
+    "analyze": "تحليل وتهيئة",
+    "analyzing": "جارٍ التحليل...",
+    "resultTitle": "النتيجة",
+    "downloadExample": "تنزيل مثال للنموذج",
+    "selectComponentFirst": "يرجى اختيار المكوّن أولاً",
+    "error": "فشل تحليل النموذج"
   }
 }

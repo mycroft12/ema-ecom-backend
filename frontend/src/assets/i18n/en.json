@@ -42,6 +42,7 @@
     "validateBeforeApply": "Validate template before applying changes",
     "dragDrop": "Drag and drop files here or click to browse",
     "acceptedFormats": "Accepted formats: .xlsx, .xls, .csv (Max 10MB)",
+    "btnChooseFile": "Choose Template",
     "btnConfigure": "Configure Products",
     "btnDelete": "Delete",
     "btnCustomFilters": "Custom Filters",
@@ -91,5 +92,24 @@
     "opGreaterThan": "Greater Than",
     "opLessThan": "Less Than",
     "valuePlaceholder": "Value"
+  },
+  "import": {
+    "title": "Import Template",
+    "description": "Upload an Excel/CSV template to analyze columns and configure a domain table.",
+    "domainLabel": "Component",
+    "domainPlaceholder": "Select component",
+    "domainProduct": "Products",
+    "domainEmployee": "Employees",
+    "domainDelivery": "Delivery",
+    "fileLabel": "Template File",
+    "chooseLabel": "Choose Template",
+    "uploadLabel": "Analyze & Configure",
+    "cancelLabel": "Cancel",
+    "analyze": "Analyze & Configure",
+    "analyzing": "Analyzing...",
+    "resultTitle": "Result",
+    "downloadExample": "Download Template example",
+    "selectComponentFirst": "Please select a component first",
+    "error": "Failed to analyze template"
   }
 }

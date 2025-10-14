@@ -1,0 +1,4 @@
+order_id,tracking_number,carrier,shipped_date,expected_date,delivered,weight,boxes,recipient_name,address
+TEXT,TEXT,TEXT,DATE,DATE,BOOLEAN,DECIMAL,INTEGER,TEXT,TEXT
+"ORD-2024-0001","TRK123456789","DHL",2024-10-01,2024-10-05,false,2.35,1,"John Doe","221B Baker Street, London"
+"ORD-2024-0002","TRK987654321","FedEx",2024-10-03,2024-10-08,true,5.10,2,"Fatima Zahra","Rue de Rivoli, Paris"

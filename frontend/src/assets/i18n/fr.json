@@ -42,6 +42,7 @@
     "validateBeforeApply": "Valider le modèle avant d'appliquer les modifications",
     "dragDrop": "Glissez-déposez les fichiers ici ou cliquez pour parcourir",
     "acceptedFormats": "Formats acceptés : .xlsx, .xls, .csv (Max 10 Mo)",
+    "btnChooseFile": "Choisir le modèle",
     "btnConfigure": "Configurer les produits",
     "btnDelete": "Supprimer",
     "btnCustomFilters": "Filtres personnalisés",
@@ -91,5 +92,24 @@
     "opGreaterThan": "Supérieur à",
     "opLessThan": "Inférieur à",
     "valuePlaceholder": "Valeur"
+  },
+  "import": {
+    "title": "Importer un modèle",
+    "description": "Téléversez un fichier Excel/CSV pour analyser les colonnes et configurer une table de domaine.",
+    "domainLabel": "Composant",
+    "domainPlaceholder": "Sélectionnez un composant",
+    "domainProduct": "Produits",
+    "domainEmployee": "Employés",
+    "domainDelivery": "Livraison",
+    "fileLabel": "Fichier modèle",
+    "chooseLabel": "Choisir le modèle",
+    "uploadLabel": "Analyser et configurer",
+    "cancelLabel": "Annuler",
+    "analyze": "Analyser et configurer",
+    "analyzing": "Analyse...",
+    "resultTitle": "Résultat",
+    "downloadExample": "Télécharger un exemple de modèle",
+    "selectComponentFirst": "Veuillez d'abord sélectionner un composant",
+    "error": "Échec de l'analyse du modèle"
   }
 }

@@ -40,7 +40,6 @@ import { LanguageSwitcherComponent } from '../shared/language-switcher.component
 
           <ng-template pTemplate="footer">
             <div class="text-sm text-600">
-              <a class="block mb-2" (click)="goToForgot()">{{ 'auth.forgot' | translate }}</a>
               <span class="block">{{ 'auth.needAccount' | translate }}</span>
             </div>
           </ng-template>
@@ -57,7 +56,6 @@ export class LoginComponent implements OnInit {
   submitted = false;
   constructor(private auth: AuthService, private router: Router, private translate: TranslateService) {}
 
-  goToForgot(){ this.router.navigateByUrl('/forgot-password'); }
 
    ngOnInit(){
     if (this.auth.isAuthenticated()) {

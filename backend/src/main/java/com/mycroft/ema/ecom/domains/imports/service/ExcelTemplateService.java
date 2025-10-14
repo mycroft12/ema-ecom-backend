@@ -9,6 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,113 +26,214 @@ public class ExcelTemplateService {
 
   public TemplateAnalysisResponse analyzeTemplate(MultipartFile file, String tableName) {
     var warnings = new ArrayList<String>();
-    try(InputStream is = file.getInputStream()){
-      Workbook wb = WorkbookFactory.create(is);
-      Sheet sheet = wb.getNumberOfSheets() > 0 ? wb.getSheetAt(0) : null;
-      if(sheet == null){
-        throw new IllegalArgumentException("The Excel file has no sheets");
-      }
-      Row header = sheet.getRow(sheet.getFirstRowNum());
-      if(header == null){
-        throw new IllegalArgumentException("The first row must contain headers");
-      }
+    String filename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
+    String contentType = Optional.ofNullable(file.getContentType()).orElse("");
+    boolean isCsv = filename.toLowerCase(Locale.ROOT).endsWith(".csv")
+        || "text/csv".equalsIgnoreCase(contentType)
+        || "application/csv".equalsIgnoreCase(contentType);
 
-      List<String> headers = new ArrayList<>();
-      for(int c = header.getFirstCellNum(); c < header.getLastCellNum(); c++){
-        Cell cell = header.getCell(c);
-        String h = cell != null ? cell.toString().trim() : null;
-        if(h == null || h.isBlank()){
-          headers.add("col_"+c);
-          warnings.add("Empty header at column index "+c+", using default name col_"+c);
-        }else{
-          headers.add(h);
-        }
-      }
-
-      List<ColumnInfo> columns = new ArrayList<>();
-      Map<String, String> inferred = new LinkedHashMap<>();
-      Map<String, String> samples = new HashMap<>();
-      Map<String, Boolean> nullable = new HashMap<>();
-
-      int firstDataRow = sheet.getFirstRowNum() + 1;
-
-      // Detect explicit types row (required by new architecture): if row 1 looks like types
-      Row typesRow = sheet.getRow(firstDataRow);
-      if(typesRow != null){
-        boolean looksLikeTypes = true;
-        List<String> providedTypes = new ArrayList<>();
-        for(int c=0;c<headers.size();c++){
-          Cell cell = typesRow.getCell(c);
-          String v = cell == null ? null : cell.toString().trim();
-          if(v == null || v.isBlank()) { looksLikeTypes = false; break; }
-          providedTypes.add(v);
-          if(!isSupportedTypeMarker(v)){
-            looksLikeTypes = false; // if any not supported, fall back to inference
-            break;
+    try {
+      if (isCsv) {
+        // CSV branch: parse first row as headers, optional second row as type markers
+        try (InputStream is = file.getInputStream();
+             BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+          List<List<String>> rows = readCsv(br, SAMPLE_ROWS + 2);
+          if (rows.isEmpty()) {
+            throw new IllegalArgumentException("The CSV file is empty");
           }
-        }
-        if(looksLikeTypes){
-          for(int i=0;i<headers.size();i++){
-            String headerName = headers.get(i);
-            String norm = normalize(headerName);
-            String marker = providedTypes.get(i);
-            String logical = logicalTypeFor(marker);
-            String sql = sqlTypeFor(logical);
-            // By default, allow nullability for initial schema; can be refined later
-            columns.add(new ColumnInfo(headerName, norm, logical, sql, true, null));
+
+          // Headers
+          List<String> rawHeaders = rows.get(0);
+          List<String> headers = new ArrayList<>();
+          for (int c = 0; c < rawHeaders.size(); c++) {
+            String h = rawHeaders.get(c) == null ? null : rawHeaders.get(c).trim();
+            if (h == null || h.isBlank()) {
+              headers.add("col_" + c);
+              warnings.add("Empty header at column index " + c + ", using default name col_" + c);
+            } else {
+              headers.add(h);
+            }
           }
+
+          List<ColumnInfo> columns = new ArrayList<>();
+          Map<String, String> inferred = new LinkedHashMap<>();
+          Map<String, String> samples = new HashMap<>();
+          Map<String, Boolean> nullable = new HashMap<>();
+
+          // Optional types row
+          List<String> typesRow = rows.size() > 1 ? rows.get(1) : null;
+          boolean looksLikeTypes = typesRow != null && !typesRow.isEmpty();
+          List<String> providedTypes = new ArrayList<>();
+          if (looksLikeTypes) {
+            for (int c = 0; c < headers.size(); c++) {
+              String v = (typesRow.size() > c) ? Optional.ofNullable(typesRow.get(c)).orElse("").trim() : "";
+              if (v.isBlank() || !isSupportedTypeMarker(v)) { looksLikeTypes = false; break; }
+              providedTypes.add(v);
+            }
+          }
+
+          if (looksLikeTypes) {
+            for (int i = 0; i < headers.size(); i++) {
+              String headerName = headers.get(i);
+              String norm = normalize(headerName);
+              String marker = providedTypes.get(i);
+              String logical = logicalTypeFor(marker);
+              String sql = sqlTypeFor(logical);
+              columns.add(new ColumnInfo(headerName, norm, logical, sql, true, null));
+            }
+            String normalizedTable = normalize(tableName);
+            String ddl = buildCreateTable(normalizedTable, columns);
+            return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+          }
+
+          // Inference from data rows
+          for (int i = 0; i < headers.size(); i++) {
+            inferred.put(headers.get(i), "UNKNOWN");
+            nullable.put(headers.get(i), Boolean.FALSE);
+          }
+          int startData = 1; // row index after header (no types row)
+          int maxRow = Math.min(rows.size() - 1, SAMPLE_ROWS);
+          for (int r = startData; r <= maxRow; r++) {
+            List<String> row = rows.get(r);
+            if (row == null) continue;
+            for (int c = 0; c < headers.size(); c++) {
+              String head = headers.get(c);
+              String val = (row.size() > c) ? row.get(c) : null;
+              if (val == null || val.isBlank()) { nullable.put(head, Boolean.TRUE); continue; }
+              if (!samples.containsKey(head)) samples.put(head, val);
+              String cur = inferred.get(head);
+              String now = typeOf(val);
+              inferred.put(head, mergeTypes(cur, now));
+            }
+          }
+
+          for (String h : headers) {
+            String norm = normalize(h);
+            String inferredType = inferred.getOrDefault(h, "UNKNOWN");
+            if ("UNKNOWN".equals(inferredType)) {
+              inferredType = "STRING";
+              warnings.add("Column '" + h + "' has unknown type; defaulting to STRING");
+            }
+            String sqlType = sqlTypeFor(inferredType);
+            boolean isNullable = nullable.getOrDefault(h, Boolean.TRUE);
+            columns.add(new ColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
+          }
+
+          String normalizedTable = normalize(tableName);
+          String ddl = buildCreateTable(normalizedTable, columns);
+          return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+        }
+      } else {
+        // Excel branch (existing)
+        try (InputStream is = file.getInputStream()) {
+          Workbook wb = WorkbookFactory.create(is);
+          Sheet sheet = wb.getNumberOfSheets() > 0 ? wb.getSheetAt(0) : null;
+          if (sheet == null) {
+            throw new IllegalArgumentException("The Excel file has no sheets");
+          }
+          Row header = sheet.getRow(sheet.getFirstRowNum());
+          if (header == null) {
+            throw new IllegalArgumentException("The first row must contain headers");
+          }
+
+          List<String> headers = new ArrayList<>();
+          for (int c = header.getFirstCellNum(); c < header.getLastCellNum(); c++) {
+            Cell cell = header.getCell(c);
+            String h = cell != null ? cell.toString().trim() : null;
+            if (h == null || h.isBlank()) {
+              headers.add("col_" + c);
+              warnings.add("Empty header at column index " + c + ", using default name col_" + c);
+            } else {
+              headers.add(h);
+            }
+          }
+
+          List<ColumnInfo> columns = new ArrayList<>();
+          Map<String, String> inferred = new LinkedHashMap<>();
+          Map<String, String> samples = new HashMap<>();
+          Map<String, Boolean> nullable = new HashMap<>();
+
+          int firstDataRow = sheet.getFirstRowNum() + 1;
+
+          // Detect explicit types row (required by new architecture): if row 1 looks like types
+          Row typesRow = sheet.getRow(firstDataRow);
+          if (typesRow != null) {
+            boolean looksLikeTypes2 = true;
+            List<String> providedTypes = new ArrayList<>();
+            for (int c = 0; c < headers.size(); c++) {
+              Cell cell = typesRow.getCell(c);
+              String v = cell == null ? null : cell.toString().trim();
+              if (v == null || v.isBlank()) { looksLikeTypes2 = false; break; }
+              providedTypes.add(v);
+              if (!isSupportedTypeMarker(v)) {
+                looksLikeTypes2 = false; // if any not supported, fall back to inference
+                break;
+              }
+            }
+            if (looksLikeTypes2) {
+              for (int i = 0; i < headers.size(); i++) {
+                String headerName = headers.get(i);
+                String norm = normalize(headerName);
+                String marker = providedTypes.get(i);
+                String logical = logicalTypeFor(marker);
+                String sql = sqlTypeFor(logical);
+                // By default, allow nullability for initial schema; can be refined later
+                columns.add(new ColumnInfo(headerName, norm, logical, sql, true, null));
+              }
+              String normalizedTable = normalize(tableName);
+              String ddl = buildCreateTable(normalizedTable, columns);
+              return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+            }
+          }
+
+          // Fallback: infer types from sample data rows (legacy behavior)
+          int lastRow = Math.min(sheet.getLastRowNum(), firstDataRow + SAMPLE_ROWS);
+          for (int i = 0; i < headers.size(); i++) {
+            inferred.put(headers.get(i), "UNKNOWN");
+            nullable.put(headers.get(i), Boolean.FALSE);
+          }
+
+          for (int r = firstDataRow; r <= lastRow; r++) {
+            Row row = sheet.getRow(r);
+            if (row == null) continue;
+            for (int c = 0; c < headers.size(); c++) {
+              Cell cell = row.getCell(c);
+              String head = headers.get(c);
+              if (cell == null || cell.getCellType() == CellType.BLANK) {
+                nullable.put(head, Boolean.TRUE);
+                continue;
+              }
+              Object val = getCellValue(cell);
+              if (val == null) {
+                nullable.put(head, Boolean.TRUE);
+                continue;
+              }
+              if (!samples.containsKey(head)) samples.put(head, val.toString());
+              String cur = inferred.get(head);
+              String now = typeOf(val);
+              inferred.put(head, mergeTypes(cur, now));
+            }
+          }
+
+          for (String h : headers) {
+            String norm = normalize(h);
+            String inferredType = inferred.getOrDefault(h, "UNKNOWN");
+            if ("UNKNOWN".equals(inferredType)) {
+              inferredType = "STRING"; // fallback
+              warnings.add("Column '" + h + "' has unknown type; defaulting to STRING");
+            }
+            String sqlType = sqlTypeFor(inferredType);
+            boolean isNullable = nullable.getOrDefault(h, Boolean.TRUE);
+            columns.add(new ColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
+          }
+
           String normalizedTable = normalize(tableName);
           String ddl = buildCreateTable(normalizedTable, columns);
           return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
         }
       }
-
-      // Fallback: infer types from sample data rows (legacy behavior)
-      int lastRow = Math.min(sheet.getLastRowNum(), firstDataRow + SAMPLE_ROWS);
-      for(int i=0;i<headers.size();i++){
-        inferred.put(headers.get(i), "UNKNOWN");
-        nullable.put(headers.get(i), Boolean.FALSE);
-      }
-
-      for(int r = firstDataRow; r <= lastRow; r++){
-        Row row = sheet.getRow(r);
-        if(row == null) continue;
-        for(int c = 0; c < headers.size(); c++){
-          Cell cell = row.getCell(c);
-          String head = headers.get(c);
-          if(cell == null || cell.getCellType() == CellType.BLANK){
-            nullable.put(head, Boolean.TRUE);
-            continue;
-          }
-          Object val = getCellValue(cell);
-          if(val == null){
-            nullable.put(head, Boolean.TRUE);
-            continue;
-          }
-          if(!samples.containsKey(head)) samples.put(head, val.toString());
-          String cur = inferred.get(head);
-          String now = typeOf(val);
-          inferred.put(head, mergeTypes(cur, now));
-        }
-      }
-
-      for(String h : headers){
-        String norm = normalize(h);
-        String inferredType = inferred.getOrDefault(h, "UNKNOWN");
-        if("UNKNOWN".equals(inferredType)){
-          inferredType = "STRING"; // fallback
-          warnings.add("Column '"+h+"' has unknown type; defaulting to STRING");
-        }
-        String sqlType = sqlTypeFor(inferredType);
-        boolean isNullable = nullable.getOrDefault(h, Boolean.TRUE);
-        columns.add(new ColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
-      }
-
-      String normalizedTable = normalize(tableName);
-      String ddl = buildCreateTable(normalizedTable, columns);
-      return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
-    }catch (Exception e){
-      throw new RuntimeException("Failed to analyze Excel template: "+e.getMessage(), e);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to analyze template: " + e.getMessage(), e);
     }
   }
 
@@ -178,20 +282,25 @@ public class ExcelTemplateService {
   private boolean isSupportedTypeMarker(String raw){
     if(raw == null) return false;
     String s = raw.trim().toLowerCase(Locale.ROOT);
-    // Accept common postgres types and minio markers; also accept numeric(x,y)
+    // Accept common postgres types and minio markers; also accept numeric(x,y) and generic markers (integer, decimal, minio_image)
     if(s.startsWith("numeric(") && s.endsWith(")")) return true;
-    return Set.of("text","varchar","varchar(255)","bigint","uuid","timestamp","date","boolean","minio:image","minio:file").contains(s);
+    return Set.of(
+        "text","varchar","varchar(255)","bigint","uuid","timestamp","date","boolean",
+        "integer","decimal",
+        "minio:image","minio:file","minio_image","minio_file"
+    ).contains(s);
   }
 
   private String logicalTypeFor(String marker){
     String s = marker == null ? "" : marker.trim().toLowerCase(Locale.ROOT);
     if(s.startsWith("numeric(")) return "DECIMAL";
     return switch (s){
-      case "bigint" -> "INTEGER";
+      case "bigint", "integer" -> "INTEGER";
       case "uuid" -> "STRING"; // stored as UUID but handled as string in UI
       case "timestamp", "date" -> "DATE";
+      case "decimal" -> "DECIMAL";
       case "boolean" -> "BOOLEAN";
-      case "minio:image", "minio:file" -> "MINIO_IMAGE";
+      case "minio:image", "minio:file", "minio_image", "minio_file" -> "MINIO_IMAGE";
       default -> "STRING"; // text/varchar
     };
   }
@@ -298,5 +407,44 @@ public class ExcelTemplateService {
     }
     sb.append(");");
     return sb.toString();
+  }
+
+  // --- CSV helpers ---
+  private List<String> parseCsvLine(String line) {
+    List<String> out = new ArrayList<>();
+    if (line == null) return out;
+    StringBuilder cur = new StringBuilder();
+    boolean inQuotes = false;
+    for (int i = 0; i < line.length(); i++) {
+      char ch = line.charAt(i);
+      if (ch == '"') {
+        if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+          // Escaped quote
+          cur.append('"');
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch == ',' && !inQuotes) {
+        out.add(cur.toString());
+        cur.setLength(0);
+      } else {
+        cur.append(ch);
+      }
+    }
+    out.add(cur.toString());
+    return out;
+  }
+
+  private List<List<String>> readCsv(BufferedReader br, int maxRows) throws java.io.IOException {
+    List<List<String>> rows = new ArrayList<>();
+    String line;
+    int count = 0;
+    while ((line = br.readLine()) != null) {
+      rows.add(parseCsvLine(line));
+      count++;
+      if (count >= maxRows) break;
+    }
+    return rows;
   }
 }

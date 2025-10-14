@@ -1,0 +1,4 @@
+name,sku,description,price,quantity,is_active,release_date,main_image,manual_file,category
+TEXT,TEXT,TEXT,DECIMAL,INTEGER,BOOLEAN,DATE,MINIO_IMAGE,MINIO_FILE,TEXT
+"Wireless Mouse","WM-100","Ergonomic wireless mouse",19.99,150,true,2024-09-01,https://cdn.example.com/images/mouse.jpg,https://cdn.example.com/files/mouse-manual.pdf,"Accessories"
+"4K Monitor","MON-4K-27","27-inch 4K UHD monitor",299.00,20,true,2024-05-15,https://cdn.example.com/images/monitor.jpg,https://cdn.example.com/files/monitor-manual.pdf,"Displays"
