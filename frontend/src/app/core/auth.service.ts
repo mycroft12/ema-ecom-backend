@@ -62,6 +62,29 @@ export class AuthService {
       return ''; 
     } 
   }
-  permissions(): string[] { const t = this.getToken(); if(!t) return []; try{ const d = jwtDecode<JwtPayload>(t); return d.permissions || []; }catch{ return []; } }
-  hasAny(perms: string[]): boolean { const p = this.permissions(); return perms.some(x => p.includes(x)); }
+  permissions(): string[] { 
+    const t = this.getToken(); 
+    if(!t) {
+      console.log('No token found');
+      return []; 
+    } 
+    try { 
+      const d = jwtDecode<JwtPayload>(t); 
+      console.log('Decoded token:', d);
+      console.log('Permissions from token:', d.permissions);
+      return d.permissions || []; 
+    } catch(e) { 
+      console.error('Error decoding token:', e);
+      return []; 
+    } 
+  }
+
+  hasAny(perms: string[]): boolean { 
+    console.log('Checking permissions:', perms);
+    const p = this.permissions(); 
+    console.log('User permissions:', p);
+    const result = perms.some(x => p.includes(x));
+    console.log('Has any permissions:', result);
+    return result; 
+  }
 }

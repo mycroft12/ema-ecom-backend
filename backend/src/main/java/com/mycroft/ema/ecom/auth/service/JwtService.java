@@ -26,11 +26,20 @@ public class JwtService {
 
   public String generateAccessToken(User user){
     var now = Instant.now();
+
+    // Extract permissions from roles
+    var permissions = user.getRoles().stream()
+        .flatMap(r -> r.getPermissions().stream())
+        .map(p -> p.getName())
+        .distinct()
+        .toList();
+
     return JWT.create()
         .withIssuer(issuer)
         .withSubject(user.getId().toString())
         .withClaim("username", user.getUsername())
         .withClaim("roles", user.getRoles().stream().map(Role::getName).toList())
+        .withClaim("permissions", permissions) // Add permissions to the token
         .withIssuedAt(Date.from(now))
         .withExpiresAt(Date.from(now.plusSeconds(accessTtlSeconds)))
         .sign(algorithm);

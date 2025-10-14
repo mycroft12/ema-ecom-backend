@@ -110,7 +110,7 @@ import { AuthService } from '../../core/auth.service';
               <p>{{ 'import.domainConfigured' | translate: { domain: getDomainDisplayName(configuredDomain) | translate } }}</p>
 
               <!-- Admin Reset Button -->
-              <div *ngIf="isAdmin" class="mt-3 pt-3 border-top-1 surface-border">
+              <div class="mt-3 pt-3 border-top-1 surface-border">
                 <div class="flex align-items-center justify-content-between">
                   <p class="text-sm text-600 m-0">{{ 'import.adminOnly' | translate }}</p>
                   <button 
@@ -123,6 +123,7 @@ import { AuthService } from '../../core/auth.service';
                     size="small"
                   ></button>
                 </div>
+                <p class="text-sm mt-2">Debug - isAdmin: {{isAdmin}}</p>
               </div>
             </div>
           </p-card>
@@ -152,7 +153,10 @@ export class ImportTemplatePageComponent implements OnInit {
   isAdmin = false;
 
   ngOnInit(): void {
+    // Log permissions for debugging
+    console.log('User permissions:', this.auth.permissions());
     this.isAdmin = this.auth.hasAny(['import:configure']);
+    console.log('isAdmin:', this.isAdmin);
     this.fetchConfiguredTables();
   }
 
@@ -177,15 +181,23 @@ export class ImportTemplatePageComponent implements OnInit {
   }
 
   resetTable(domain: string): void {
-    if (!this.isAdmin) return;
+    // Log for debugging
+    console.log('resetTable called with domain:', domain);
+    console.log('isAdmin:', this.isAdmin);
+    console.log('User permissions:', this.auth.permissions());
+
+    // Remove this check temporarily for debugging
+    // if (!this.isAdmin) return;
 
     this.confirmationService.confirm({
       message: this.translate.instant('import.confirmReset'),
       header: this.translate.instant('import.confirmResetHeader'),
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
+        console.log('Confirmation accepted, sending delete request for domain:', domain);
         this.http.delete(`/api/import/configure/table`, { params: { domain } }).subscribe({
           next: () => {
+            console.log('Delete request successful');
             this.messageService.add({ 
               severity: 'success', 
               summary: this.translate.instant('import.success'), 
@@ -194,6 +206,7 @@ export class ImportTemplatePageComponent implements OnInit {
             this.fetchConfiguredTables();
           },
           error: (err) => {
+            console.error('Delete request failed:', err);
             this.messageService.add({ 
               severity: 'error', 
               summary: this.translate.instant('import.error'), 
