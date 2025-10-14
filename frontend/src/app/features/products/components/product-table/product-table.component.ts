@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductSchemaService } from '../../services/product-schema.service';
@@ -6,9 +6,10 @@ import { ProductDataService } from '../../services/product-data.service';
 import { ProductFilterService } from '../../services/product-filter.service';
 import { Product } from '../../models/product.model';
 import { TableLazyLoadEvent } from '../../models/filter.model';
-import { Table, TableModule, TableLazyLoadEvent as PrimeNGTableLazyLoadEvent } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent as PrimeNGTableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { ToolbarModule } from 'primeng/toolbar';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -25,6 +26,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     TableModule,
     ButtonModule,
     InputTextModule,
+    ToolbarModule,
     ConfirmDialogModule,
     ToastModule,
     DialogModule,
@@ -36,8 +38,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   styleUrls: ['./product-table.component.scss']
 })
 export class ProductTableComponent implements OnInit {
-  @ViewChild('dt1') dt1!: Table;
-
   getColumnFieldNames(): string[] { return this.schemaService.visibleColumns().map(c => c.name); }
   readonly schemaService = inject(ProductSchemaService);
   readonly dataService = inject(ProductDataService);
@@ -68,23 +68,9 @@ export class ProductTableComponent implements OnInit {
     this.dataService.loadProducts(lazyEvent, activeFilter?.id).subscribe();
   }
 
-  onGlobalFilter(table: Table, event: Event): void {
+  onGlobalFilter(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.globalFilterValue.set(value);
-    table.filterGlobal(value, 'contains');
-    this.onLazyLoad({ first: 0, rows: 10 } as PrimeNGTableLazyLoadEvent);
-  }
-
-  clear(table: Table): void {
-    table.clear();
-    this.globalFilterValue.set('');
-    // Reset the search input field if needed
-    const searchInputs = document.querySelectorAll('input[type="text"]');
-    searchInputs.forEach(input => {
-      if (input.getAttribute('placeholder')?.includes('Search')) {
-        (input as HTMLInputElement).value = '';
-      }
-    });
     this.onLazyLoad({ first: 0, rows: 10 } as PrimeNGTableLazyLoadEvent);
   }
 
