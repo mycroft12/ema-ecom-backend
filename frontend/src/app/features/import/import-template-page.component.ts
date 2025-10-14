@@ -153,10 +153,7 @@ export class ImportTemplatePageComponent implements OnInit {
   isAdmin = false;
 
   ngOnInit(): void {
-    // Log permissions for debugging
-    console.log('User permissions:', this.auth.permissions());
     this.isAdmin = this.auth.hasAny(['import:configure']);
-    console.log('isAdmin:', this.isAdmin);
     this.fetchConfiguredTables();
   }
 
@@ -166,7 +163,11 @@ export class ImportTemplatePageComponent implements OnInit {
         this.configuredTables = tables.map(t => t.domain);
       },
       error: (err) => {
-        console.error('Error fetching configured tables:', err);
+        this.messageService.add({ 
+          severity: 'error', 
+          summary: this.translate.instant('import.error'), 
+          detail: err?.error?.message || this.translate.instant('import.fetchTablesError') 
+        });
       }
     });
   }
@@ -181,12 +182,6 @@ export class ImportTemplatePageComponent implements OnInit {
   }
 
   resetTable(domain: string): void {
-    // Log for debugging
-    console.log('resetTable called with domain:', domain);
-    console.log('isAdmin:', this.isAdmin);
-    console.log('User permissions:', this.auth.permissions());
-
-    // Remove this check temporarily for debugging
     // if (!this.isAdmin) return;
 
     this.confirmationService.confirm({
@@ -194,10 +189,8 @@ export class ImportTemplatePageComponent implements OnInit {
       header: this.translate.instant('import.confirmResetHeader'),
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        console.log('Confirmation accepted, sending delete request for domain:', domain);
         this.http.delete(`/api/import/configure/table`, { params: { domain } }).subscribe({
           next: () => {
-            console.log('Delete request successful');
             this.messageService.add({ 
               severity: 'success', 
               summary: this.translate.instant('import.success'), 
@@ -206,7 +199,6 @@ export class ImportTemplatePageComponent implements OnInit {
             this.fetchConfiguredTables();
           },
           error: (err) => {
-            console.error('Delete request failed:', err);
             this.messageService.add({ 
               severity: 'error', 
               summary: this.translate.instant('import.error'), 
@@ -249,6 +241,11 @@ export class ImportTemplatePageComponent implements OnInit {
       },
       error: (err) => {
         this.error = err?.error?.message || 'import.error';
+        this.messageService.add({ 
+          severity: 'error', 
+          summary: this.translate.instant('import.error'), 
+          detail: err?.error?.message || this.translate.instant('import.downloadError') 
+        });
       }
     });
   }
@@ -298,6 +295,11 @@ export class ImportTemplatePageComponent implements OnInit {
           error: (err) => { 
             this.error = err?.error?.message || 'import.error'; 
             this.loading = false; 
+            this.messageService.add({ 
+              severity: 'error', 
+              summary: this.translate.instant('import.error'), 
+              detail: err?.error?.message || this.translate.instant('import.uploadError') 
+            });
           }
         });
       }

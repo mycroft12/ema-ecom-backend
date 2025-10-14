@@ -35,4 +35,9 @@ bootstrapApplication(AppComponent, {
       })
     )
   ]
-}).catch(err => console.error(err));
+}).catch(err => {
+  // Display error in an alert since we can't use Angular services during bootstrap
+  const errorMessage = err instanceof Error ? err.message : 'Unknown error during application startup';
+  alert(`Application Error: ${errorMessage}`);
+  console.error('Bootstrap error:', err);
+});

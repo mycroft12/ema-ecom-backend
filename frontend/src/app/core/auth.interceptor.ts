@@ -40,7 +40,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(refreshError => {
             // If refresh fails, log out the user
-            console.error('Token refresh failed:', refreshError);
             auth.logout();
             return throwError(() => refreshError);
           })

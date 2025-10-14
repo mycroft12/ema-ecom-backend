@@ -77,7 +77,6 @@ export class LoginComponent implements OnInit {
         this.router.navigateByUrl('/home');
       },
       error: (err) => {
-        console.log(this.translate.currentLang)
         this.loading = false;
         const status = err?.status;
         const backendMsg = err?.error?.message as string | undefined;

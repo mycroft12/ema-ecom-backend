@@ -43,7 +43,6 @@ export class ProductSchemaService {
       }),
       catchError(err => {
         // If there's an error checking tables, assume not configured
-        console.error('Error checking if product_config table exists:', err);
         this.schemaSignal.set(null);
         this.loadingSignal.set(false);
         return of(null);
@@ -74,7 +73,6 @@ export class ProductSchemaService {
       }),
       catchError(err => {
         // If there's an error loading products, assume schema is not properly configured
-        console.error('Error loading products:', err);
         this.schemaSignal.set(null);
         this.loadingSignal.set(false);
         return of(null);
