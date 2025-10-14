@@ -1,11 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
-import { FileUploadModule } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -54,6 +54,7 @@ import { AuthService } from '../../core/auth.service';
             <button pButton type="button" class="mr-2" [label]="('import.downloadExample' | translate)" icon="pi pi-download" severity="secondary" [outlined]="true" (click)="downloadExample()" [disabled]="!domain"></button>
           </div>
           <p-fileUpload
+            #fileUpload
             mode="advanced"
             [customUpload]="true"
             accept=".xlsx,.xls,.csv"
@@ -124,7 +125,7 @@ import { AuthService } from '../../core/auth.service';
       </div>
     </div>
 
-    <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+    <p-confirmDialog [style]="{width: '450px'}" [acceptLabel]="'common.yes' | translate" [rejectLabel]="'common.no' | translate"></p-confirmDialog>
     <p-toast></p-toast>
   `
 })
@@ -134,6 +135,8 @@ export class ImportTemplatePageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+
+  @ViewChild('fileUpload') fileUpload!: FileUpload;
 
   domain: 'product' | 'employee' | 'delivery' | '' = '';
   result: unknown;
@@ -260,6 +263,16 @@ export class ImportTemplatePageComponent implements OnInit {
             this.result = res; 
             this.loading = false; 
             this.success = 'import.success';
+
+            // Update the configuredTables array if the domain is not already in it
+            if (!this.configuredTables.includes(this.domain)) {
+              this.configuredTables = [...this.configuredTables, this.domain];
+            }
+
+            // Clear the file upload component
+            if (this.fileUpload) {
+              this.fileUpload.clear();
+            }
           },
           error: (err) => { 
             this.error = err?.error?.message || 'import.error'; 

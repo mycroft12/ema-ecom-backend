@@ -99,5 +99,5 @@
   <app-custom-filter-builder (filterApplied)="onFilterApplied()" (cancel)="showFilterBuilder.set(false)" />
 </p-dialog>
 
-<p-confirmDialog />
+<p-confirmDialog [acceptLabel]="'common.yes' | translate" [rejectLabel]="'common.no' | translate" />
 <p-toast />

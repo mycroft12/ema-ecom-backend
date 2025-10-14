@@ -1,4 +1,8 @@
 {
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  },
   "app": {
     "title": "EMA E-Commerce Admin",
     "login": "Login",
@@ -124,7 +128,7 @@
     "confirmResetHeader": "Confirm Reset",
     "tableReset": "Table has been reset successfully",
     "resetError": "Failed to reset table",
-    "configuredDomains": "Configured Domains",
+    "configuredDomains": "Configured Components",
     "domainConfigured": "The {{domain}} domain is configured and ready to use.",
     "adminOnly": "Admin Options",
     "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",

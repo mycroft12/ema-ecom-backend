@@ -1,4 +1,8 @@
 {
+  "common": {
+    "yes": "Oui",
+    "no": "Non"
+  },
   "app": {
     "title": "EMA E-Commerce Admin",
     "login": "Connexion",
@@ -124,7 +128,7 @@
     "confirmResetHeader": "Confirmer la réinitialisation",
     "tableReset": "La table a été réinitialisée avec succès",
     "resetError": "Échec de la réinitialisation de la table",
-    "configuredDomains": "Domaines configurés",
+    "configuredDomains": "Composants configurés",
     "domainConfigured": "Le domaine {{domain}} est configuré et prêt à être utilisé.",
     "adminOnly": "Options d'administrateur",
     "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",
