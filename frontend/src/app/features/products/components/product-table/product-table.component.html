@@ -1,104 +1,81 @@
 <div class="card">
-  <p-toolbar styleClass="mb-4">
-    <ng-template pTemplate="left">
-      <p-button [label]="'products.btnDelete' | translate" icon="pi pi-trash" severity="danger" [disabled]="!selectedProducts().length" (onClick)="deleteSelectedProducts()" />
-    </ng-template>
-    <ng-template pTemplate="right">
-      <p-button [label]="'products.btnCustomFilters' | translate" icon="pi pi-filter" severity="secondary" [outlined]="true" class="mr-2" (onClick)="openFilterBuilder()" />
-      <p-button [label]="'products.btnExport' | translate" icon="pi pi-file-excel" severity="secondary" [outlined]="true" (onClick)="exportExcel()" />
-    </ng-template>
-  </p-toolbar>
+  <div class="font-semibold text-xl mb-4">{{ 'products.title' | translate }}</div>
+  <div class="flex justify-content-end mb-4">
+    <p-button [label]="'products.btnExport' | translate" icon="pi pi-file-excel" severity="secondary" [outlined]="true" (onClick)="exportExcel()" />
+  </div>
 
-  <p-table
-    [value]="dataService.products()"
-    [lazy]="true"
-    [paginator]="true"
-    [rows]="10"
-    [totalRecords]="dataService.totalRecords()"
-    [loading]="dataService.isLoading()"
-    [rowsPerPageOptions]="[10,25,50,100]"
-    [showCurrentPageReport]="true"
-    [currentPageReportTemplate]="('products.pageReport' | translate)"
-    [globalFilterFields]="getColumnFieldNames()"
-    [selection]="selectedProducts()"
-    (selectionChange)="selectedProducts.set($event)"
-    [rowHover]="true"
-    dataKey="id"
-    (onLazyLoad)="onLazyLoad($event)"
-    styleClass="p-datatable-gridlines"
-  >
+  <p-table #dt1 [value]="dataService.products()" dataKey="id" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [loading]="loading" [paginator]="true" [globalFilterFields]="globalFilterFields" showGridlines>
     <ng-template pTemplate="caption">
-      <div class="flex align-items-center justify-content-between">
-        <h5 class="m-0">{{ 'products.title' | translate }}</h5>
-        <span class="p-input-icon-left">
-          <i class="pi pi-search"></i>
-          <input pInputText type="text" (input)="onGlobalFilter($event)" [placeholder]="'products.searchPlaceholder' | translate" />
-        </span>
-      </div>
+        <div class="flex">
+            <p-button label="Clear" [outlined]="true" icon="pi pi-filter-slash" (click)="clear(dt1)" />
+            <p-iconfield iconPosition="left" class="ml-auto">
+                <p-inputicon>
+                    <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input pInputText type="text" (input)="dt1.filterGlobal($event.target.value, 'contains')" placeholder="Search keyword" />
+            </p-iconfield>
+        </div>
     </ng-template>
-
     <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
-        @for (column of schemaService.visibleColumns(); track column.name) {
-          <th [pSortableColumn]="column.name">
-            {{ column.displayName }}
-            <p-sortIcon [field]="column.name" />
-          </th>
-        }
-      </tr>
-      <tr>
-        <th></th>
-        @for (column of schemaService.visibleColumns(); track column.name) {
-          <th>
-            <p-columnFilter type="text" [field]="column.name" display="menu" />
-          </th>
-        }
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="body" let-product>
-      <tr>
-        <td><p-tableCheckbox [value]="product" /></td>
-        @for (column of schemaService.visibleColumns(); track column.name) {
-          <td>
-            @if (column.type === 'MINIO_IMAGE') {
-              @if (product[column.name]) {
-                <img [src]="product[column.name]" [alt]="column.displayName" class="product-image" style="width: 50px; height: 50px; object-fit: cover;" />
-              } @else {
-                <span class="text-500">{{ 'products.noImage' | translate }}</span>
-              }
-            } @else if (column.type === 'BOOLEAN') {
-              <i [class]="product[column.name] ? 'pi pi-check text-green-500' : 'pi pi-times text-red-500'"></i>
-            } @else if (column.type === 'DATE') {
-              {{ product[column.name] | date:'short' }}
-            } @else if (column.type === 'DECIMAL') {
-              {{ product[column.name] | number:'1.2-2' }}
-            } @else {
-              {{ product[column.name] }}
+        <tr>
+            @for (column of schemaService.visibleColumns(); track column.name) {
+                <th [style.min-width]="column.type === 'TEXT' ? '15rem' : '10rem'">
+                    <div class="flex items-center justify-between">
+                        {{ column.displayName }}
+                        <p-columnFilter [type]="getFilterType(column)" [field]="column.name" display="menu" />
+                    </div>
+                </th>
             }
-          </td>
-        }
-      </tr>
+        </tr>
     </ng-template>
-
+    <ng-template pTemplate="body" let-product>
+        <tr>
+            @for (column of schemaService.visibleColumns(); track column.name) {
+                <td>
+                    @switch (column.type) {
+                        @case (ColumnType.MINIO_IMAGE) {
+                            @if (product[column.name]) {
+                                <img [src]="product[column.name]" [alt]="column.displayName" class="product-image" style="width: 50px; height: 50px; object-fit: cover;" />
+                            } @else {
+                                <span class="text-500">{{ 'products.noImage' | translate }}</span>
+                            }
+                        }
+                        @case (ColumnType.BOOLEAN) {
+                            <i class="pi" [ngClass]="{
+                                'text-green-500 pi-check-circle': product[column.name],
+                                'text-red-500 pi-times-circle': !product[column.name]
+                            }"></i>
+                        }
+                        @case (ColumnType.DATE) {
+                            {{ product[column.name] | date:'short' }}
+                        }
+                        @case (ColumnType.DECIMAL) {
+                            {{ product[column.name] | number:'1.2-2' }}
+                        }
+                        @default {
+                            {{ product[column.name] }}
+                        }
+                    }
+                </td>
+            }
+        </tr>
+    </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr>
-        <td [attr.colspan]="schemaService.visibleColumns().length + 1">
-          <div class="flex align-items-center justify-content-center flex-column p-5">
-            <i class="pi pi-inbox text-6xl text-400 mb-3"></i>
-            <p class="text-600">{{ 'products.noResults' | translate }}</p>
-          </div>
-        </td>
-      </tr>
+        <tr>
+            <td [attr.colspan]="schemaService.visibleColumns().length">{{ 'products.noResults' | translate }}</td>
+        </tr>
     </ng-template>
-
+    <ng-template pTemplate="loadingbody">
+        <tr>
+            <td [attr.colspan]="schemaService.visibleColumns().length">
+                <div class="flex align-items-center justify-content-center p-3">
+                    <i class="pi pi-spin pi-spinner mr-2"></i>
+                    <span>{{ 'products.loading' | translate }}</span>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
   </p-table>
 </div>
 
-<p-dialog [header]="('products.filterBuilderTitle' | translate)" [(visible)]="showFilterBuilder" [modal]="true" [style]="{ width: '50vw' }" [draggable]="false" [resizable]="false">
-  <app-custom-filter-builder (filterApplied)="onFilterApplied()" (cancel)="showFilterBuilder.set(false)" />
-</p-dialog>
-
-<p-confirmDialog [acceptLabel]="'common.yes' | translate" [rejectLabel]="'common.no' | translate" />
 <p-toast />
