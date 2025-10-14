@@ -189,3 +189,12 @@ Config knobs
 Security notes
 - Keep JWT_SECRET secure (never commit). Rotate if leaked.
 - Create an admin user and assign required permissions (e.g., import:configure).
+
+NEXT PROMPT:
+
+i want you to add an API that can populate the table based on a csv file.
+You need to add validations for that.
+Frontend : Expose this API inside the card of 
+Configure components 
+(in our current example Products, 
+bellow the reset configuration button)
