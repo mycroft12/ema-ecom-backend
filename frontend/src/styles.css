@@ -91,5 +91,21 @@ a:hover { text-decoration: underline; }
 /* RTL specific styles */
 [dir="rtl"] .p-dropdown .p-dropdown-clear-icon {
   right: auto;
-  left: 2.75rem;
+  left: 3.5rem;
+}
+
+/* Make dropdowns bigger */
+.p-dropdown {
+  min-height: 3rem;
+  font-size: 1.1rem;
+}
+
+.p-dropdown .p-dropdown-label {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+  padding: 0.75rem 1.25rem;
+  font-size: 1.1rem;
 }
