@@ -121,6 +121,7 @@
     "error": "Failed to analyze template",
     "configured": "Configured",
     "alreadyConfigured": "This component is already configured. Use the reset option below if you need to reconfigure it.",
+    "alreadyConfiguredNonAdmin": "This component is already configured. Please contact an administrator if you need to reconfigure it.",
     "adminOptions": "Administrator Options",
     "resetDescription": "Warning: Resetting this configuration will delete the table and all its data. This action cannot be undone.",
     "resetTable": "Reset Configuration",

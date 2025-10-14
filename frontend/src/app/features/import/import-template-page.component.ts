@@ -69,7 +69,12 @@ import { AuthService } from '../../core/auth.service';
           >
           </p-fileUpload>
           <small *ngIf="isTableConfigured(domain)" class="p-error">
-            {{ 'import.alreadyConfigured' | translate }}
+            <ng-container *ngIf="isAdmin; else nonAdminMessage">
+              {{ 'import.alreadyConfigured' | translate }}
+            </ng-container>
+            <ng-template #nonAdminMessage>
+              {{ 'import.alreadyConfiguredNonAdmin' | translate }}
+            </ng-template>
           </small>
         </div>
       </div>
@@ -273,6 +278,9 @@ export class ImportTemplatePageComponent implements OnInit {
             if (this.fileUpload) {
               this.fileUpload.clear();
             }
+
+            // Clear the domain dropdown
+            this.domain = '';
           },
           error: (err) => { 
             this.error = err?.error?.message || 'import.error'; 

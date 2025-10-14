@@ -121,6 +121,7 @@
     "error": "Échec de l'analyse du modèle",
     "configured": "Configuré",
     "alreadyConfigured": "Ce composant est déjà configuré. Utilisez l'option de réinitialisation ci-dessous si vous devez le reconfigurer.",
+    "alreadyConfiguredNonAdmin": "Ce composant est déjà configuré. Veuillez contacter un administrateur si vous devez le reconfigurer.",
     "adminOptions": "Options d'administrateur",
     "resetDescription": "Attention : La réinitialisation de cette configuration supprimera la table et toutes ses données. Cette action ne peut pas être annulée.",
     "resetTable": "Réinitialiser la configuration",
