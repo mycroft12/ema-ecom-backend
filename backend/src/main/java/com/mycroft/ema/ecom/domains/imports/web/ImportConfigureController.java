@@ -38,6 +38,19 @@ public class ImportConfigureController {
   @Operation(summary = "Configure domain from template", description = "Upload a filled Excel template (.xlsx/.xls/.csv) and specify domain=product|employee|delivery. The service will infer columns and create/update the corresponding table.")
   public TemplateAnalysisResponse configure(@RequestParam("domain") String domain,
                                            @RequestPart("file") MultipartFile file){
+    // Validate file is not empty
+    if (file.isEmpty()) {
+      throw new IllegalArgumentException("Please upload a non-empty file");
+    }
+
+    // Validate file extension
+    String filename = file.getOriginalFilename();
+    if (filename == null || !(filename.toLowerCase().endsWith(".xlsx") || 
+                             filename.toLowerCase().endsWith(".xls") || 
+                             filename.toLowerCase().endsWith(".csv"))) {
+      throw new IllegalArgumentException("Unsupported file format. Please upload an Excel (.xlsx/.xls) or CSV (.csv) file");
+    }
+
     String table = switch ((domain == null ? "" : domain.trim().toLowerCase())){
       case "product", "products" -> "product_config";
       case "employee", "employees" -> "employee_config";
@@ -48,10 +61,16 @@ public class ImportConfigureController {
     TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
 
     // Execute the generated DDL (CREATE TABLE IF NOT EXISTS ...)
-    try {
-      jdbcTemplate.execute(analysis.getCreateTableSql());
+    try (java.sql.Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+      // Use a separate connection with auto-commit to ensure DDL is committed
+      conn.setAutoCommit(true);
+      try (java.sql.Statement stmt = conn.createStatement()) {
+        stmt.execute(analysis.getCreateTableSql());
+      }
     } catch (DataAccessException ex) {
       throw new RuntimeException("Failed to create/update table for domain '" + domain + "': " + ex.getMessage(), ex);
+    } catch (java.sql.SQLException ex) {
+      throw new RuntimeException("Database connection error: " + ex.getMessage(), ex);
     }
 
     return analysis;
@@ -125,11 +144,17 @@ public class ImportConfigureController {
   @Operation(summary = "Delete a domain table", description = "Drops the specified component table and all its data.")
   public ResponseEntity<Void> dropTable(@RequestParam("domain") String domain){
     String table = tableForDomain(domain);
-    try {
-      jdbcTemplate.execute("drop table if exists " + table + " cascade");
+    try (java.sql.Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+      // Use a separate connection with auto-commit to ensure DDL is committed
+      conn.setAutoCommit(true);
+      try (java.sql.Statement stmt = conn.createStatement()) {
+        stmt.execute("drop table if exists " + table + " cascade");
+      }
       return ResponseEntity.noContent().build();
     } catch (DataAccessException ex) {
       throw new RuntimeException("Failed to drop table '" + table + "': " + ex.getMessage(), ex);
+    } catch (java.sql.SQLException ex) {
+      throw new RuntimeException("Database connection error: " + ex.getMessage(), ex);
     }
   }
 }

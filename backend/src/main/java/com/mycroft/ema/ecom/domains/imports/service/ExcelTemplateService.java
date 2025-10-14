@@ -67,7 +67,16 @@ public class ExcelTemplateService {
           if (looksLikeTypes) {
             for (int c = 0; c < headers.size(); c++) {
               String v = (typesRow.size() > c) ? Optional.ofNullable(typesRow.get(c)).orElse("").trim() : "";
-              if (v.isBlank() || !isSupportedTypeMarker(v)) { looksLikeTypes = false; break; }
+              if (v.isBlank()) { 
+                looksLikeTypes = false; 
+                break; 
+              }
+              if (!isSupportedTypeMarker(v)) { 
+                String headerName = headers.get(c);
+                warnings.add(getUnsupportedTypeErrorMessage(v, headerName, c));
+                looksLikeTypes = false; 
+                break; 
+              }
               providedTypes.add(v);
             }
           }
@@ -163,9 +172,14 @@ public class ExcelTemplateService {
             for (int c = 0; c < headers.size(); c++) {
               Cell cell = typesRow.getCell(c);
               String v = cell == null ? null : cell.toString().trim();
-              if (v == null || v.isBlank()) { looksLikeTypes2 = false; break; }
+              if (v == null || v.isBlank()) { 
+                looksLikeTypes2 = false; 
+                break; 
+              }
               providedTypes.add(v);
               if (!isSupportedTypeMarker(v)) {
+                String headerName = headers.get(c);
+                warnings.add(getUnsupportedTypeErrorMessage(v, headerName, c));
                 looksLikeTypes2 = false; // if any not supported, fall back to inference
                 break;
               }
@@ -232,8 +246,13 @@ public class ExcelTemplateService {
           return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
         }
       }
+    } catch (IllegalArgumentException e) {
+      // For known validation errors, pass through the message
+      throw new RuntimeException("Template validation error: " + e.getMessage(), e);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to analyze template: " + e.getMessage(), e);
+      // For unexpected errors, provide a more generic message
+      throw new RuntimeException("Failed to analyze template: " + e.getMessage() + 
+          ". Please check that your template follows the required format with headers in row 1 and optional type markers in row 2.", e);
     }
   }
 
@@ -289,6 +308,17 @@ public class ExcelTemplateService {
         "integer","decimal",
         "minio:image","minio:file","minio_image","minio_file"
     ).contains(s);
+  }
+
+  private String getUnsupportedTypeErrorMessage(String type, String columnName, int columnIndex) {
+    StringBuilder message = new StringBuilder();
+    message.append("Unsupported type '").append(type).append("' for column '").append(columnName)
+           .append("' at index ").append(columnIndex).append(". ");
+
+    message.append("Supported types are: text, varchar, varchar(255), bigint, uuid, timestamp, date, boolean, ")
+           .append("integer, decimal, numeric(x,y), minio:image, minio:file, minio_image, minio_file");
+
+    return message.toString();
   }
 
   private String logicalTypeFor(String marker){

@@ -107,6 +107,8 @@
     "cancelLabel": "إلغاء",
     "analyze": "تحليل وتهيئة",
     "analyzing": "جارٍ التحليل...",
+    "loading": "جارٍ معالجة النموذج، يرجى الانتظار...",
+    "success": "تم تهيئة الجدول بنجاح!",
     "resultTitle": "النتيجة",
     "downloadExample": "تنزيل مثال للنموذج",
     "selectComponentFirst": "يرجى اختيار المكوّن أولاً",

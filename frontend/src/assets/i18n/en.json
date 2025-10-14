@@ -107,6 +107,8 @@
     "cancelLabel": "Cancel",
     "analyze": "Analyze & Configure",
     "analyzing": "Analyzing...",
+    "loading": "Processing your template, please wait...",
+    "success": "Table configured successfully!",
     "resultTitle": "Result",
     "downloadExample": "Download Template example",
     "selectComponentFirst": "Please select a component first",

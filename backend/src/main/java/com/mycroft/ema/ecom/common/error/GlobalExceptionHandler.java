@@ -25,4 +25,22 @@ public class GlobalExceptionHandler {
     }
 
     // fallback (optional): could add handlers for other exceptions to return i18n messages
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        String code = "error.validation";
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(code, ex.getMessage()));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
+        String code = "error.runtime";
+        // Check if this is a template validation error
+        String message = ex.getMessage();
+        if (message != null && message.contains("Template validation error")) {
+            code = "error.template.validation";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(code, message));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(code, message));
+    }
 }

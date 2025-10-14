@@ -58,14 +58,19 @@ import { ButtonModule } from 'primeng/button';
         </div>
       </div>
 
+      <div *ngIf="loading" class="mt-3">
+        <p class="p-text-secondary">
+          <i class="pi pi-spin pi-spinner mr-2"></i>
+          {{ 'import.loading' | translate }}
+        </p>
+      </div>
+
       <p class="p-error" *ngIf="error">{{ error | translate }}</p>
 
-      <div *ngIf="result" class="mt-3">
-        <h3>{{ 'import.resultTitle' | translate }}</h3>
-        <div style="max-height: calc(1.5rem * 10); overflow-y: auto; border: 1px solid var(--surface-300); border-radius: var(--border-radius); padding: .5rem; background: var(--surface-card);">
-          <pre style="margin:0; line-height: 1.5; white-space: pre-wrap;">{{ result | json }}</pre>
-        </div>
-      </div>
+      <p *ngIf="success" class="mt-3" style="color: var(--green-500);">
+        <i class="pi pi-check-circle mr-2"></i>
+        {{ success | translate }}
+      </p>
     </p-card>
   `
 })
@@ -77,6 +82,7 @@ export class ImportTemplatePageComponent{
   result: unknown;
   loading = false;
   error = '';
+  success = '';
 
   componentOptions = [
     { key: 'import.domainProduct', value: 'product' },
@@ -105,6 +111,7 @@ export class ImportTemplatePageComponent{
 
   onUpload(event: any){
     this.error = '';
+    this.success = '';
     const file: File | undefined = event?.files?.[0];
     if (!file || !this.domain) {
       this.error = !this.domain ? 'import.domainPlaceholder' : 'import.error';
@@ -115,13 +122,20 @@ export class ImportTemplatePageComponent{
     form.append('domain', this.domain);
     this.loading = true;
     this.http.post('/api/import/configure', form).subscribe({
-      next: (res) => { this.result = res; this.loading = false; },
-      error: (err) => { this.error = err?.error?.message || 'import.error'; this.loading = false; }
+      next: (res) => { 
+        this.result = res; 
+        this.loading = false; 
+        this.success = 'import.success';
+      },
+      error: (err) => { 
+        this.error = err?.error?.message || 'import.error'; 
+        this.loading = false; 
+      }
     });
   }
 
-  onFilesCleared(){ this.result = undefined; this.error = ''; }
-  onFileRemoved(){ this.result = undefined; this.error = ''; }
+  onFilesCleared(){ this.result = undefined; this.error = ''; this.success = ''; }
+  onFileRemoved(){ this.result = undefined; this.error = ''; this.success = ''; }
 
   private download(blob: Blob, filename: string){
     const url = URL.createObjectURL(blob);

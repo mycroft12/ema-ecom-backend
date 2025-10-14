@@ -107,6 +107,8 @@
     "cancelLabel": "Annuler",
     "analyze": "Analyser et configurer",
     "analyzing": "Analyse...",
+    "loading": "Traitement de votre modèle, veuillez patienter...",
+    "success": "Table configurée avec succès !",
     "resultTitle": "Résultat",
     "downloadExample": "Télécharger un exemple de modèle",
     "selectComponentFirst": "Veuillez d'abord sélectionner un composant",
