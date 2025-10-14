@@ -3,9 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "ng serve --proxy-config proxy.conf.json",
-    "build": "ng build --configuration production",
-    "lint": "ng lint"
+    "// Using --no-deprecation to suppress DEP0060 warning about util_extend": "",
+    "start": "node --no-deprecation ./node_modules/@angular/cli/bin/ng serve --proxy-config proxy.conf.json",
+    "build": "node --no-deprecation ./node_modules/@angular/cli/bin/ng build --configuration production",
+    "lint": "node --no-deprecation ./node_modules/@angular/cli/bin/ng lint"
   },
   "dependencies": {
     "@angular/animations": "19.0.1",
