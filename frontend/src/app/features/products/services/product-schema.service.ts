@@ -25,6 +25,37 @@ export class ProductSchemaService {
   loadSchema(): void {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
+
+    // First check if the product_config table exists by querying the tables endpoint
+    this.http.get<any[]>(`${this.apiBase}/api/import/configure/tables`).pipe(
+      tap(tables => {
+        // Check if product_config is in the list of tables
+        const productConfigExists = tables.some(table => table.tableName === 'product_config');
+
+        if (productConfigExists) {
+          // If the table exists, proceed with loading the schema
+          this.loadSchemaFromProductsEndpoint();
+        } else {
+          // If the table doesn't exist, set schema to null and stop loading
+          this.schemaSignal.set(null);
+          this.loadingSignal.set(false);
+        }
+      }),
+      catchError(err => {
+        // If there's an error checking tables, assume not configured
+        console.error('Error checking if product_config table exists:', err);
+        this.schemaSignal.set(null);
+        this.loadingSignal.set(false);
+        return of(null);
+      })
+    ).subscribe();
+  }
+
+  /**
+   * Helper method to load schema by probing the products endpoint.
+   * Only called if we've confirmed the product_config table exists.
+   */
+  private loadSchemaFromProductsEndpoint(): void {
     // We infer configuration state by probing the products endpoint. If it succeeds, consider schema ACTIVE.
     this.http.get(`${this.apiBase}/api/products`, { params: { page: 0, size: 1 } as any }).pipe(
       tap(() => {
@@ -42,7 +73,8 @@ export class ProductSchemaService {
         this.loadingSignal.set(false);
       }),
       catchError(err => {
-        // If the table isn't there yet or any error occurs, assume not configured (no schema)
+        // If there's an error loading products, assume schema is not properly configured
+        console.error('Error loading products:', err);
         this.schemaSignal.set(null);
         this.loadingSignal.set(false);
         return of(null);

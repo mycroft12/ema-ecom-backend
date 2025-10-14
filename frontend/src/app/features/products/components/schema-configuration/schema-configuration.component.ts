@@ -34,8 +34,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     ProgressBarModule,
     DividerModule,
     ToastModule,
-    TemplateDownloadComponent,
-    UploadProgressComponent,
     TranslateModule
   ],
   providers: [MessageService],
