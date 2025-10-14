@@ -87,3 +87,9 @@ a:hover { text-decoration: underline; }
 }
 
 /* Remove legacy nav styles (replaced by PrimeNG Menubar) */
+
+/* RTL specific styles */
+[dir="rtl"] .p-dropdown .p-dropdown-clear-icon {
+  right: auto;
+  left: 2.75rem;
+}
