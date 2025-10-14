@@ -24,6 +24,10 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public Page<ProductViewDto> search(String q, Pageable pageable){
+    // If the dynamic table doesn't exist yet (unconfigured state), return empty page gracefully
+    if (!tableExists()) {
+      return new PageImpl<>(Collections.emptyList(), pageable, 0);
+    }
     // Server-side paging using JDBC against dynamic table
     long total = jdbc.queryForObject("select count(*) from " + TABLE, Long.class);
     int pageSize = pageable.getPageSize();
@@ -106,6 +110,13 @@ public class ProductServiceImpl implements ProductService {
     } catch (EmptyResultDataAccessException ex){
       throw new NotFoundException("Product not found");
     }
+  }
+
+  private boolean tableExists(){
+    Boolean exists = jdbc.queryForObject(
+        "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
+        Boolean.class, TABLE);
+    return Boolean.TRUE.equals(exists);
   }
 
   private Set<String> tableColumns(){

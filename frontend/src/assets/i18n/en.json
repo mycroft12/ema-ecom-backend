@@ -1,52 +1,95 @@
 {
   "app": {
-    "title": "EMA E-commerce",
+    "title": "EMA E-Commerce Admin",
     "login": "Login",
-    "logout": "Logout",
-    "language": "Language"
+    "logout": "Logout"
   },
   "menu": {
     "home": "Home",
     "products": "Products",
     "employees": "Employees",
-    "roles": "Profils",
+    "delivery": "Delivery",
     "rules": "Rules",
-    "import": "Import",
-    "delivery": "Delivery"
-  },
-  "profile": {
-    "update": "Update",
-    "disconnect": "Disconnect"
+    "roles": "Roles",
+    "import": "Import"
   },
   "auth": {
+    "loginTitle": "Sign in",
     "username": "Username",
     "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "forgot": "Forgot your password?",
+    "needAccount": "Need an account? Contact your administrator.",
     "placeholder": {
-      "username": "jane.doe",
-      "password": "••••••••"
+      "username": "Enter your username",
+      "password": "Enter your password"
     },
-    "signIn": "Sign In",
-    "signingIn": "Signing In...",
-    "forgot": "Forgot password?",
-    "needAccount": "Need an account? Contact admin",
-    "loginTitle": "Login.",
     "errors": {
-      "serverUnreachable": "Cannot reach server. Please check your connection.",
-      "unexpected": "Unexpected error. Please try again later.",
-      "invalid": "Invalid username or password."
+      "invalid": "Invalid credentials",
+      "unexpected": "Unexpected error occurred",
+      "serverUnreachable": "Server unreachable"
     }
   },
-  "forgot": {
-    "title": "Forgot password",
-    "identifier": "Username or Email",
-    "send": "Send reset request",
-    "sending": "Sending...",
-    "info": "If an account exists for the provided identifier, you will receive instructions to reset your password.",
-    "backToLogin": "Back to Login"
-  },
-  "error": {
-    "auth": {
-      "badCredentials": "Invalid username or password."
-    }
+  "products": {
+    "title": "Products",
+    "configureHeader": "Configure Products",
+    "configureSubheader": "Upload an Excel or CSV template to define your product structure",
+    "notConfigured": "Products are not configured yet. Please upload a template to get started.",
+    "uploadTemplate": "Upload Configuration Template",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "e.g., Products",
+    "validateBeforeApply": "Validate template before applying changes",
+    "dragDrop": "Drag and drop files here or click to browse",
+    "acceptedFormats": "Accepted formats: .xlsx, .xls, .csv (Max 10MB)",
+    "btnConfigure": "Configure Products",
+    "btnDelete": "Delete",
+    "btnCustomFilters": "Custom Filters",
+    "btnExport": "Export",
+    "searchPlaceholder": "Search...",
+    "pageReport": "Showing {first} to {last} of {totalRecords} entries",
+    "noImage": "No image",
+    "noResults": "No products found",
+    "filterBuilderTitle": "Custom Filter Builder",
+    "newProduct": "New Product",
+    "editProduct": "Edit Product",
+    "actions": "Actions",
+
+    "downloadExamples": "Download Template Examples",
+    "downloadExplain": "Download a template to see the expected format. The template includes:",
+    "row1": "Row 1:",
+    "row2": "Row 2:",
+    "row3": "Row 3+:",
+    "row1Text": "Column names (e.g., name, sku, price, quantity)",
+    "row2Text": "Column types (TEXT, INTEGER, DECIMAL, DATE, BOOLEAN, MINIO_IMAGE, MINIO_FILE)",
+    "row3Text": "Optional sample data",
+    "btnDownloadBasic": "Download Basic Template",
+    "btnDownloadAllTypes": "Download Template with All Types",
+    "tooltipAllTypes": "Includes all available column types with examples",
+
+    "uploading": "Uploading and processing template...",
+
+    "confirmBulkDeleteHeader": "Confirm Bulk Delete",
+    "confirmBulkDeleteMessage": "Are you sure you want to delete {{count}} product(s)?",
+    "toastSuccess": "Success",
+    "toastError": "Error",
+    "toastExportInfo": "Export Started",
+    "toastExportDetail": "Preparing Excel file...",
+    "toastDeletedMany": "{{count}} product(s) deleted",
+
+    "filterName": "Filter Name",
+    "conditions": "Conditions",
+    "addCondition": "Add Condition",
+    "makePublic": "Make this filter public",
+    "btnCancel": "Cancel",
+    "btnSaveApply": "Save & Apply",
+
+    "opEquals": "Equals",
+    "opContains": "Contains",
+    "opStartsWith": "Starts With",
+    "opEndsWith": "Ends With",
+    "opGreaterThan": "Greater Than",
+    "opLessThan": "Less Than",
+    "valuePlaceholder": "Value"
   }
 }

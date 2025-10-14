@@ -1,52 +1,95 @@
 {
   "app": {
-    "title": "متجر EMA الإلكتروني",
+    "title": "لوحة إدارة التجارة الإلكترونية",
     "login": "تسجيل الدخول",
-    "logout": "تسجيل الخروج",
-    "language": "اللغة"
+    "logout": "تسجيل الخروج"
   },
   "menu": {
-    "home": "الصفحة الرئيسية",
+    "home": "الرئيسية",
     "products": "المنتجات",
     "employees": "الموظفون",
-    "roles": "الملفات",
+    "delivery": "التوصيل",
     "rules": "القواعد",
-    "import": "استيراد",
-    "delivery": "التسليم"
-  },
-  "profile": {
-    "update": "تحديث",
-    "disconnect": "تسجيل الخروج"
+    "roles": "الأدوار",
+    "import": "الاستيراد"
   },
   "auth": {
+    "loginTitle": "تسجيل الدخول",
     "username": "اسم المستخدم",
     "password": "كلمة المرور",
-    "placeholder": {
-      "username": "jane.doe",
-      "password": "••••••••"
-    },
     "signIn": "تسجيل الدخول",
-    "signingIn": "جاري التسجيل...",
+    "signingIn": "جارٍ تسجيل الدخول...",
     "forgot": "هل نسيت كلمة المرور؟",
-    "needAccount": "هل تحتاج حسابًا؟ تواصل مع المسؤول",
-    "loginTitle": "تسجيل الدخول.",
+    "needAccount": "تحتاج إلى حساب؟ تواصل مع المسؤول.",
+    "placeholder": {
+      "username": "أدخل اسم المستخدم",
+      "password": "أدخل كلمة المرور"
+    },
     "errors": {
-      "serverUnreachable": "لا يمكن الوصول إلى الخادم. يرجى التحقق من الاتصال.",
-      "unexpected": "خطأ غير متوقع. يرجى المحاولة لاحقًا.",
-      "invalid": "اسم المستخدم أو كلمة المرور غير صحيحة."
+      "invalid": "بيانات اعتماد غير صحيحة",
+      "unexpected": "حدث خطأ غير متوقع",
+      "serverUnreachable": "الخادم غير متاح"
     }
   },
-  "forgot": {
-    "title": "إعادة تعيين كلمة المرور",
-    "identifier": "اسم المستخدم أو البريد الإلكتروني",
-    "send": "إرسال طلب إعادة التعيين",
-    "sending": "جارٍ الإرسال...",
-    "info": "إذا كان هناك حساب يطابق البيانات المدخلة، ستصلك رسالة للتعليمات لإعادة تعيين كلمة المرور.",
-    "backToLogin": "الرجوع لتسجيل الدخول"
-  },
-  "error": {
-    "auth": {
-      "badCredentials": "اسم المستخدم أو كلمة المرور غير صحيحة."
-    }
+  "products": {
+    "title": "المنتجات",
+    "configureHeader": "تهيئة المنتجات",
+    "configureSubheader": "قم برفع ملف Excel أو CSV لتعريف بنية المنتجات",
+    "notConfigured": "لم يتم تهيئة المنتجات بعد. يرجى رفع نموذج للبدء.",
+    "uploadTemplate": "رفع نموذج التهيئة",
+    "displayName": "الاسم المعروض",
+    "displayNamePlaceholder": "مثال: المنتجات",
+    "validateBeforeApply": "التحقق من النموذج قبل التطبيق",
+    "dragDrop": "اسحب وأفلت الملفات هنا أو انقر للاختيار",
+    "acceptedFormats": "الصيغ المدعومة: ‎.xlsx, ‎.xls, ‎.csv (الحد الأقصى 10 ميجابايت)",
+    "btnConfigure": "تأكيد التهيئة",
+    "btnDelete": "حذف",
+    "btnCustomFilters": "فلاتر مخصصة",
+    "btnExport": "تصدير",
+    "searchPlaceholder": "بحث...",
+    "pageReport": "عرض {first} إلى {last} من أصل {totalRecords}",
+    "noImage": "لا توجد صورة",
+    "noResults": "لا توجد منتجات",
+    "filterBuilderTitle": "منشئ الفلاتر المخصصة",
+    "newProduct": "منتج جديد",
+    "editProduct": "تعديل المنتج",
+    "actions": "إجراءات",
+
+    "downloadExamples": "تنزيل أمثلة النماذج",
+    "downloadExplain": "قم بتنزيل نموذج للاطلاع على الصيغة المتوقعة. يتضمن النموذج:",
+    "row1": "السطر 1:",
+    "row2": "السطر 2:",
+    "row3": "الأسطر 3+:",
+    "row1Text": "أسماء الأعمدة (مثل name, sku, price, quantity)",
+    "row2Text": "أنواع الأعمدة (TEXT, INTEGER, DECIMAL, DATE, BOOLEAN, MINIO_IMAGE, MINIO_FILE)",
+    "row3Text": "بيانات نموذجية اختيارية",
+    "btnDownloadBasic": "تنزيل النموذج الأساسي",
+    "btnDownloadAllTypes": "تنزيل نموذج بجميع الأنواع",
+    "tooltipAllTypes": "يتضمن جميع أنواع الأعمدة المتاحة مع أمثلة",
+
+    "uploading": "جارٍ رفع ومعالجة النموذج...",
+
+    "confirmBulkDeleteHeader": "تأكيد الحذف الجماعي",
+    "confirmBulkDeleteMessage": "هل أنت متأكد من حذف {{count}} منتج(ات)؟",
+    "toastSuccess": "تم بنجاح",
+    "toastError": "خطأ",
+    "toastExportInfo": "بدأ التصدير",
+    "toastExportDetail": "جارٍ تحضير الملف...",
+    "toastDeletedMany": "تم حذف {{count}} منتج(ات)",
+
+    "filterName": "اسم الفلتر",
+    "conditions": "الشروط",
+    "addCondition": "إضافة شرط",
+    "makePublic": "جعل هذا الفلتر عاماً",
+    "btnCancel": "إلغاء",
+    "btnSaveApply": "حفظ وتطبيق",
+
+    "opEquals": "يساوي",
+    "opContains": "يحتوي",
+    "opStartsWith": "يبدأ بـ",
+    "opEndsWith": "ينتهي بـ",
+    "opGreaterThan": "أكبر من",
+    "opLessThan": "أقل من",
+    "valuePlaceholder": "القيمة"
   }
 }

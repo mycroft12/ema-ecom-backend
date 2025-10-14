@@ -1,3 +1,4 @@
+import '@angular/localize/init';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { importProvidersFrom } from '@angular/core';
 import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';

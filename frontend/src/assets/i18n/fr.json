@@ -1,52 +1,95 @@
 {
   "app": {
-    "title": "EMA E-commerce",
+    "title": "EMA E-Commerce Admin",
     "login": "Connexion",
-    "logout": "Déconnexion",
-    "language": "Langue"
+    "logout": "Déconnexion"
   },
   "menu": {
     "home": "Accueil",
     "products": "Produits",
     "employees": "Employés",
-    "roles": "Profils",
+    "delivery": "Livraison",
     "rules": "Règles",
-    "import": "Import",
-    "delivery": "Livraison"
-  },
-  "profile": {
-    "update": "Mettre à jour",
-    "disconnect": "Déconnexion"
+    "roles": "Rôles",
+    "import": "Import"
   },
   "auth": {
+    "loginTitle": "Se connecter",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
-    "placeholder": {
-      "username": "••••••••",
-      "password": "••••••••"
-    },
     "signIn": "Se connecter",
     "signingIn": "Connexion...",
     "forgot": "Mot de passe oublié ?",
-    "needAccount": "Besoin d'un compte ? Contactez l'admin",
-    "loginTitle": "Connexion.",
+    "needAccount": "Besoin d'un compte ? Contactez votre administrateur.",
+    "placeholder": {
+      "username": "Entrez votre nom d'utilisateur",
+      "password": "Entrez votre mot de passe"
+    },
     "errors": {
-      "serverUnreachable": "Serveur inaccessible. Veuillez vérifier votre connexion.",
-      "unexpected": "Erreur inattendue. Veuillez réessayer plus tard.",
-      "invalid": "Nom d'utilisateur ou mot de passe invalide."
+      "invalid": "Identifiants invalides",
+      "unexpected": "Une erreur inattendue s'est produite",
+      "serverUnreachable": "Serveur injoignable"
     }
   },
-  "forgot": {
-    "title": "Mot de passe oublié",
-    "identifier": "Nom d'utilisateur ou Email",
-    "send": "Envoyer la demande de réinitialisation",
-    "sending": "Envoi...",
-    "info": "Si un compte existe pour l'identifiant fourni, vous recevrez des instructions pour réinitialiser votre mot de passe.",
-    "backToLogin": "Retour à la connexion"
-  },
-  "error": {
-    "auth": {
-      "badCredentials": "Nom d'utilisateur ou mot de passe invalide."
-    }
+  "products": {
+    "title": "Produits",
+    "configureHeader": "Configurer les produits",
+    "configureSubheader": "Téléchargez un modèle Excel ou CSV pour définir la structure de vos produits",
+    "notConfigured": "Les produits ne sont pas encore configurés. Veuillez téléverser un modèle pour commencer.",
+    "uploadTemplate": "Téléverser le modèle de configuration",
+    "displayName": "Nom d'affichage",
+    "displayNamePlaceholder": "ex. Produits",
+    "validateBeforeApply": "Valider le modèle avant d'appliquer les modifications",
+    "dragDrop": "Glissez-déposez les fichiers ici ou cliquez pour parcourir",
+    "acceptedFormats": "Formats acceptés : .xlsx, .xls, .csv (Max 10 Mo)",
+    "btnConfigure": "Configurer les produits",
+    "btnDelete": "Supprimer",
+    "btnCustomFilters": "Filtres personnalisés",
+    "btnExport": "Exporter",
+    "searchPlaceholder": "Rechercher...",
+    "pageReport": "Affichage de {first} à {last} sur {totalRecords} entrées",
+    "noImage": "Aucune image",
+    "noResults": "Aucun produit trouvé",
+    "filterBuilderTitle": "Générateur de filtres personnalisés",
+    "newProduct": "Nouveau produit",
+    "editProduct": "Modifier le produit",
+    "actions": "Actions",
+
+    "downloadExamples": "Télécharger des exemples de modèles",
+    "downloadExplain": "Téléchargez un modèle pour voir le format attendu. Le modèle inclut :",
+    "row1": "Ligne 1 :",
+    "row2": "Ligne 2 :",
+    "row3": "Lignes 3+ :",
+    "row1Text": "Noms des colonnes (ex. name, sku, price, quantity)",
+    "row2Text": "Types de colonnes (TEXT, INTEGER, DECIMAL, DATE, BOOLEAN, MINIO_IMAGE, MINIO_FILE)",
+    "row3Text": "Données d'exemple facultatives",
+    "btnDownloadBasic": "Télécharger le modèle de base",
+    "btnDownloadAllTypes": "Télécharger le modèle avec tous les types",
+    "tooltipAllTypes": "Inclut tous les types de colonnes disponibles avec des exemples",
+
+    "uploading": "Téléversement et traitement du modèle...",
+
+    "confirmBulkDeleteHeader": "Confirmer la suppression en lot",
+    "confirmBulkDeleteMessage": "Êtes-vous sûr de vouloir supprimer {{count}} produit(s) ?",
+    "toastSuccess": "Succès",
+    "toastError": "Erreur",
+    "toastExportInfo": "Export démarré",
+    "toastExportDetail": "Préparation du fichier...",
+    "toastDeletedMany": "{{count}} produit(s) supprimé(s)",
+
+    "filterName": "Nom du filtre",
+    "conditions": "Conditions",
+    "addCondition": "Ajouter une condition",
+    "makePublic": "Rendre ce filtre public",
+    "btnCancel": "Annuler",
+    "btnSaveApply": "Enregistrer et appliquer",
+
+    "opEquals": "Égal à",
+    "opContains": "Contient",
+    "opStartsWith": "Commence par",
+    "opEndsWith": "Se termine par",
+    "opGreaterThan": "Supérieur à",
+    "opLessThan": "Inférieur à",
+    "valuePlaceholder": "Valeur"
   }
 }
