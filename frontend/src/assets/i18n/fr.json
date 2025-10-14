@@ -114,6 +114,15 @@
     "resultTitle": "Résultat",
     "downloadExample": "Télécharger un exemple de modèle",
     "selectComponentFirst": "Veuillez d'abord sélectionner un composant",
-    "error": "Échec de l'analyse du modèle"
+    "error": "Échec de l'analyse du modèle",
+    "configured": "Configuré",
+    "alreadyConfigured": "Ce composant est déjà configuré. Utilisez l'option de réinitialisation ci-dessous si vous devez le reconfigurer.",
+    "adminOptions": "Options d'administrateur",
+    "resetDescription": "Attention : La réinitialisation de cette configuration supprimera la table et toutes ses données. Cette action ne peut pas être annulée.",
+    "resetTable": "Réinitialiser la configuration",
+    "confirmReset": "Êtes-vous sûr de vouloir réinitialiser cette configuration ? Cela supprimera la table et toutes ses données. Cette action ne peut pas être annulée.",
+    "confirmResetHeader": "Confirmer la réinitialisation",
+    "tableReset": "La table a été réinitialisée avec succès",
+    "resetError": "Échec de la réinitialisation de la table"
   }
 }

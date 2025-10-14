@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -7,11 +7,16 @@ import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-import-template-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, CardModule, DropdownModule, FileUploadModule, ButtonModule],
+  imports: [CommonModule, FormsModule, TranslateModule, CardModule, DropdownModule, FileUploadModule, ButtonModule, ConfirmDialogModule, ToastModule],
+  providers: [ConfirmationService, MessageService],
   template: `
     <p-card [header]="('import.title' | translate)">
       <p class="mb-4">{{ 'import.description' | translate }}</p>
@@ -27,12 +32,18 @@ import { ButtonModule } from 'primeng/button';
             optionValue="value"
             [placeholder]="('import.domainPlaceholder' | translate)"
             [showClear]="true"
+            [optionDisabled]="isOptionDisabled"
           >
             <ng-template pTemplate="selectedItem" let-selected>
               <div>{{ selected?.key | translate }}</div>
             </ng-template>
             <ng-template pTemplate="item" let-option>
-              <div>{{ option.key | translate }}</div>
+              <div class="flex align-items-center justify-content-between" [class.text-400]="isTableConfigured(option.value)">
+                <span>{{ option.key | translate }}</span>
+                <span *ngIf="isTableConfigured(option.value)" class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round">
+                  {{ 'import.configured' | translate }}
+                </span>
+              </div>
             </ng-template>
           </p-dropdown>
         </div>
@@ -53,8 +64,12 @@ import { ButtonModule } from 'primeng/button';
             (uploadHandler)="onUpload($event)"
             (onRemove)="onFileRemoved()"
             (onClear)="onFilesCleared()"
+            [disabled]="isTableConfigured(domain)"
           >
           </p-fileUpload>
+          <small *ngIf="isTableConfigured(domain)" class="p-error">
+            {{ 'import.alreadyConfigured' | translate }}
+          </small>
         </div>
       </div>
 
@@ -71,18 +86,97 @@ import { ButtonModule } from 'primeng/button';
         <i class="pi pi-check-circle mr-2"></i>
         {{ success | translate }}
       </p>
+
+      <div *ngIf="isAdmin && isTableConfigured(domain)" class="mt-4 pt-3 border-top-1 surface-border">
+        <div class="flex align-items-center justify-content-between">
+          <div>
+            <h3 class="mt-0 mb-2">{{ 'import.adminOptions' | translate }}</h3>
+            <p class="mt-0 mb-3 text-600">{{ 'import.resetDescription' | translate }}</p>
+          </div>
+          <button 
+            pButton 
+            type="button" 
+            [label]="('import.resetTable' | translate)" 
+            icon="pi pi-trash" 
+            severity="danger" 
+            (click)="resetTable(domain)"
+          ></button>
+        </div>
+      </div>
     </p-card>
+
+    <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+    <p-toast></p-toast>
   `
 })
-export class ImportTemplatePageComponent{
+export class ImportTemplatePageComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly translate = inject(TranslateService);
+  private readonly auth = inject(AuthService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
 
   domain: 'product' | 'employee' | 'delivery' | '' = '';
   result: unknown;
   loading = false;
   error = '';
   success = '';
+  configuredTables: string[] = [];
+  isAdmin = false;
+
+  ngOnInit(): void {
+    this.isAdmin = this.auth.hasAny(['import:configure']);
+    this.fetchConfiguredTables();
+  }
+
+  fetchConfiguredTables(): void {
+    this.http.get<any[]>('/api/import/configure/tables').subscribe({
+      next: (tables) => {
+        this.configuredTables = tables.map(t => t.domain);
+      },
+      error: (err) => {
+        console.error('Error fetching configured tables:', err);
+      }
+    });
+  }
+
+  isTableConfigured(domain: string): boolean {
+    return this.configuredTables.includes(domain);
+  }
+
+  isOptionDisabled = (option: any): boolean => {
+    // Disable the option if it's configured
+    return this.isTableConfigured(option.value);
+  }
+
+  resetTable(domain: string): void {
+    if (!this.isAdmin) return;
+
+    this.confirmationService.confirm({
+      message: this.translate.instant('import.confirmReset'),
+      header: this.translate.instant('import.confirmResetHeader'),
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.http.delete(`/api/import/configure/table`, { params: { domain } }).subscribe({
+          next: () => {
+            this.messageService.add({ 
+              severity: 'success', 
+              summary: this.translate.instant('import.success'), 
+              detail: this.translate.instant('import.tableReset') 
+            });
+            this.fetchConfiguredTables();
+          },
+          error: (err) => {
+            this.messageService.add({ 
+              severity: 'error', 
+              summary: this.translate.instant('import.error'), 
+              detail: err?.error?.message || this.translate.instant('import.resetError') 
+            });
+          }
+        });
+      }
+    });
+  }
 
   componentOptions = [
     { key: 'import.domainProduct', value: 'product' },

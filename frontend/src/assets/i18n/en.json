@@ -114,6 +114,15 @@
     "resultTitle": "Result",
     "downloadExample": "Download Template example",
     "selectComponentFirst": "Please select a component first",
-    "error": "Failed to analyze template"
+    "error": "Failed to analyze template",
+    "configured": "Configured",
+    "alreadyConfigured": "This component is already configured. Use the reset option below if you need to reconfigure it.",
+    "adminOptions": "Administrator Options",
+    "resetDescription": "Warning: Resetting this configuration will delete the table and all its data. This action cannot be undone.",
+    "resetTable": "Reset Configuration",
+    "confirmReset": "Are you sure you want to reset this configuration? This will delete the table and all its data. This action cannot be undone.",
+    "confirmResetHeader": "Confirm Reset",
+    "tableReset": "Table has been reset successfully",
+    "resetError": "Failed to reset table"
   }
 }
