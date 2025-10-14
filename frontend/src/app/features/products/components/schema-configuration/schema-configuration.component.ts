@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProductSchemaService } from '../../services/product-schema.service';
 import { SchemaConfigurationRequest } from '../../models/product-schema.model';
 import { CardModule } from 'primeng/card';
@@ -44,6 +45,11 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class SchemaConfigurationComponent {
   private readonly schemaService = inject(ProductSchemaService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
+
+  navigateToImport(): void {
+    this.router.navigate(['/import']);
+  }
 
   readonly displayName = signal<string>('Products');
   readonly validateBeforeApply = signal<boolean>(true);

@@ -36,6 +36,8 @@
     "configureHeader": "Configurer les produits",
     "configureSubheader": "Téléchargez un modèle Excel ou CSV pour définir la structure de vos produits",
     "notConfigured": "Les produits ne sont pas encore configurés. Veuillez téléverser un modèle pour commencer.",
+    "needConfiguration": "Vous devez d'abord configurer le Produit",
+    "configureNow": "Configurer maintenant",
     "uploadTemplate": "Téléverser le modèle de configuration",
     "displayName": "Nom d'affichage",
     "displayNamePlaceholder": "ex. Produits",

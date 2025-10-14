@@ -36,6 +36,8 @@
     "configureHeader": "تهيئة المنتجات",
     "configureSubheader": "قم برفع ملف Excel أو CSV لتعريف بنية المنتجات",
     "notConfigured": "لم يتم تهيئة المنتجات بعد. يرجى رفع نموذج للبدء.",
+    "needConfiguration": "تحتاج إلى تهيئة المنتج أولاً",
+    "configureNow": "تهيئة الآن",
     "uploadTemplate": "رفع نموذج التهيئة",
     "displayName": "الاسم المعروض",
     "displayNamePlaceholder": "مثال: المنتجات",

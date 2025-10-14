@@ -36,6 +36,8 @@
     "configureHeader": "Configure Products",
     "configureSubheader": "Upload an Excel or CSV template to define your product structure",
     "notConfigured": "Products are not configured yet. Please upload a template to get started.",
+    "needConfiguration": "You need to configure first the Product",
+    "configureNow": "Configure Now",
     "uploadTemplate": "Upload Configuration Template",
     "displayName": "Display Name",
     "displayNamePlaceholder": "e.g., Products",

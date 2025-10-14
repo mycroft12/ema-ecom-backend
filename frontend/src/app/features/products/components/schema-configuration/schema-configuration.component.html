@@ -1,61 +1,18 @@
 <div class="grid">
   <div class="col-12">
-    <p-card [header]="('products.configureHeader' | translate)" [subheader]="('products.configureSubheader' | translate)">
-      <p-message severity="info" [text]="('products.notConfigured' | translate)" styleClass="w-full mb-4" />
-
-      <app-template-download />
-
-      <p-divider />
-
-      <div class="upload-section">
-        <h3>{{ 'products.uploadTemplate' | translate }}</h3>
-
-        <div class="field">
-          <label for="displayName">{{ 'products.displayName' | translate }}</label>
-          <input id="displayName" type="text" pInputText [(ngModel)]="displayName" [placeholder]="('products.displayNamePlaceholder' | translate)" class="w-full" />
-        </div>
-
-        <div class="field-checkbox mb-4">
-          <p-checkbox [(ngModel)]="validateBeforeApply" [binary]="true" inputId="validate" />
-          <label for="validate" class="ml-2">{{ 'products.validateBeforeApply' | translate }}</label>
-        </div>
-
-        <p-fileUpload
-          name="template"
-          [customUpload]="true"
-          (onSelect)="onFileSelect($event)"
-          (onRemove)="onFileRemove()"
-          accept=".xlsx,.xls,.csv"
-          [maxFileSize]="10000000"
-          [showUploadButton]="false"
-          [showCancelButton]="false"
-          [auto]="false"
-          [chooseLabel]="('products.btnChooseFile' | translate)"
-        >
-          <ng-template pTemplate="content">
-            <div class="flex align-items-center justify-content-center flex-column">
-              @if (!selectedFile()) {
-                <i class="pi pi-cloud-upload text-6xl text-primary"></i>
-                <p class="mt-3 mb-0">{{ 'products.dragDrop' | translate }}</p>
-                <p class="text-500">{{ 'products.acceptedFormats' | translate }}</p>
-              } @else {
-                <div class="flex align-items-center gap-3">
-                  <i class="pi pi-file-excel text-4xl text-green-500"></i>
-                  <div>
-                    <p class="font-bold mb-1">{{ selectedFile()!.name }}</p>
-                  </div>
-                </div>
-              }
-            </div>
-          </ng-template>
-        </p-fileUpload>
-
-        @if (isUploading()) {
-          <app-upload-progress [progress]="schemaService.uploadProgress()" />
-        }
-
-        <div class="flex justify-content-end mt-4">
-          <p-button [label]="('products.btnConfigure' | translate)" icon="pi pi-check" severity="primary" [raised]="true" size="large" [disabled]="!selectedFile() || isUploading()" [loading]="isUploading()" (onClick)="uploadTemplate()" />
+    <p-card>
+      <div class="flex flex-column align-items-center justify-content-center text-center p-5">
+        <i class="pi pi-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
+        <h2>{{ 'products.needConfiguration' | translate }}</h2>
+        <div class="mt-4">
+          <p-button 
+            [label]="('products.configureNow' | translate)" 
+            icon="pi pi-cog" 
+            severity="primary" 
+            [raised]="true" 
+            size="large" 
+            (onClick)="navigateToImport()" 
+          />
         </div>
       </div>
     </p-card>
