@@ -13,7 +13,7 @@ spring:
         connection:
           provider_disables_autocommit: true
   flyway:
-    enabled: false
+    enabled: true
   web:
     resources:
       static-locations: classpath:/resources-static/,classpath:/static/,classpath:/public/

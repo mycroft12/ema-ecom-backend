@@ -16,7 +16,7 @@ spring:
         format_sql: false
     show-sql: false
   flyway:
-    enabled: false
+    enabled: true
 
 server:
   port: 8080
