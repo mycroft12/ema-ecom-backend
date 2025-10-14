@@ -130,7 +130,7 @@
     "tableReset": "Table has been reset successfully",
     "resetError": "Failed to reset table",
     "configuredDomains": "Configured Components",
-    "domainConfigured": "The {{domain}} domain is configured and ready to use.",
+    "domainConfigured": "The {{domain}} component is configured and ready to use.",
     "adminOnly": "Admin Options",
     "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",
     "confirmUploadHeader": "Confirm Template Upload"

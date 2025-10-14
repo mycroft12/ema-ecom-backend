@@ -130,7 +130,7 @@
     "tableReset": "تم إعادة تعيين الجدول بنجاح",
     "resetError": "فشل في إعادة تعيين الجدول",
     "configuredDomains": "المكونات المهيأة",
-    "domainConfigured": "تم تهيئة مجال {{domain}} وهو جاهز للاستخدام.",
+    "domainConfigured": "تم تهيئة المكوّن {{domain}} وهو جاهز للاستخدام.",
     "adminOnly": "خيارات المسؤول",
     "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",
     "confirmUploadHeader": "تأكيد رفع النموذج"
