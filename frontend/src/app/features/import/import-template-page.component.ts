@@ -112,7 +112,6 @@ import { AuthService } from '../../core/auth.service';
               <!-- Admin Reset Button -->
               <div class="mt-3 pt-3 border-top-1 surface-border">
                 <div class="flex align-items-center justify-content-between">
-                  <p class="text-sm text-600 m-0">{{ 'import.adminOnly' | translate }}</p>
                   <button 
                     pButton 
                     type="button" 
@@ -123,7 +122,6 @@ import { AuthService } from '../../core/auth.service';
                     size="small"
                   ></button>
                 </div>
-                <p class="text-sm mt-2">Debug - isAdmin: {{isAdmin}}</p>
               </div>
             </div>
           </p-card>
