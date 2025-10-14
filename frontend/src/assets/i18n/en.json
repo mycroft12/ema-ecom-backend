@@ -123,6 +123,9 @@
     "confirmReset": "Are you sure you want to reset this configuration? This will delete the table and all its data. This action cannot be undone.",
     "confirmResetHeader": "Confirm Reset",
     "tableReset": "Table has been reset successfully",
-    "resetError": "Failed to reset table"
+    "resetError": "Failed to reset table",
+    "configuredDomains": "Configured Domains",
+    "domainConfigured": "The {{domain}} domain is configured and ready to use.",
+    "adminOnly": "Admin Options"
   }
 }

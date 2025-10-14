@@ -86,24 +86,43 @@ import { AuthService } from '../../core/auth.service';
         <i class="pi pi-check-circle mr-2"></i>
         {{ success | translate }}
       </p>
+    </p-card>
 
-      <div *ngIf="isAdmin && isTableConfigured(domain)" class="mt-4 pt-3 border-top-1 surface-border">
-        <div class="flex align-items-center justify-content-between">
-          <div>
-            <h3 class="mt-0 mb-2">{{ 'import.adminOptions' | translate }}</h3>
-            <p class="mt-0 mb-3 text-600">{{ 'import.resetDescription' | translate }}</p>
-          </div>
-          <button 
-            pButton 
-            type="button" 
-            [label]="('import.resetTable' | translate)" 
-            icon="pi pi-trash" 
-            severity="danger" 
-            (click)="resetTable(domain)"
-          ></button>
+    <!-- Configured Domains Section -->
+    <div *ngIf="configuredTables.length > 0" class="mt-4">
+      <h3>{{ 'import.configuredDomains' | translate }}</h3>
+      <div class="grid">
+        <div *ngFor="let configuredDomain of configuredTables" class="col-12 md:col-4 mb-3">
+          <p-card>
+            <ng-template pTemplate="header">
+              <div class="flex align-items-center p-3">
+                <i class="pi pi-check-circle text-green-500 mr-2"></i>
+                <span class="font-bold">{{ getDomainDisplayName(configuredDomain) | translate }}</span>
+              </div>
+            </ng-template>
+            <div class="p-3">
+              <p>{{ 'import.domainConfigured' | translate: { domain: getDomainDisplayName(configuredDomain) | translate } }}</p>
+
+              <!-- Admin Reset Button -->
+              <div *ngIf="isAdmin" class="mt-3 pt-3 border-top-1 surface-border">
+                <div class="flex align-items-center justify-content-between">
+                  <p class="text-sm text-600 m-0">{{ 'import.adminOnly' | translate }}</p>
+                  <button 
+                    pButton 
+                    type="button" 
+                    [label]="('import.resetTable' | translate)" 
+                    icon="pi pi-trash" 
+                    severity="danger" 
+                    (click)="resetTable(configuredDomain)"
+                    size="small"
+                  ></button>
+                </div>
+              </div>
+            </div>
+          </p-card>
         </div>
       </div>
-    </p-card>
+    </div>
 
     <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
     <p-toast></p-toast>
@@ -176,6 +195,16 @@ export class ImportTemplatePageComponent implements OnInit {
         });
       }
     });
+  }
+
+  /**
+   * Returns the display name for a domain
+   * @param domain The domain name (product, employee, delivery)
+   * @returns The translation key for the domain display name
+   */
+  getDomainDisplayName(domain: string): string {
+    const option = this.componentOptions.find(opt => opt.value === domain);
+    return option ? option.key : domain;
   }
 
   componentOptions = [

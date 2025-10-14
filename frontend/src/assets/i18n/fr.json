@@ -123,6 +123,9 @@
     "confirmReset": "Êtes-vous sûr de vouloir réinitialiser cette configuration ? Cela supprimera la table et toutes ses données. Cette action ne peut pas être annulée.",
     "confirmResetHeader": "Confirmer la réinitialisation",
     "tableReset": "La table a été réinitialisée avec succès",
-    "resetError": "Échec de la réinitialisation de la table"
+    "resetError": "Échec de la réinitialisation de la table",
+    "configuredDomains": "Domaines configurés",
+    "domainConfigured": "Le domaine {{domain}} est configuré et prêt à être utilisé.",
+    "adminOnly": "Options d'administrateur"
   }
 }
