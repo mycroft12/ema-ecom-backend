@@ -4,6 +4,7 @@ import com.mycroft.ema.ecom.common.error.NotFoundException;
 import com.mycroft.ema.ecom.domains.products.dto.ProductCreateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductUpdateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductViewDto;
+import com.mycroft.ema.ecom.domains.products.dto.ResponseDto;
 import com.mycroft.ema.ecom.domains.products.service.ProductService;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -23,20 +25,20 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public Page<ProductViewDto> search(String q, Pageable pageable){
-    // If the dynamic table doesn't exist yet (unconfigured state), return empty page gracefully
+  public Page<ProductViewDto> search(String q, Pageable pageable) {
     if (!tableExists()) {
       return new PageImpl<>(Collections.emptyList(), pageable, 0);
     }
-    // Server-side paging using JDBC against dynamic table
     long total = jdbc.queryForObject("select count(*) from " + TABLE, Long.class);
     int pageSize = pageable.getPageSize();
     int offset = (int) pageable.getOffset();
-    // For simplicity, ignore sorting and q for now; could be enhanced to dynamic SQL
+
+    // naive order by id; you can extend with dynamic sorting later
     List<Map<String, Object>> rows = jdbc.queryForList(
-        "select * from " + TABLE + " order by id limit ? offset ?", pageSize, offset);
+            "select * from " + TABLE + " order by id limit ? offset ?", pageSize, offset);
+
     List<ProductViewDto> content = new ArrayList<>();
-    for(Map<String, Object> row : rows){
+    for (Map<String, Object> row : rows) {
       UUID id = row.get("id") == null ? null : UUID.fromString(row.get("id").toString());
       Map<String, Object> attrs = new LinkedHashMap<>(row);
       attrs.remove("id");
@@ -44,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
     }
     return new PageImpl<>(content, pageable, total);
   }
+
   @Override
   public ProductViewDto create(ProductCreateDto dto){
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
@@ -112,12 +115,67 @@ public class ProductServiceImpl implements ProductService {
     }
   }
 
-  private boolean tableExists(){
-    Boolean exists = jdbc.queryForObject(
-        "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
-        Boolean.class, TABLE);
-    return Boolean.TRUE.equals(exists);
+  private boolean tableExists() {
+    Integer count = jdbc.queryForObject("""
+      select count(*) from information_schema.tables 
+      where table_schema = current_schema() and table_name = ?
+      """, Integer.class, TABLE);
+    return count != null && count > 0;
   }
+
+  @Override
+  public List<ResponseDto.ColumnDto> listColumns() {
+    if (!tableExists()) return List.of(); // unconfigured state
+
+    List<Map<String,Object>> rows = jdbc.queryForList("""
+      select column_name, data_type, ordinal_position 
+      from information_schema.columns
+      where table_schema = current_schema() and table_name = ?
+      order by ordinal_position
+      """, TABLE);
+
+    List<ResponseDto.ColumnDto> cols = new ArrayList<>();
+    for (Map<String,Object> r : rows) {
+      String name = String.valueOf(r.get("column_name"));
+      if ("id".equalsIgnoreCase(name)) continue; // we keep id as dataKey but not visible
+
+      String dataType = String.valueOf(r.get("data_type"));
+      int order = Integer.parseInt(String.valueOf(r.get("ordinal_position"))) - 1;
+
+      ResponseDto.ColumnType type = mapSqlTypeToColumnType(name, dataType);
+      String displayName = prettify(name);
+
+      cols.add(new ResponseDto.ColumnDto(name, displayName, type, false, order));
+    }
+    return cols;
+  }
+
+  private ResponseDto.ColumnType mapSqlTypeToColumnType(String name, String dataType) {
+    // Name hints first (let you render the “example” widgets on FE)
+    String n = name.toLowerCase();
+    if (n.contains("image") || n.endsWith("_url")) return ResponseDto.ColumnType.MINIO_IMAGE;
+    if (n.equals("status")) return ResponseDto.ColumnType.TEXT;
+    if (n.equals("activity")) return ResponseDto.ColumnType.INTEGER;
+    if (n.equals("representative") || n.equals("country")) return ResponseDto.ColumnType.TEXT;
+
+    // SQL type mapping (PostgreSQL-ish; adapt if you use another DB)
+    String dt = dataType.toLowerCase();
+    if (dt.contains("bool")) return ResponseDto.ColumnType.BOOLEAN;
+    if (dt.contains("int")) return ResponseDto.ColumnType.INTEGER;
+    if (dt.contains("numeric") || dt.contains("decimal") || dt.contains("double") || dt.contains("real")) return ResponseDto.ColumnType.DECIMAL;
+    if (dt.contains("date") || dt.contains("timestamp")) return ResponseDto.ColumnType.DATE;
+
+    return ResponseDto.ColumnType.TEXT;
+  }
+
+  private String prettify(String name) {
+    return Arrays.stream(name.replace('_', ' ').split(" "))
+            .filter(s -> !s.isBlank())
+            .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
+            .collect(Collectors.joining(" "));
+  }
+
+
 
   private Set<String> tableColumns(){
     return new HashSet<>(jdbc.queryForList(

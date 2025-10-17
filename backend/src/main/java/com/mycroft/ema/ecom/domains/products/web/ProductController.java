@@ -4,6 +4,7 @@ import com.mycroft.ema.ecom.common.web.PageResponse;
 import com.mycroft.ema.ecom.domains.products.dto.ProductCreateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductUpdateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductViewDto;
+import com.mycroft.ema.ecom.domains.products.dto.ResponseDto;
 import com.mycroft.ema.ecom.domains.products.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,10 +25,16 @@ public class ProductController {
 
   @GetMapping
   @PreAuthorize("hasAuthority('product:read')")
-  @Operation(summary = "Search products", description = "Search products with pagination (dynamic columns)")
-  public PageResponse<ProductViewDto> search(@RequestParam(required = false) String q,
-                                             Pageable pageable){
-    return PageResponse.of(service.search(q, pageable));
+  @Operation(
+          summary = "Search products",
+          description = "Search products with pagination. If includeSchema=true, also returns dynamic columns."
+  )
+  public ResponseDto.ProductSearchResponse search(@RequestParam(required = false) String q,
+                                                  @RequestParam(defaultValue = "false") boolean includeSchema,
+                                                  Pageable pageable){
+    var page = service.search(q, pageable);
+    List<ResponseDto.ColumnDto> columns = includeSchema ? service.listColumns() : null;
+    return ResponseDto.ProductSearchResponse.of(page, columns);
   }
 
   @GetMapping("/{id}")

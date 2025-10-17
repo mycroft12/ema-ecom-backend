@@ -1,13 +1,12 @@
-import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProductDataService } from '../../services/product-data.service';
-import { ProductSchemaService } from '../../services/product-schema.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MessageService } from 'primeng/api';
+
+import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Table, TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -16,6 +15,9 @@ import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { SliderModule } from 'primeng/slider';
+
+import { ProductDataService } from '../../services/product-data.service';
+import { ProductSchemaService } from '../../services/product-schema.service';
 import { ColumnType } from '../../models/product-schema.model';
 
 @Component({
@@ -24,10 +26,10 @@ import { ColumnType } from '../../models/product-schema.model';
   imports: [
     CommonModule,
     FormsModule,
-    ButtonModule,
-    ToastModule,
     TranslateModule,
     TableModule,
+    ButtonModule,
+    ToastModule,
     InputTextModule,
     IconFieldModule,
     InputIconModule,
@@ -49,20 +51,30 @@ export class ProductTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   readonly translate = inject(TranslateService);
 
+  ColumnType = ColumnType; // expose enum to template
+
   loading = false;
-  searchValue: string | undefined;
-
-  // Map to store filter values for each column
-  filterValues = new Map<string, any>();
-
-  // Map to store global filter fields
+  searchValue?: string;
   globalFilterFields: string[] = [];
+
+  // “example-like” filter models + options
+  representativeOptions: Array<{ name: string; image: string }> = [];
+  statusOptions: Array<{ label: string; value: string }> = [];
+  repFilterModel: any[] = [];
+  statusFilterModel?: string;
+
+  // activity range (between)
+  activityMin = 0;
+  activityMax = 100;
+  activityRange: [number, number] = [0, 100];
 
   ngOnInit() {
     this.loading = true;
-    // Update global filter fields based on visible columns
+
+    // 1) build globalFilterFields from dynamic schema
     this.updateGlobalFilterFields();
-    // Load products using the data service
+
+    // 2) load data (keeps your service flow)
     this.dataService.loadProducts({
       first: 0,
       rows: 10,
@@ -71,65 +83,134 @@ export class ProductTableComponent implements OnInit {
       filters: undefined,
       globalFilter: undefined
     }).subscribe(() => {
+      // 3) once data is in memory, derive example-like options dynamically
+      const rows = this.dataService.products() ?? [];
+
+      // representative options (if column exists)
+      const repCol = this.schemaService.visibleColumns().find(c => this.isRepresentative(c));
+      if (repCol) {
+        const uniqKey = new Set<string>();
+        this.representativeOptions = rows
+            .map(r => r?.[repCol.name])
+            .filter(v => !!v && typeof v === 'object')
+            .filter(rep => {
+              const key = `${rep.name}|${rep.image}`;
+              if (uniqKey.has(key)) return false;
+              uniqKey.add(key);
+              return true;
+            });
+      }
+
+      // status options (if column exists)
+      const statusCol = this.schemaService.visibleColumns().find(c => this.isStatus(c));
+      if (statusCol) {
+        const uniq = Array.from(new Set(rows.map(r => r?.[statusCol.name]).filter(Boolean)));
+        this.statusOptions = uniq.map(v => ({ label: String(v), value: String(v) }));
+      }
+
+      // activity range (if column exists)
+      const activityCol = this.schemaService.visibleColumns().find(c => this.isActivity(c));
+      if (activityCol) {
+        const values = rows.map(r => Number(r?.[activityCol.name])).filter(n => !isNaN(n));
+        if (values.length) {
+          this.activityMin = Math.min(...values);
+          this.activityMax = Math.max(...values);
+          this.activityRange = [this.activityMin, this.activityMax];
+        }
+      }
+
       this.loading = false;
     });
   }
 
   updateGlobalFilterFields() {
-    // Update global filter fields based on visible columns
-    this.globalFilterFields = this.schemaService.visibleColumns().map(column => column.name);
+    this.globalFilterFields = this.schemaService.visibleColumns().map(c => c.name);
   }
 
   clear(table: Table) {
     table.clear();
     this.searchValue = '';
+    this.repFilterModel = [];
+    this.statusFilterModel = undefined;
+    this.activityRange = [this.activityMin, this.activityMax];
   }
 
-  getFilterType(column: any) {
-    // Return the appropriate filter type based on the column type
+  /* ===========================
+     FILTER HELPERS / MAPPERS
+     =========================== */
+
+  getFilterType(column: any): 'text' | 'numeric' | 'date' | 'boolean' {
     switch (column.type) {
-      case ColumnType.TEXT:
-        return 'text';
+      case ColumnType.TEXT:    return 'text';
       case ColumnType.INTEGER:
-      case ColumnType.DECIMAL:
-        return 'numeric';
-      case ColumnType.DATE:
-        return 'date';
-      case ColumnType.BOOLEAN:
-        return 'boolean';
-      default:
-        return 'text';
+      case ColumnType.DECIMAL: return 'numeric';
+      case ColumnType.DATE:    return 'date';
+      case ColumnType.BOOLEAN: return 'boolean';
+      default:                 return 'text';
     }
   }
 
-  getSeverity(status: string) {
-    // This is a generic method to get severity for status values
-    // It can be customized based on your application's needs
-    if (!status) return null;
+  // Match mode hints for special example-like fields
+  getMatchMode(column: any) {
+    if (this.isRepresentative(column)) return 'in';        // multi-select
+    if (this.isStatus(column))        return 'equals';     // equals
+    if (this.isActivity(column))      return 'between';    // slider range
+    return undefined;                                      // let PrimeNG choose default
+  }
 
+  getShowMatchModes(column: any) {
+    // Hide match mode selector for specialized filters (as in your example)
+    if (this.isRepresentative(column) || this.isActivity(column)) return false;
+    return true;
+  }
+
+  /* ===========================
+     “EXAMPLE” FIELD DETECTORS
+     Adjust these to your schema metadata if needed.
+     =========================== */
+  isRepresentative(column: any) {
+    // either explicit metadata coming from schema, or by name convention
+    return column.name === 'representative' || column.rep === true || column.ui === 'representative';
+  }
+
+  isCountry(column: any) {
+    return column.name === 'country' || column.ui === 'country';
+  }
+
+  isStatus(column: any) {
+    return column.name === 'status' || column.ui === 'status';
+  }
+
+  isActivity(column: any) {
+    return column.name === 'activity' || column.ui === 'activity';
+  }
+
+  /* ===========================
+     VISUAL HELPERS
+     =========================== */
+  getSeverity(status: string | null | undefined) {
+    if (!status) return undefined;
     switch (status.toString().toLowerCase()) {
-      case 'true':
-      case 'active':
-      case 'approved':
-      case 'qualified':
-        return 'success';
+      case 'unqualified':
+      case 'rejected':
       case 'false':
       case 'inactive':
-      case 'rejected':
-      case 'unqualified':
         return 'danger';
-      case 'pending':
+      case 'qualified':
+      case 'approved':
+      case 'true':
+      case 'active':
+        return 'success';
       case 'negotiation':
-        return 'warning';
+      case 'pending':
+        return 'warn';
       case 'new':
+      case 'proposal':
         return 'info';
       default:
-        return null;
+        return undefined;
     }
   }
 
-  exportExcel(): void {
-    this.dataService.exportToExcel();
-    this.messageService.add({ severity: 'info', summary: this.translate.instant('products.toastExportInfo'), detail: this.translate.instant('products.toastExportDetail') });
-  }
+  protected readonly HTMLInputElement = HTMLInputElement;
 }
