@@ -37,11 +37,11 @@
                 <tr>
                     @for (column of schemaService.visibleColumns(); track column.name) {
                         <th [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'">
-                            <div class="flex items-center">
-                                {{ column.displayName }}
-
+                            <div class="header-cell">
+                                <span class="header-title">{{ column.displayName }}</span>
                                 <!-- default filter type from column type -->
                                 <p-columnFilter
+                                        styleClass="header-filter"
                                         [type]="getFilterType(column)"
                                         [field]="column.name"
                                         display="menu"
