@@ -15,7 +15,7 @@
     "delivery": "Delivery",
     "rules": "Rules",
     "roles": "Roles",
-    "import": "Import"
+    "import": "Configuration"
   },
   "auth": {
     "loginTitle": "Sign in",

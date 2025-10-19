@@ -12,6 +12,8 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../core/auth.service';
 
+// @ts-ignore
+// @ts-ignore
 @Component({
   selector: 'app-import-template-page',
   standalone: true,
@@ -32,6 +34,7 @@ import { AuthService } from '../../core/auth.service';
             optionValue="value"
             [placeholder]="('import.domainPlaceholder' | translate)"
             [showClear]="true"
+           
             [optionDisabled]="isOptionDisabled"
           >
             <ng-template pTemplate="selectedItem" let-selected>
@@ -178,6 +181,7 @@ export class ImportTemplatePageComponent implements OnInit {
     // Disable the option if it's configured
     return this.isTableConfigured(option.value);
   }
+
 
   resetTable(domain: string): void {
     // if (!this.isAdmin) return;

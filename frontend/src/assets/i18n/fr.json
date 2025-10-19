@@ -15,7 +15,7 @@
     "delivery": "Livraison",
     "rules": "Règles",
     "roles": "Rôles",
-    "import": "Import"
+    "import": "Configuration"
   },
   "auth": {
     "loginTitle": "Se connecter",

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterOutlet, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, RouterOutlet, ActivatedRoute, NavigationEnd, RouterLinkActive } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
@@ -19,7 +19,7 @@ import { LanguageSwitcherComponent } from '../shared/language-switcher.component
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, FormsModule, TranslateModule, LanguageSwitcherComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, FormsModule, TranslateModule, LanguageSwitcherComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen flex flex-column">
@@ -50,7 +50,20 @@ import { LanguageSwitcherComponent } from '../shared/language-switcher.component
       <!-- Sidebar -->
       <p-drawer [(visible)]="sidebarOpen" position="left" [modal]="true" [dismissible]="true" [showCloseIcon]="true" styleClass="w-18rem">
         <div class="p-3">
-          <p-panelMenu [model]="menuModel()"></p-panelMenu>
+          <nav class="nav-menu">
+            <ul class="nav-list">
+              <li *ngFor="let item of menuModel()" class="nav-item">
+                <a 
+                  [routerLink]="item.routerLink" 
+                  routerLinkActive="nav-link-active"
+                  [routerLinkActiveOptions]="{exact: item.routerLink === '/home'}"
+                  class="nav-link flex align-items-center gap-2 p-2 border-round cursor-pointer no-underline text-color transition-colors transition-duration-150">
+                  <i [class]="item.icon" *ngIf="item.icon" aria-hidden="true"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </p-drawer>
 

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NavService } from '../core/navigation/nav.service';
@@ -9,12 +9,25 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule,  RouterOutlet, PanelMenuModule, TranslateModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, PanelMenuModule, TranslateModule],
   template: `
     <div class="grid">
       <!-- Sidenav -->
       <div class="col-12 md:col-3 lg:col-2 mb-3">
-        <p-panelMenu [model]="menu"></p-panelMenu>
+        <nav class="nav-menu">
+          <ul class="nav-list">
+            <li *ngFor="let item of menu" class="nav-item">
+              <a 
+                [routerLink]="item.routerLink" 
+                routerLinkActive="nav-link-active"
+                [routerLinkActiveOptions]="{exact: item.routerLink === '/home'}"
+                class="nav-link flex align-items-center gap-2 p-2 border-round cursor-pointer no-underline text-color transition-colors transition-duration-150">
+                <i [class]="item.icon" *ngIf="item.icon" aria-hidden="true"></i>
+                <span>{{ item.label }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
 
       <!-- Content -->

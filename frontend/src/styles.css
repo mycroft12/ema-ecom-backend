@@ -109,3 +109,78 @@ a:hover { text-decoration: underline; }
   padding: 0.75rem 1.25rem;
   font-size: 1.1rem;
 }
+
+/* Navigation Menu Styles */
+.nav-menu {
+  width: 100%;
+  background-color: var(--surface-card);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin-bottom: 0.25rem;
+}
+
+.nav-link {
+  display: block;
+  text-decoration: none;
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  transition: all 0.15s ease;
+  background-color: transparent;
+}
+
+.nav-link:hover {
+  background-color: var(--surface-hover) !important;
+  text-decoration: none;
+}
+
+/* Active navigation link styles */
+.nav-link-active {
+  background-color: #119a83 !important; /* Fallback blue color */
+  background-color: var(--primary-color, #119a83) !important;
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-link-active:hover {
+  background-color: #0c705f !important; /* Slightly darker blue on hover */
+  background-color: var(--primary-color, #0c705f) !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Icon styling for active links */
+.nav-link-active i {
+  color: white !important;
+}
+
+/* Sidebar background styling */
+.p-drawer .p-drawer-content {
+  background-color: var(--surface-ground, #f8fafc) !important;
+  border-right: 1px solid var(--surface-border, #e2e8f0);
+}
+
+/* Ensure proper contrast for text in sidebar */
+.p-drawer .nav-menu {
+  background-color: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--surface-border, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Add some padding and spacing to the drawer content */
+.p-drawer .p-drawer-content .p-3 {
+  background-color: var(--surface-ground, #f8fafc);
+  min-height: 100vh;
+}
