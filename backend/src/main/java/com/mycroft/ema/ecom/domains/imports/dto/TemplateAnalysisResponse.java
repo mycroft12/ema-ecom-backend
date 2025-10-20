@@ -7,14 +7,21 @@ public class TemplateAnalysisResponse {
   private List<ColumnInfo> columns;
   private String createTableSql;
   private List<String> warnings;
+  private boolean typeRowProvided;
 
   public TemplateAnalysisResponse(){}
 
   public TemplateAnalysisResponse(String tableName, List<ColumnInfo> columns, String createTableSql, List<String> warnings) {
+    this(tableName, columns, createTableSql, warnings, false);
+  }
+
+  public TemplateAnalysisResponse(String tableName, List<ColumnInfo> columns, String createTableSql,
+                                  List<String> warnings, boolean typeRowProvided) {
     this.tableName = tableName;
     this.columns = columns;
     this.createTableSql = createTableSql;
     this.warnings = warnings;
+    this.typeRowProvided = typeRowProvided;
   }
 
   public String getTableName() { return tableName; }
@@ -25,4 +32,6 @@ public class TemplateAnalysisResponse {
   public void setCreateTableSql(String createTableSql) { this.createTableSql = createTableSql; }
   public List<String> getWarnings() { return warnings; }
   public void setWarnings(List<String> warnings) { this.warnings = warnings; }
+  public boolean isTypeRowProvided() { return typeRowProvided; }
+  public void setTypeRowProvided(boolean typeRowProvided) { this.typeRowProvided = typeRowProvided; }
 }

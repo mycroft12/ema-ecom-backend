@@ -73,6 +73,8 @@ public class ImportConfigureController {
       throw new RuntimeException("Database connection error: " + ex.getMessage(), ex);
     }
 
+    templateService.populateData(file, analysis);
+
     return analysis;
   }
 

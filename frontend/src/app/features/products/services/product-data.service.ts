@@ -1,8 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Product, ProductPageResponse } from '../models/product.model';
+import { Product, ProductPageResponse, RawProductDto } from '../models/product.model';
 import { TableLazyLoadEvent } from '../models/filter.model';
 
 @Injectable({ providedIn: 'root' })
@@ -49,30 +49,37 @@ export class ProductDataService {
 
     return this.http.get<ProductPageResponse>(this.apiUrl, { params }).pipe(
       tap(resp => {
-        this.productsSignal.set(resp.content);
+        const flattened = (resp.content ?? []).map(item => this.flattenProduct(item));
+        this.productsSignal.set(flattened);
         this.totalRecordsSignal.set(resp.totalElements);
         this.loadingSignal.set(false);
       })
     );
   }
 
-  getProduct(id: number): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/${id}`);
+  getProduct(id: string): Observable<Product> {
+    return this.http.get<RawProductDto>(`${this.apiUrl}/${id}`).pipe(
+      map(dto => this.flattenProduct(dto))
+    );
   }
 
   createProduct(product: Partial<Product>): Observable<Product> {
-    return this.http.post<Product>(this.apiUrl, product);
+    return this.http.post<RawProductDto>(this.apiUrl, product).pipe(
+      map(dto => this.flattenProduct(dto))
+    );
   }
 
-  updateProduct(id: number, product: Partial<Product>): Observable<Product> {
-    return this.http.put<Product>(`${this.apiUrl}/${id}`, product);
+  updateProduct(id: string, product: Partial<Product>): Observable<Product> {
+    return this.http.put<RawProductDto>(`${this.apiUrl}/${id}`, product).pipe(
+      map(dto => this.flattenProduct(dto))
+    );
   }
 
-  deleteProduct(id: number): Observable<void> {
+  deleteProduct(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  bulkDelete(ids: number[]): Observable<void> {
+  bulkDelete(ids: string[]): Observable<void> {
     // Backend bulk-delete endpoint not available; delete sequentially using existing DELETE /{id}
     return new Observable<void>(observer => {
       const perform = async () => {
@@ -84,6 +91,17 @@ export class ProductDataService {
       };
       perform();
     });
+  }
+
+  private flattenProduct(dto: RawProductDto | null | undefined): Product {
+    if (!dto) {
+      return { id: '' };
+    }
+    const attributes = dto.attributes ?? {};
+    return {
+      id: dto.id,
+      ...attributes
+    };
   }
 
   exportToExcel(filters?: any): void {

@@ -4,6 +4,7 @@ import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,15 +15,227 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.time.format.DateTimeParseException;
 
 @Service
 public class ExcelTemplateService {
 
   private static final int SAMPLE_ROWS = 100;
   private static final Pattern SNAKE_CASE_NON_ALNUM = Pattern.compile("[^a-z0-9_]");
+  private final JdbcTemplate jdbcTemplate;
+
+  public ExcelTemplateService(JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  private void collectCsvRows(MultipartFile file, List<ColumnInfo> columns, boolean typeRowProvided,
+                              List<Object[]> batch, List<String> warnings) {
+    try (InputStream is = file.getInputStream();
+         BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+      String line;
+      int rowIndex = 0;
+      while ((line = br.readLine()) != null) {
+        List<String> values = parseCsvLine(line);
+        if (rowIndex == 0) { // header
+          rowIndex++;
+          continue;
+        }
+        if (typeRowProvided && rowIndex == 1) { // types row
+          rowIndex++;
+          continue;
+        }
+        Object[] params = new Object[columns.size()];
+        boolean allBlank = true;
+        for (int c = 0; c < columns.size(); c++) {
+          String raw = values.size() > c ? values.get(c) : null;
+          ColumnInfo column = columns.get(c);
+          Object converted = convertCellValue(raw, column.getInferredType(), warnings,
+              column.getExcelName(), rowIndex + 1);
+          if (!isNullOrBlank(converted)) {
+            allBlank = false;
+          }
+          params[c] = converted;
+        }
+        if (!allBlank) {
+          batch.add(params);
+        }
+        rowIndex++;
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to read CSV content: " + e.getMessage(), e);
+    }
+  }
+
+  private void collectExcelRows(MultipartFile file, List<ColumnInfo> columns, boolean typeRowProvided,
+                                List<Object[]> batch, List<String> warnings) {
+    try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
+      Sheet sheet = wb.getNumberOfSheets() > 0 ? wb.getSheetAt(0) : null;
+      if (sheet == null) {
+        return;
+      }
+      int firstRow = sheet.getFirstRowNum();
+      int dataStart = firstRow + 1 + (typeRowProvided ? 1 : 0);
+      for (int r = dataStart; r <= sheet.getLastRowNum(); r++) {
+        Row row = sheet.getRow(r);
+        if (row == null) {
+          continue;
+        }
+        Object[] params = new Object[columns.size()];
+        boolean allBlank = true;
+        for (int c = 0; c < columns.size(); c++) {
+          ColumnInfo column = columns.get(c);
+          Cell cell = row.getCell(c);
+          Object raw = cell == null ? null : getCellValue(cell);
+          Object converted = convertCellValue(raw, column.getInferredType(), warnings,
+              column.getExcelName(), r + 1);
+          if (!isNullOrBlank(converted)) {
+            allBlank = false;
+          }
+          params[c] = converted;
+        }
+        if (!allBlank) {
+          batch.add(params);
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to read Excel content: " + e.getMessage(), e);
+    }
+  }
+
+  private Object convertCellValue(Object rawValue, String logicalType, List<String> warnings,
+                                  String columnName, int rowNumber) {
+    if (rawValue == null) {
+      return null;
+    }
+    Object value = rawValue;
+    if (value instanceof String s) {
+      String trimmed = s.trim();
+      if (trimmed.isEmpty()) {
+        return null;
+      }
+      value = trimmed;
+    }
+
+    String type = logicalType == null ? "STRING" : logicalType.toUpperCase(Locale.ROOT);
+    try {
+      return switch (type) {
+        case "INTEGER" -> toLong(value);
+        case "DECIMAL" -> toBigDecimal(value);
+        case "BOOLEAN" -> toBoolean(value);
+        case "DATE" -> convertToDate(value, columnName, rowNumber, warnings);
+        case "MINIO_IMAGE" -> value.toString();
+        default -> value instanceof String ? value : value.toString();
+      };
+    } catch (Exception ex) {
+      if (warnings != null) {
+        warnings.add("Row " + rowNumber + ", column '" + columnName + "': failed to convert value '" +
+            value + "' to " + type + ". Stored as text.");
+      }
+      return value instanceof String ? value : value.toString();
+    }
+  }
+
+  private Long toLong(Object value) {
+    if (value instanceof Number num) {
+      return num.longValue();
+    }
+    return Long.parseLong(value.toString());
+  }
+
+  private BigDecimal toBigDecimal(Object value) {
+    if (value instanceof BigDecimal bd) {
+      return bd;
+    }
+    if (value instanceof Number num) {
+      return new BigDecimal(num.toString());
+    }
+    return new BigDecimal(value.toString());
+  }
+
+  private Boolean toBoolean(Object value) {
+    if (value instanceof Boolean b) {
+      return b;
+    }
+    if (value instanceof Number num) {
+      return num.intValue() != 0;
+    }
+    String s = value.toString().trim().toLowerCase(Locale.ROOT);
+    if (s.isEmpty()) {
+      return null;
+    }
+    if (Set.of("true", "t", "yes", "y", "1").contains(s)) {
+      return Boolean.TRUE;
+    }
+    if (Set.of("false", "f", "no", "n", "0").contains(s)) {
+      return Boolean.FALSE;
+    }
+    return Boolean.parseBoolean(s);
+  }
+
+  private Object convertToDate(Object value, String columnName, int rowNumber, List<String> warnings) {
+    if (value instanceof LocalDateTime ldt) {
+      return ldt;
+    }
+    if (value instanceof LocalDate ld) {
+      return ld.atStartOfDay();
+    }
+    if (value instanceof Date date) {
+      return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+    if (value instanceof Instant instant) {
+      return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+    if (value instanceof Number num) {
+      try {
+        Instant instant = Instant.ofEpochMilli(num.longValue());
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+      } catch (Exception ex) {
+        if (warnings != null) {
+          warnings.add("Row " + rowNumber + ", column '" + columnName + "': numeric date '" + value
+              + "' could not be converted. Stored as text.");
+        }
+        return value.toString();
+      }
+    }
+    String s = value.toString().trim();
+    if (s.isEmpty()) {
+      return null;
+    }
+    try {
+      return LocalDateTime.parse(s);
+    } catch (DateTimeParseException ignored) {}
+    try {
+      return OffsetDateTime.parse(s).toLocalDateTime();
+    } catch (DateTimeParseException ignored) {}
+    try {
+      return Instant.parse(s).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    } catch (DateTimeParseException ignored) {}
+    try {
+      return LocalDate.parse(s).atStartOfDay();
+    } catch (DateTimeParseException ignored) {}
+    if (warnings != null) {
+      warnings.add("Row " + rowNumber + ", column '" + columnName + "': unable to parse date value '" +
+          s + "'. Stored as text.");
+    }
+    return s;
+  }
+
+  private boolean isNullOrBlank(Object value) {
+    if (value == null) {
+      return true;
+    }
+    if (value instanceof String s) {
+      return s.isBlank();
+    }
+    return false;
+  }
 
   public TemplateAnalysisResponse analyzeTemplate(MultipartFile file, String tableName) {
     var warnings = new ArrayList<String>();
@@ -92,7 +305,7 @@ public class ExcelTemplateService {
             }
             String normalizedTable = normalize(tableName);
             String ddl = buildCreateTable(normalizedTable, columns);
-            return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+            return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings, true);
           }
 
           // Inference from data rows
@@ -130,7 +343,7 @@ public class ExcelTemplateService {
 
           String normalizedTable = normalize(tableName);
           String ddl = buildCreateTable(normalizedTable, columns);
-          return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+          return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings, false);
         }
       } else {
         // Excel branch (existing)
@@ -196,7 +409,7 @@ public class ExcelTemplateService {
               }
               String normalizedTable = normalize(tableName);
               String ddl = buildCreateTable(normalizedTable, columns);
-              return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+              return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings, true);
             }
           }
 
@@ -243,7 +456,7 @@ public class ExcelTemplateService {
 
           String normalizedTable = normalize(tableName);
           String ddl = buildCreateTable(normalizedTable, columns);
-          return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings);
+          return new TemplateAnalysisResponse(normalizedTable, columns, ddl, warnings, false);
         }
       }
     } catch (IllegalArgumentException e) {
@@ -253,6 +466,62 @@ public class ExcelTemplateService {
       // For unexpected errors, provide a more generic message
       throw new RuntimeException("Failed to analyze template: " + e.getMessage() + 
           ". Please check that your template follows the required format with headers in row 1 and optional type markers in row 2.", e);
+    }
+  }
+
+  public void populateData(MultipartFile file, TemplateAnalysisResponse analysis) {
+    if (file == null) {
+      throw new IllegalArgumentException("File is required to populate data");
+    }
+    if (analysis == null) {
+      throw new IllegalArgumentException("Template analysis is required to populate data");
+    }
+
+    List<ColumnInfo> columns = Optional.ofNullable(analysis.getColumns()).orElse(Collections.emptyList());
+    if (columns.isEmpty()) {
+      return; // Nothing to insert
+    }
+
+    String table = Optional.ofNullable(analysis.getTableName()).map(String::trim).orElse("");
+    if (table.isEmpty()) {
+      throw new IllegalArgumentException("Resolved table name is empty; cannot populate data");
+    }
+
+    List<String> warnings = analysis.getWarnings();
+    if (warnings == null) {
+      warnings = new ArrayList<>();
+      analysis.setWarnings(warnings);
+    }
+
+    String filename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
+    String contentType = Optional.ofNullable(file.getContentType()).orElse("");
+    boolean isCsv = filename.toLowerCase(Locale.ROOT).endsWith(".csv")
+        || "text/csv".equalsIgnoreCase(contentType)
+        || "application/csv".equalsIgnoreCase(contentType);
+
+    List<Object[]> batch = new ArrayList<>();
+    if (isCsv) {
+      collectCsvRows(file, columns, analysis.isTypeRowProvided(), batch, warnings);
+    } else {
+      collectExcelRows(file, columns, analysis.isTypeRowProvided(), batch, warnings);
+    }
+
+    if (batch.isEmpty()) {
+      return;
+    }
+
+    String columnList = columns.stream()
+        .map(ColumnInfo::getName)
+        .collect(Collectors.joining(", "));
+    String placeholders = columns.stream()
+        .map(c -> "?")
+        .collect(Collectors.joining(", "));
+    String sql = "INSERT INTO " + table + " (" + columnList + ") VALUES (" + placeholders + ")";
+
+    try {
+      jdbcTemplate.batchUpdate(sql, batch);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to insert data into table '" + table + "': " + e.getMessage(), e);
     }
   }
 

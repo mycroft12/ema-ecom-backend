@@ -1,4 +1,100 @@
 name,sku,description,price,quantity,is_active,release_date,main_image,manual_file,category
 TEXT,TEXT,TEXT,DECIMAL,INTEGER,BOOLEAN,DATE,MINIO_IMAGE,MINIO_FILE,TEXT
-"Wireless Mouse","WM-100","Ergonomic wireless mouse",19.99,150,true,2024-09-01,https://cdn.example.com/images/mouse.jpg,https://cdn.example.com/files/mouse-manual.pdf,"Accessories"
-"4K Monitor","MON-4K-27","27-inch 4K UHD monitor",299.00,20,true,2024-05-15,https://cdn.example.com/images/monitor.jpg,https://cdn.example.com/files/monitor-manual.pdf,"Displays"
+Wireless Mouse,WI-100,Ergonomic wireless mouse,12.99,8,false,2024-01-05,https://picsum.photos/id/200/600/400,https://cdn.example.com/files/wi-100.pdf,Accessories
+Mechanical Keyboard 02,ME-101,RGB backlit mechanical keyboard,16.56,15,true,2024-01-12,https://picsum.photos/id/201/600/400,https://cdn.example.com/files/me-101.pdf,Accessories
+USB-C Hub 7-in-1 03,US-102,Multiport USB-C hub with HDMI and PD,20.13,22,true,2024-01-19,https://picsum.photos/id/202/600/400,https://cdn.example.com/files/us-102.pdf,Accessories
+Noise Cancelling Headphones 04,NO-103,Over-ear ANC Bluetooth headphones,23.70,29,true,2024-01-26,https://picsum.photos/id/203/600/400,https://cdn.example.com/files/no-103.pdf,Audio
+Portable SSD 1TB 05,PO-104,USB 3.2 portable solid-state drive,27.27,36,true,2024-02-02,https://picsum.photos/id/204/600/400,https://cdn.example.com/files/po-104.pdf,Storage
+4K Webcam 06,4K-105,Ultra HD webcam with dual mics,30.84,43,true,2024-02-09,https://picsum.photos/id/205/600/400,https://cdn.example.com/files/4k-105.pdf,Accessories
+Bluetooth Speaker 07,BL-106,Compact speaker with deep bass,34.41,50,true,2024-02-16,https://picsum.photos/id/206/600/400,https://cdn.example.com/files/bl-106.pdf,Audio
+Smart LED Bulb 08,SM-107,Wi-Fi multicolor smart bulb,37.98,57,true,2024-02-23,https://picsum.photos/id/207/600/400,https://cdn.example.com/files/sm-107.pdf,Smart Home
+Action Camera 09,AC-108,4K action cam with stabilization,41.55,64,true,2024-03-01,https://picsum.photos/id/208/600/400,https://cdn.example.com/files/ac-108.pdf,Cameras
+Fitness Tracker 10,FI-109,Heart-rate and sleep monitor,45.12,71,false,2024-03-08,https://picsum.photos/id/209/600/400,https://cdn.example.com/files/fi-109.pdf,Wearables
+Laptop Stand 11,LA-110,Adjustable aluminum laptop stand,48.69,78,true,2024-03-15,https://picsum.photos/id/210/600/400,https://cdn.example.com/files/la-110.pdf,Accessories
+Ergonomic Chair 12,ER-111,Lumbar support office chair,52.26,85,true,2024-03-22,https://picsum.photos/id/211/600/400,https://cdn.example.com/files/er-111.pdf,Furniture
+Smartwatch Classic 13,SM-112,AMOLED display with GPS,55.83,92,true,2024-03-29,https://picsum.photos/id/212/600/400,https://cdn.example.com/files/sm-112.pdf,Wearables
+Wireless Charger 14,WI-113,15W MagSafe-compatible charger,59.40,99,true,2024-04-05,https://picsum.photos/id/213/600/400,https://cdn.example.com/files/wi-113.pdf,Accessories
+Gaming Mouse Pad 15,GA-114,XL anti-slip RGB mouse pad,62.97,106,true,2024-04-12,https://picsum.photos/id/214/600/400,https://cdn.example.com/files/ga-114.pdf,Accessories
+HDMI Cable 2m 16,HD-115,Ultra high speed HDMI 2.1,66.54,113,true,2024-04-19,https://picsum.photos/id/215/600/400,https://cdn.example.com/files/hd-115.pdf,Cables
+Smart Plug 17,SM-116,Dual-outlet Wi-Fi smart plug,70.11,120,true,2024-04-26,https://picsum.photos/id/216/600/400,https://cdn.example.com/files/sm-116.pdf,Smart Home
+Wi-Fi 6 Router 18,WI-117,Gigabit dual-band Wi-Fi 6 router,73.68,127,true,2024-05-03,https://picsum.photos/id/217/600/400,https://cdn.example.com/files/wi-117.pdf,Networking
+Dash Cam 19,DA-118,1080p dash camera with GPS,77.25,134,false,2024-05-10,https://picsum.photos/id/218/600/400,https://cdn.example.com/files/da-118.pdf,Automotive
+Portable Projector 20,PO-119,Mini projector 720p with HDMI,80.82,141,true,2024-05-17,https://picsum.photos/id/219/600/400,https://cdn.example.com/files/po-119.pdf,Cameras
+Robot Vacuum 21,RO-120,Auto-charging smart vacuum,84.39,148,true,2024-05-24,https://picsum.photos/id/220/600/400,https://cdn.example.com/files/ro-120.pdf,Home Appliances
+Air Purifier 22,AI-121,HEPA filter for large rooms,87.96,155,true,2024-05-31,https://picsum.photos/id/221/600/400,https://cdn.example.com/files/ai-121.pdf,Home Appliances
+Electric Kettle 23,EL-122,1.7L stainless steel kettle,91.53,162,true,2024-06-07,https://picsum.photos/id/222/600/400,https://cdn.example.com/files/el-122.pdf,Kitchen
+Espresso Machine 24,ES-123,15-bar pump espresso maker,95.10,169,true,2024-06-14,https://picsum.photos/id/223/600/400,https://cdn.example.com/files/es-123.pdf,Kitchen
+Smart Thermostat 25,SM-124,Programmable Wi-Fi thermostat,98.67,176,true,2024-06-21,https://picsum.photos/id/224/600/400,https://cdn.example.com/files/sm-124.pdf,Smart Home
+LED Monitor 27'' 26,LE-125,QHD IPS 75Hz monitor,12.99,183,true,2024-06-28,https://picsum.photos/id/225/600/400,https://cdn.example.com/files/le-125.pdf,Monitors
+Graphic Tablet 27,GR-126,10x6 inch drawing tablet,16.56,190,true,2024-07-05,https://picsum.photos/id/226/600/400,https://cdn.example.com/files/gr-126.pdf,Accessories
+USB Flash Drive 128GB 28,US-127,USB 3.1 metal flash drive,20.13,197,false,2024-07-12,https://picsum.photos/id/227/600/400,https://cdn.example.com/files/us-127.pdf,Storage
+Smart Doorbell 29,SM-128,1080p video doorbell with chime,23.70,204,true,2024-07-19,https://picsum.photos/id/228/600/400,https://cdn.example.com/files/sm-128.pdf,Smart Home
+Outdoor Security Cam 30,OU-129,Battery powered spotlight cam,27.27,211,true,2024-07-26,https://picsum.photos/id/229/600/400,https://cdn.example.com/files/ou-129.pdf,Smart Home
+Laptop Backpack 31,LA-130,Water-resistant 15.6'' backpack,30.84,218,true,2024-08-02,https://picsum.photos/id/230/600/400,https://cdn.example.com/files/la-130.pdf,Bags
+Portable Power Bank 32,PO-131,20000mAh PD power bank,34.41,225,true,2024-08-09,https://picsum.photos/id/231/600/400,https://cdn.example.com/files/po-131.pdf,Accessories
+Smart Light Strip 33,SM-132,5m RGBIC smart light strip,37.98,232,true,2024-08-16,https://picsum.photos/id/232/600/400,https://cdn.example.com/files/sm-132.pdf,Smart Home
+Cordless Drill 34,CO-133,18V lithium cordless drill set,41.55,239,true,2024-08-23,https://picsum.photos/id/233/600/400,https://cdn.example.com/files/co-133.pdf,Tools
+Electric Screwdriver 35,EL-134,Rechargeable precision screwdriver,45.12,246,true,2024-08-30,https://picsum.photos/id/234/600/400,https://cdn.example.com/files/el-134.pdf,Tools
+Smart Scale 36,SM-135,Body composition smart scale,48.69,253,true,2024-09-06,https://picsum.photos/id/235/600/400,https://cdn.example.com/files/sm-135.pdf,Health
+Massage Gun 37,MA-136,Deep tissue percussion massager,52.26,260,false,2024-09-13,https://picsum.photos/id/236/600/400,https://cdn.example.com/files/ma-136.pdf,Health
+Electric Toothbrush 38,EL-137,Sonic toothbrush with 4 modes,55.83,267,true,2024-09-20,https://picsum.photos/id/237/600/400,https://cdn.example.com/files/el-137.pdf,Health
+Air Fryer 5L 39,AI-138,Oil-less digital air fryer,59.40,274,true,2024-09-27,https://picsum.photos/id/238/600/400,https://cdn.example.com/files/ai-138.pdf,Kitchen
+Smart Rice Cooker 40,SM-139,Multi-cook with app control,62.97,281,true,2024-10-04,https://picsum.photos/id/239/600/400,https://cdn.example.com/files/sm-139.pdf,Kitchen
+Induction Cooktop 41,IN-140,Portable single-burner cooktop,66.54,288,true,2024-10-11,https://picsum.photos/id/240/600/400,https://cdn.example.com/files/in-140.pdf,Kitchen
+Graphic Monitor 24'' 42,GR-141,FHD IPS 99% sRGB,70.11,295,true,2024-10-18,https://picsum.photos/id/241/600/400,https://cdn.example.com/files/gr-141.pdf,Monitors
+Tripod Stand 43,TR-142,Aluminum tripod 60'' with bag,73.68,302,true,2024-10-25,https://picsum.photos/id/242/600/400,https://cdn.example.com/files/tr-142.pdf,Cameras
+Mirrorless Camera 44,MI-143,24MP mirrorless body kit,77.25,309,true,2024-11-01,https://picsum.photos/id/243/600/400,https://cdn.example.com/files/mi-143.pdf,Cameras
+Studio Light Kit 45,ST-144,2-pack LED softbox lights,80.82,316,true,2024-11-08,https://picsum.photos/id/244/600/400,https://cdn.example.com/files/st-144.pdf,Cameras
+Microphone USB 46,MI-145,Cardioid condenser mic USB-C,84.39,323,false,2024-11-15,https://picsum.photos/id/245/600/400,https://cdn.example.com/files/mi-145.pdf,Audio
+Ring Light 12'' 47,RI-146,Dimmable ring light with stand,87.96,330,true,2024-11-22,https://picsum.photos/id/246/600/400,https://cdn.example.com/files/ri-146.pdf,Cameras
+Streaming Capture Card 48,ST-147,4K30 HDMI capture card,91.53,337,true,2024-11-29,https://picsum.photos/id/247/600/400,https://cdn.example.com/files/st-147.pdf,Accessories
+VR Headset 49,VR-148,Standalone VR with controllers,95.10,344,true,2024-12-06,https://picsum.photos/id/248/600/400,https://cdn.example.com/files/vr-148.pdf,Gaming
+Wireless Mouse 50,WI-149,Ergonomic wireless mouse,98.67,351,true,2024-12-13,https://picsum.photos/id/249/600/400,https://cdn.example.com/files/wi-149.pdf,Accessories
+Mechanical Keyboard 51,ME-150,RGB backlit mechanical keyboard,12.99,358,true,2024-12-20,https://picsum.photos/id/250/600/400,https://cdn.example.com/files/me-150.pdf,Accessories
+USB-C Hub 7-in-1 52,US-151,Multiport USB-C hub with HDMI and PD,16.56,365,true,2024-12-27,https://picsum.photos/id/251/600/400,https://cdn.example.com/files/us-151.pdf,Accessories
+Noise Cancelling Headphones 53,NO-152,Over-ear ANC Bluetooth headphones,20.13,372,true,2025-01-03,https://picsum.photos/id/252/600/400,https://cdn.example.com/files/no-152.pdf,Audio
+Portable SSD 1TB 54,PO-153,USB 3.2 portable solid-state drive,23.70,379,true,2025-01-10,https://picsum.photos/id/253/600/400,https://cdn.example.com/files/po-153.pdf,Storage
+4K Webcam 55,4K-154,Ultra HD webcam with dual mics,27.27,386,false,2025-01-17,https://picsum.photos/id/254/600/400,https://cdn.example.com/files/4k-154.pdf,Accessories
+Bluetooth Speaker 56,BL-155,Compact speaker with deep bass,30.84,393,true,2025-01-24,https://picsum.photos/id/255/600/400,https://cdn.example.com/files/bl-155.pdf,Audio
+Smart LED Bulb 57,SM-156,Wi-Fi multicolor smart bulb,34.41,400,true,2025-01-31,https://picsum.photos/id/256/600/400,https://cdn.example.com/files/sm-156.pdf,Smart Home
+Action Camera 58,AC-157,4K action cam with stabilization,37.98,407,true,2025-02-07,https://picsum.photos/id/257/600/400,https://cdn.example.com/files/ac-157.pdf,Cameras
+Fitness Tracker 59,FI-158,Heart-rate and sleep monitor,41.55,414,true,2025-02-14,https://picsum.photos/id/258/600/400,https://cdn.example.com/files/fi-158.pdf,Wearables
+Laptop Stand 60,LA-159,Adjustable aluminum laptop stand,45.12,421,true,2025-02-21,https://picsum.photos/id/259/600/400,https://cdn.example.com/files/la-159.pdf,Accessories
+Ergonomic Chair 61,ER-160,Lumbar support office chair,48.69,428,true,2025-02-28,https://picsum.photos/id/260/600/400,https://cdn.example.com/files/er-160.pdf,Furniture
+Smartwatch Classic 62,SM-161,AMOLED display with GPS,52.26,435,true,2025-03-07,https://picsum.photos/id/261/600/400,https://cdn.example.com/files/sm-161.pdf,Wearables
+Wireless Charger 63,WI-162,15W MagSafe-compatible charger,55.83,442,true,2025-03-14,https://picsum.photos/id/262/600/400,https://cdn.example.com/files/wi-162.pdf,Accessories
+Gaming Mouse Pad 64,GA-163,XL anti-slip RGB mouse pad,59.40,449,false,2025-03-21,https://picsum.photos/id/263/600/400,https://cdn.example.com/files/ga-163.pdf,Accessories
+HDMI Cable 2m 65,HD-164,Ultra high speed HDMI 2.1,62.97,456,true,2025-03-28,https://picsum.photos/id/264/600/400,https://cdn.example.com/files/hd-164.pdf,Cables
+Smart Plug 66,SM-165,Dual-outlet Wi-Fi smart plug,66.54,463,true,2025-04-04,https://picsum.photos/id/265/600/400,https://cdn.example.com/files/sm-165.pdf,Smart Home
+Wi-Fi 6 Router 67,WI-166,Gigabit dual-band Wi-Fi 6 router,70.11,470,true,2025-04-11,https://picsum.photos/id/266/600/400,https://cdn.example.com/files/wi-166.pdf,Networking
+Dash Cam 68,DA-167,1080p dash camera with GPS,73.68,477,true,2025-04-18,https://picsum.photos/id/267/600/400,https://cdn.example.com/files/da-167.pdf,Automotive
+Portable Projector 69,PO-168,Mini projector 720p with HDMI,77.25,484,true,2025-04-25,https://picsum.photos/id/268/600/400,https://cdn.example.com/files/po-168.pdf,Cameras
+Robot Vacuum 70,RO-169,Auto-charging smart vacuum,80.82,491,true,2025-05-02,https://picsum.photos/id/269/600/400,https://cdn.example.com/files/ro-169.pdf,Home Appliances
+Air Purifier 71,AI-170,HEPA filter for large rooms,84.39,498,true,2025-05-09,https://picsum.photos/id/270/600/400,https://cdn.example.com/files/ai-170.pdf,Home Appliances
+Electric Kettle 72,EL-171,1.7L stainless steel kettle,87.96,505,true,2025-05-16,https://picsum.photos/id/271/600/400,https://cdn.example.com/files/el-171.pdf,Kitchen
+Espresso Machine 73,ES-172,15-bar pump espresso maker,91.53,512,false,2025-05-23,https://picsum.photos/id/272/600/400,https://cdn.example.com/files/es-172.pdf,Kitchen
+Smart Thermostat 74,SM-173,Programmable Wi-Fi thermostat,95.10,519,true,2025-05-30,https://picsum.photos/id/273/600/400,https://cdn.example.com/files/sm-173.pdf,Smart Home
+LED Monitor 27'' 75,LE-174,QHD IPS 75Hz monitor,98.67,526,true,2025-06-06,https://picsum.photos/id/274/600/400,https://cdn.example.com/files/le-174.pdf,Monitors
+Graphic Tablet 76,GR-175,10x6 inch drawing tablet,12.99,533,true,2025-06-13,https://picsum.photos/id/275/600/400,https://cdn.example.com/files/gr-175.pdf,Accessories
+USB Flash Drive 128GB 77,US-176,USB 3.1 metal flash drive,16.56,540,true,2025-06-20,https://picsum.photos/id/276/600/400,https://cdn.example.com/files/us-176.pdf,Storage
+Smart Doorbell 78,SM-177,1080p video doorbell with chime,20.13,547,true,2025-06-27,https://picsum.photos/id/277/600/400,https://cdn.example.com/files/sm-177.pdf,Smart Home
+Outdoor Security Cam 79,OU-178,Battery powered spotlight cam,23.70,554,true,2025-07-04,https://picsum.photos/id/278/600/400,https://cdn.example.com/files/ou-178.pdf,Smart Home
+Laptop Backpack 80,LA-179,Water-resistant 15.6'' backpack,27.27,561,true,2025-07-11,https://picsum.photos/id/279/600/400,https://cdn.example.com/files/la-179.pdf,Bags
+Portable Power Bank 81,PO-180,20000mAh PD power bank,30.84,568,true,2025-07-18,https://picsum.photos/id/280/600/400,https://cdn.example.com/files/po-180.pdf,Accessories
+Smart Light Strip 82,SM-181,5m RGBIC smart light strip,34.41,575,false,2025-07-25,https://picsum.photos/id/281/600/400,https://cdn.example.com/files/sm-181.pdf,Smart Home
+Cordless Drill 83,CO-182,18V lithium cordless drill set,37.98,582,true,2025-08-01,https://picsum.photos/id/282/600/400,https://cdn.example.com/files/co-182.pdf,Tools
+Electric Screwdriver 84,EL-183,Rechargeable precision screwdriver,41.55,589,true,2025-08-08,https://picsum.photos/id/283/600/400,https://cdn.example.com/files/el-183.pdf,Tools
+Smart Scale 85,SM-184,Body composition smart scale,45.12,596,true,2025-08-15,https://picsum.photos/id/284/600/400,https://cdn.example.com/files/sm-184.pdf,Health
+Massage Gun 86,MA-185,Deep tissue percussion massager,48.69,603,true,2025-08-22,https://picsum.photos/id/285/600/400,https://cdn.example.com/files/ma-185.pdf,Health
+Electric Toothbrush 87,EL-186,Sonic toothbrush with 4 modes,52.26,10,true,2025-08-29,https://picsum.photos/id/286/600/400,https://cdn.example.com/files/el-186.pdf,Health
+Air Fryer 5L 88,AI-187,Oil-less digital air fryer,55.83,17,true,2025-09-05,https://picsum.photos/id/287/600/400,https://cdn.example.com/files/ai-187.pdf,Kitchen
+Smart Rice Cooker 89,SM-188,Multi-cook with app control,59.40,24,true,2025-09-12,https://picsum.photos/id/288/600/400,https://cdn.example.com/files/sm-188.pdf,Kitchen
+Induction Cooktop 90,IN-189,Portable single-burner cooktop,62.97,31,true,2025-09-19,https://picsum.photos/id/289/600/400,https://cdn.example.com/files/in-189.pdf,Kitchen
+Graphic Monitor 24'' 91,GR-190,FHD IPS 99% sRGB,66.54,38,false,2025-09-26,https://picsum.photos/id/290/600/400,https://cdn.example.com/files/gr-190.pdf,Monitors
+Tripod Stand 92,TR-191,Aluminum tripod 60'' with bag,70.11,45,true,2025-10-03,https://picsum.photos/id/291/600/400,https://cdn.example.com/files/tr-191.pdf,Cameras
+Mirrorless Camera 93,MI-192,24MP mirrorless body kit,73.68,52,true,2025-10-10,https://picsum.photos/id/292/600/400,https://cdn.example.com/files/mi-192.pdf,Cameras
+Studio Light Kit 94,ST-193,2-pack LED softbox lights,77.25,59,true,2025-10-17,https://picsum.photos/id/293/600/400,https://cdn.example.com/files/st-193.pdf,Cameras
+Microphone USB 95,MI-194,Cardioid condenser mic USB-C,80.82,66,true,2025-10-24,https://picsum.photos/id/294/600/400,https://cdn.example.com/files/mi-194.pdf,Audio
+Ring Light 12'' 96,RI-195,Dimmable ring light with stand,84.39,73,true,2025-10-31,https://picsum.photos/id/295/600/400,https://cdn.example.com/files/ri-195.pdf,Cameras
+Streaming Capture Card 97,ST-196,4K30 HDMI capture card,87.96,80,true,2025-11-07,https://picsum.photos/id/296/600/400,https://cdn.example.com/files/st-196.pdf,Accessories
+VR Headset 98,VR-197,Standalone VR with controllers,91.53,87,true,2025-11-14,https://picsum.photos/id/297/600/400,https://cdn.example.com/files/vr-197.pdf,Gaming

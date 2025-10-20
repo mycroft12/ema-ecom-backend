@@ -6,11 +6,15 @@
             #dt1
             [value]="dataService.products()"
             dataKey="id"
-            [rows]="10"
             [rowsPerPageOptions]="[10, 25, 50]"
             [loading]="loading"
             [paginator]="true"
+            [lazy]="true"
+            [rows]="rows"
+            [totalRecords]="totalRecords"
+            [first]="first"
             [globalFilterFields]="globalFilterFields"
+            (onLazyLoad)="onLazyLoad($event)"
         >
             <!-- CAPTION -->
             <ng-template pTemplate="caption">
