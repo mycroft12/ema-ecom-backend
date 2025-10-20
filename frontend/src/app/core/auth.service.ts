@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 interface LoginRequest { username: string; password: string; }
 interface LoginResponse { accessToken: string; refreshToken: string; }
@@ -45,12 +47,54 @@ export class AuthService {
     );
   }
 
+  ensureAuthenticated(): Observable<boolean> {
+    const token = this.getToken();
+    if (!token) {
+      return of(false);
+    }
+
+    let payload: JwtPayload | null = null;
+    try {
+      payload = jwtDecode<JwtPayload>(token);
+    } catch {
+      return of(false);
+    }
+
+    if (payload && !this.isExpired(payload)) {
+      return of(true);
+    }
+
+    if (!this.getRefreshToken()) {
+      return of(false);
+    }
+
+    return this.refreshAccessToken().pipe(
+        map(response => {
+          this.saveLoginResponse(response);
+          return true;
+        }),
+        catchError(() => of(false))
+    );
+  }
+
   logout(){ 
     localStorage.removeItem(this.tokenKey); 
     localStorage.removeItem(this.refreshTokenKey);
     window.location.href = '/login'; 
   }
-  isAuthenticated(): boolean { const t = this.getToken(); if(!t) return false; try{ const d = jwtDecode<JwtPayload>(t); return !this.isExpired(d); }catch{ return false; } }
+  isAuthenticated(): boolean { 
+    const t = this.getToken(); 
+    if(!t) return false; 
+    try{ 
+      const d = jwtDecode<JwtPayload>(t); 
+      if (this.isExpired(d)) {
+        return !!this.getRefreshToken();
+      }
+      return true;
+    }catch{ 
+      return false; 
+    } 
+  }
   private isExpired(d: JwtPayload){ return !!d.exp && d.exp * 1000 < Date.now(); }
   username(): string { 
     const t = this.getToken(); 
