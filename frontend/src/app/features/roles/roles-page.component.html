@@ -1,0 +1,354 @@
+<div class="roles-page">
+  <div class="grid gap-4">
+    <!-- Permissions -->
+    <div class="col-12 lg:col-4">
+      <p-card header="Permissions" class="section-card">
+        <div class="section-toolbar">
+          <button pButton type="button" icon="pi pi-plus" label="Add" (click)="openPermissionDialog()"></button>
+        </div>
+        <p-table
+          [value]="permissions"
+          [loading]="permissionsLoading"
+          responsiveLayout="scroll"
+          size="small"
+          [rows]="5"
+          [paginator]="permissions.length > 5"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th style="width: 7rem;">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-permission>
+            <tr>
+              <td>{{ permission.name }}</td>
+              <td class="actions-column">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-pencil"
+                  class="p-button-rounded p-button-text"
+                  (click)="openPermissionDialog(permission)"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-text p-button-danger"
+                  (click)="confirmDeletePermission(permission)"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="2">No permissions found</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+
+    <!-- Roles -->
+    <div class="col-12 lg:col-4">
+      <p-card header="Roles" class="section-card">
+        <div class="section-toolbar">
+          <button pButton type="button" icon="pi pi-plus" label="Add" (click)="openRoleDialog()"></button>
+        </div>
+        <p-table
+          [value]="roles"
+          [loading]="rolesLoading"
+          responsiveLayout="scroll"
+          size="small"
+          [rows]="5"
+          [paginator]="roles.length > 5"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Permissions</th>
+              <th style="width: 10rem;">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-role>
+            <tr>
+              <td>{{ role.name }}</td>
+              <td>
+                <div
+                  class="tag-wrap"
+                  [attr.title]="getRolePermissionTooltip(role)"
+                >
+                  <p-tag
+                    *ngFor="let perm of getRolePermissionsDisplay(role); trackBy: trackById"
+                    [value]="perm.name"
+                    severity="info"
+                  ></p-tag>
+                  <span class="tag-overflow" *ngIf="getRolePermissionsOverflow(role) as overflow">
+                    +{{ overflow }} more
+                  </span>
+                </div>
+              </td>
+              <td class="actions-column">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-link"
+                  class="p-button-rounded p-button-text"
+                  (click)="openRolePermissionsDialog(role)"
+                  title="Attach permissions"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-pencil"
+                  class="p-button-rounded p-button-text"
+                  (click)="openRoleDialog(role)"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-text p-button-danger"
+                  (click)="confirmDeleteRole(role)"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3">No roles found</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+
+    <!-- Users -->
+    <div class="col-12 lg:col-4">
+      <p-card header="Users" class="section-card">
+        <div class="section-toolbar">
+          <button pButton type="button" icon="pi pi-plus" label="Add" (click)="openUserDialog()"></button>
+        </div>
+        <p-table
+          [value]="users"
+          [loading]="usersLoading"
+          responsiveLayout="scroll"
+          size="small"
+          [rows]="5"
+          [paginator]="users.length > 5"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Roles</th>
+              <th style="width: 10rem;">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-user>
+            <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email || '—' }}</td>
+              <td>
+                <p-tag [value]="user.enabled ? 'Enabled' : 'Disabled'" [severity]="user.enabled ? 'success' : 'danger'"></p-tag>
+              </td>
+              <td>
+                <div class="tag-wrap">
+                  <p-tag
+                    *ngFor="let role of user.roles; trackBy: trackById"
+                    [value]="role.name"
+                    severity="info"
+                  ></p-tag>
+                </div>
+              </td>
+              <td class="actions-column">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-link"
+                  class="p-button-rounded p-button-text"
+                  (click)="openUserRolesDialog(user)"
+                  title="Attach roles"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-pencil"
+                  class="p-button-rounded p-button-text"
+                  (click)="openUserDialog(user)"
+                ></button>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-text p-button-danger"
+                  (click)="confirmDeleteUser(user)"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5">No users found</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+  </div>
+</div>
+
+<!-- Permission dialog -->
+<p-dialog
+  header="{{ editingPermission ? 'Edit Permission' : 'New Permission' }}"
+  [(visible)]="permissionDialogVisible"
+  [modal]="true"
+  [style]="{ width: '25rem' }"
+  [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+>
+  <form [formGroup]="permissionForm" class="form-grid">
+    <span class="p-float-label">
+      <input pInputText id="permissionName" formControlName="name" />
+      <label for="permissionName">Name</label>
+    </span>
+    <small class="error" *ngIf="permissionForm.controls['name'].invalid && permissionForm.controls['name'].touched">
+      Permission name is required
+    </small>
+  </form>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancel" class="p-button-text" (click)="permissionDialogVisible = false"></button>
+    <button pButton type="button" label="Save" (click)="savePermission()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Role dialog -->
+<p-dialog
+  header="{{ editingRole ? 'Edit Role' : 'New Role' }}"
+  [(visible)]="roleDialogVisible"
+  [modal]="true"
+  [style]="{ width: '25rem' }"
+  [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+>
+  <form [formGroup]="roleForm" class="form-grid">
+    <span class="p-float-label">
+      <input pInputText id="roleName" formControlName="name" />
+      <label for="roleName">Name</label>
+    </span>
+    <small class="error" *ngIf="roleForm.controls['name'].invalid && roleForm.controls['name'].touched">
+      Role name is required
+    </small>
+  </form>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancel" class="p-button-text" (click)="roleDialogVisible = false"></button>
+    <button pButton type="button" label="Save" (click)="saveRole()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- User dialog -->
+<p-dialog
+  header="{{ editingUser ? 'Edit User' : 'New User' }}"
+  [(visible)]="userDialogVisible"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+  [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+>
+  <form [formGroup]="userForm" class="form-grid">
+    <span class="p-float-label">
+      <input pInputText id="username" formControlName="username" />
+      <label for="username">Username</label>
+    </span>
+    <small class="error" *ngIf="userForm.controls['username'].invalid && userForm.controls['username'].touched">
+      Username is required
+    </small>
+
+    <span class="p-float-label">
+      <input pInputText id="email" formControlName="email" type="email" />
+      <label for="email">Email</label>
+    </span>
+    <small class="error" *ngIf="userForm.controls['email'].invalid && userForm.controls['email'].touched">
+      Enter a valid email address
+    </small>
+
+    <span class="p-float-label">
+      <input pInputText id="password" formControlName="password" type="password" autocomplete="new-password" />
+      <label for="password">{{ editingUser ? 'New Password (optional)' : 'Password' }}</label>
+    </span>
+    <small class="error" *ngIf="userForm.controls['password'].invalid && userForm.controls['password'].touched">
+      Password must be at least 6 characters
+    </small>
+
+    <div class="checkbox-field">
+      <p-checkbox formControlName="enabled" inputId="enabled"></p-checkbox>
+      <label for="enabled">Enabled</label>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancel" class="p-button-text" (click)="userDialogVisible = false"></button>
+    <button pButton type="button" label="Save" (click)="saveUser()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Role permissions picklist -->
+<p-dialog
+  header="Attach Permissions to Role"
+  [(visible)]="rolePermissionsDialogVisible"
+  [modal]="true"
+  [style]="{ width: '45rem' }"
+  [breakpoints]="{ '960px': '95vw', '640px': '95vw' }"
+>
+  <p-pickList
+    [source]="rolePickListSource"
+    [target]="rolePickListTarget"
+    sourceHeader="Available"
+    targetHeader="Assigned"
+    filterBy="name"
+    [showSourceControls]="false"
+    [showTargetControls]="false"
+    [metaKeySelection]="false"
+    [responsive]="true"
+  >
+    <ng-template let-item pTemplate="item">
+      <div class="picklist-item">{{ item.name }}</div>
+    </ng-template>
+  </p-pickList>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancel" class="p-button-text" (click)="rolePermissionsDialogVisible = false"></button>
+    <button pButton type="button" label="Save" (click)="saveRolePermissions()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- User roles picklist -->
+<p-dialog
+  header="Assign Role to User"
+  [(visible)]="userRolesDialogVisible"
+  [modal]="true"
+  [style]="{ width: '38rem' }"
+  [breakpoints]="{ '960px': '95vw', '640px': '95vw' }"
+>
+  <p-pickList
+    [source]="userPickListSource"
+    [target]="userPickListTarget"
+    sourceHeader="Available"
+    targetHeader="Selected"
+    filterBy="name"
+    [showSourceControls]="false"
+    [showTargetControls]="false"
+    [metaKeySelection]="false"
+    [responsive]="true"
+    (onMoveToTarget)="handleUserRolesMoveToTarget()"
+  >
+    <ng-template let-item pTemplate="item">
+      <div class="picklist-item">{{ item.name }}</div>
+    </ng-template>
+  </p-pickList>
+  <small class="info-text">Only one role can be assigned at a time.</small>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancel" class="p-button-text" (click)="userRolesDialogVisible = false"></button>
+    <button pButton type="button" label="Save" (click)="saveUserRoles()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>
