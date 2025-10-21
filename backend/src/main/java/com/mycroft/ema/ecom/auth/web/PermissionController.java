@@ -42,7 +42,7 @@ public class PermissionController {
   @DeleteMapping("/{id}")
   @PreAuthorize("hasAuthority('permission:delete')")
   @Operation(summary = "Delete permission")
-  public void delete(@PathVariable UUID id){
-    perms.delete(id);
+  public void delete(@PathVariable UUID id, @RequestParam(value = "force", defaultValue = "false") boolean force){
+    perms.delete(id, force);
   }
 }

@@ -32,7 +32,8 @@
     "errors": {
       "invalid": "بيانات اعتماد غير صحيحة",
       "unexpected": "حدث خطأ غير متوقع",
-      "serverUnreachable": "الخادم غير متاح"
+      "serverUnreachable": "الخادم غير متاح",
+      "disabled": "حسابك غير مفعل بعد."
     }
   },
   "products": {
@@ -61,7 +62,6 @@
     "newProduct": "منتج جديد",
     "editProduct": "تعديل المنتج",
     "actions": "إجراءات",
-
     "downloadExamples": "تنزيل أمثلة النماذج",
     "downloadExplain": "قم بتنزيل نموذج للاطلاع على الصيغة المتوقعة. يتضمن النموذج:",
     "row1": "السطر 1:",
@@ -73,9 +73,7 @@
     "btnDownloadBasic": "تنزيل النموذج الأساسي",
     "btnDownloadAllTypes": "تنزيل نموذج بجميع الأنواع",
     "tooltipAllTypes": "يتضمن جميع أنواع الأعمدة المتاحة مع أمثلة",
-
     "uploading": "جارٍ رفع ومعالجة النموذج...",
-
     "confirmBulkDeleteHeader": "تأكيد الحذف الجماعي",
     "confirmBulkDeleteMessage": "هل أنت متأكد من حذف {{count}} منتج(ات)؟",
     "toastSuccess": "تم بنجاح",
@@ -83,14 +81,12 @@
     "toastExportInfo": "بدأ التصدير",
     "toastExportDetail": "جارٍ تحضير الملف...",
     "toastDeletedMany": "تم حذف {{count}} منتج(ات)",
-
     "filterName": "اسم الفلتر",
     "conditions": "الشروط",
     "addCondition": "إضافة شرط",
     "makePublic": "جعل هذا الفلتر عاماً",
     "btnCancel": "إلغاء",
     "btnSaveApply": "حفظ وتطبيق",
-
     "opEquals": "يساوي",
     "opContains": "يحتوي",
     "opStartsWith": "يبدأ بـ",
@@ -156,6 +152,8 @@
         "accept": "حذف",
         "reject": "إلغاء"
       },
+      "forceDeleteTitle": "حذف الإذن Brutforce",
+      "forceDeleteMessage": "هذا الإذن مرتبط بدور واحد أو أكثر. اضغط على حذف Brutforce لإزالته؟",
       "toast": {
         "created": "تم إنشاء الإذن بنجاح",
         "updated": "تم تحديث الإذن بنجاح",
@@ -168,7 +166,8 @@
         "load": "فشل في تحميل الأذونات",
         "create": "فشل في إنشاء الإذن",
         "update": "فشل في تحديث الإذن",
-        "delete": "فشل في حذف الإذن"
+        "delete": "فشل في حذف الإذن",
+        "deleteAssigned": "هذا الإذن مرتبط. استخدم الحذف Brutforce لإزالته."
       }
     },
     "roles": {
@@ -192,6 +191,8 @@
         "accept": "حذف",
         "reject": "إلغاء"
       },
+      "forceDeleteTitle": "حذف الدور Brutforce",
+      "forceDeleteMessage": "هذا الدور مرتبط بمستخدم واحد أو أكثر. اضغط على حذف Brutforce لإزالته؟",
       "toast": {
         "created": "تم إنشاء الدور بنجاح",
         "updated": "تم تحديث الدور بنجاح",
@@ -207,7 +208,8 @@
         "create": "فشل في إنشاء الدور",
         "update": "فشل في تحديث الدور",
         "delete": "فشل في حذف الدور",
-        "permissions": "فشل في تحديث أذونات الدور"
+        "permissions": "فشل في تحديث أذونات الدور",
+        "deleteAssigned": "هذا الدور مرتبط. استخدم الحذف Brutforce لإزالته."
       },
       "tooltips": {
         "attachPermissions": "ربط أو فصل الأذونات"
@@ -277,7 +279,9 @@
       "save": "حفظ",
       "more": "+{{count}} إضافية",
       "toastSuccess": "نجاح",
-      "toastError": "خطأ"
+      "toastError": "خطأ",
+      "forceDelete": "حذف Brutforce",
+      "searchPlaceholder": "بحث..."
     },
     "picklist": {
       "available": "المتاحة",

@@ -32,7 +32,8 @@
     "errors": {
       "invalid": "Invalid credentials",
       "unexpected": "Unexpected error occurred",
-      "serverUnreachable": "Server unreachable"
+      "serverUnreachable": "Server unreachable",
+      "disabled": "Your account is not activated yet."
     }
   },
   "products": {
@@ -61,7 +62,6 @@
     "newProduct": "New Product",
     "editProduct": "Edit Product",
     "actions": "Actions",
-
     "downloadExamples": "Download Template Examples",
     "downloadExplain": "Download a template to see the expected format. The template includes:",
     "row1": "Row 1:",
@@ -73,9 +73,7 @@
     "btnDownloadBasic": "Download Basic Template",
     "btnDownloadAllTypes": "Download Template with All Types",
     "tooltipAllTypes": "Includes all available column types with examples",
-
     "uploading": "Uploading and processing template...",
-
     "confirmBulkDeleteHeader": "Confirm Bulk Delete",
     "confirmBulkDeleteMessage": "Are you sure you want to delete {{count}} product(s)?",
     "toastSuccess": "Success",
@@ -83,14 +81,12 @@
     "toastExportInfo": "Export Started",
     "toastExportDetail": "Preparing Excel file...",
     "toastDeletedMany": "{{count}} product(s) deleted",
-
     "filterName": "Filter Name",
     "conditions": "Conditions",
     "addCondition": "Add Condition",
     "makePublic": "Make this filter public",
     "btnCancel": "Cancel",
     "btnSaveApply": "Save & Apply",
-
     "opEquals": "Equals",
     "opContains": "Contains",
     "opStartsWith": "Starts With",
@@ -156,6 +152,8 @@
         "accept": "Delete",
         "reject": "Cancel"
       },
+      "forceDeleteTitle": "Brutforce delete permission",
+      "forceDeleteMessage": "This permission is assigned to one or more roles. Press Brutforce delete to remove it?",
       "toast": {
         "created": "Permission created successfully",
         "updated": "Permission updated successfully",
@@ -168,8 +166,10 @@
         "load": "Failed to fetch permissions",
         "create": "Failed to create permission",
         "update": "Failed to update permission",
-        "delete": "Failed to delete permission"
-      }
+        "delete": "Failed to delete permission",
+        "deleteAssigned": "This permission is assigned. Use Brutforce delete to remove it."
+      },
+      "forceDelete": "Brutforce delete"
     },
     "roles": {
       "title": "Roles",
@@ -192,6 +192,8 @@
         "accept": "Delete",
         "reject": "Cancel"
       },
+      "forceDeleteTitle": "Brutforce delete role",
+      "forceDeleteMessage": "This role is assigned to one or more users. Press Brutforce delete to remove it?",
       "toast": {
         "created": "Role created successfully",
         "updated": "Role updated successfully",
@@ -207,14 +209,16 @@
         "create": "Failed to create role",
         "update": "Failed to update role",
         "delete": "Failed to delete role",
-        "permissions": "Failed to update role permissions"
+        "permissions": "Failed to update role permissions",
+        "deleteAssigned": "This role is assigned. Use Brutforce delete to remove it."
       },
       "tooltips": {
         "attachPermissions": "Attach or detach permissions"
       },
       "picklist": {
         "title": "Attach Permissions to Role"
-      }
+      },
+      "forceDelete": "Brutforce delete"
     },
     "users": {
       "title": "Users",
@@ -277,7 +281,9 @@
       "save": "Save",
       "more": "+{{count}} more",
       "toastSuccess": "Success",
-      "toastError": "Error"
+      "toastError": "Error",
+      "forceDelete": "Brutforce delete",
+      "searchPlaceholder": "Search..."
     },
     "picklist": {
       "available": "Available",

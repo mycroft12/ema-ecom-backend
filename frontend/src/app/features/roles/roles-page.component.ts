@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { FormsModule } from '@angular/forms';
+import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -43,13 +44,18 @@ import { finalize } from 'rxjs';
     ToastModule,
     CardModule,
     TagModule,
+    FormsModule,
     TranslateModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './roles-page.component.html',
   styleUrls: ['./roles-page.component.scss'],
 })
-export class RolesPageComponent implements OnInit {
+export class RolesPageComponent implements OnInit, AfterViewInit {
+  @ViewChild('permissionsTable') permissionsTable?: Table;
+  @ViewChild('rolesTable') rolesTable?: Table;
+  @ViewChild('usersTable') usersTable?: Table;
+
   private readonly service = inject(AccessControlService);
   private readonly fb = inject(FormBuilder);
   private readonly confirm = inject(ConfirmationService);
@@ -59,6 +65,10 @@ export class RolesPageComponent implements OnInit {
   permissions: Permission[] = [];
   roles: Role[] = [];
   users: User[] = [];
+
+  permissionFilterValue = '';
+  roleFilterValue = '';
+  userFilterValue = '';
 
   permissionsLoading = false;
   rolesLoading = false;
@@ -106,6 +116,14 @@ export class RolesPageComponent implements OnInit {
     this.loadUsers();
   }
 
+  ngAfterViewInit(): void {
+    queueMicrotask(() => {
+      this.applyPermissionFilter(this.permissionFilterValue);
+      this.applyRoleFilter(this.roleFilterValue);
+      this.applyUserFilter(this.userFilterValue);
+    });
+  }
+
   // --- Data loading ---
   private loadPermissions(): void {
     this.permissionsLoading = true;
@@ -113,7 +131,10 @@ export class RolesPageComponent implements OnInit {
       .getPermissions()
       .pipe(finalize(() => (this.permissionsLoading = false)))
       .subscribe({
-        next: data => (this.permissions = data ?? []),
+        next: data => {
+          this.permissions = data ?? [];
+          this.applyPermissionFilter(this.permissionFilterValue);
+        },
         error: () => this.showError(this.translate.instant('rolesPage.permissions.errors.load')),
       });
   }
@@ -124,7 +145,10 @@ export class RolesPageComponent implements OnInit {
       .getRoles()
       .pipe(finalize(() => (this.rolesLoading = false)))
       .subscribe({
-        next: data => (this.roles = data ?? []),
+        next: data => {
+          this.roles = data ?? [];
+          this.applyRoleFilter(this.roleFilterValue);
+        },
         error: () => this.showError(this.translate.instant('rolesPage.roles.errors.load')),
       });
   }
@@ -135,7 +159,10 @@ export class RolesPageComponent implements OnInit {
       .getUsers()
       .pipe(finalize(() => (this.usersLoading = false)))
       .subscribe({
-        next: data => (this.users = data ?? []),
+        next: data => {
+          this.users = data ?? [];
+          this.applyUserFilter(this.userFilterValue);
+        },
         error: () => this.showError(this.translate.instant('rolesPage.users.errors.load')),
       });
   }
@@ -182,15 +209,36 @@ export class RolesPageComponent implements OnInit {
       acceptLabel: this.translate.instant('rolesPage.permissions.confirmDelete.accept'),
       rejectLabel: this.translate.instant('rolesPage.permissions.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.service.deletePermission(permission.id).subscribe({
-          next: () => {
-            this.showSuccess(this.translate.instant('rolesPage.permissions.toastDeleted'));
-            this.loadPermissions();
-            this.loadRoles();
-          },
-          error: () => this.showError(this.translate.instant('rolesPage.permissions.errors.delete')),
-        });
+      key: 'dangerConfirm',
+      accept: () => this.executePermissionDelete(permission, false),
+    });
+  }
+
+  private executePermissionDelete(permission: Permission, force: boolean): void {
+    this.service.deletePermission(permission.id, force).subscribe({
+      next: () => {
+        this.showSuccess(this.translate.instant('rolesPage.permissions.toastDeleted'));
+        this.loadPermissions();
+        this.loadRoles();
+      },
+      error: (err) => {
+        const code = err?.error?.message ?? err?.error ?? err?.message;
+        if (!force && code === 'permission.assigned') {
+          this.confirm.confirm({
+            header: this.translate.instant('rolesPage.permissions.forceDeleteTitle'),
+            message: this.translate.instant('rolesPage.permissions.forceDeleteMessage', { name: permission.name }),
+            acceptLabel: this.translate.instant('rolesPage.common.forceDelete'),
+            rejectLabel: this.translate.instant('rolesPage.common.cancel'),
+            acceptButtonStyleClass: 'p-button-danger',
+            key: 'forceConfirm',
+            accept: () => this.executePermissionDelete(permission, true),
+          });
+          return;
+        }
+        const key = code === 'permission.assigned'
+          ? 'rolesPage.permissions.errors.deleteAssigned'
+          : 'rolesPage.permissions.errors.delete';
+        this.showError(this.translate.instant(key));
       },
     });
   }
@@ -237,15 +285,36 @@ export class RolesPageComponent implements OnInit {
       acceptLabel: this.translate.instant('rolesPage.roles.confirmDelete.accept'),
       rejectLabel: this.translate.instant('rolesPage.roles.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.service.deleteRole(role.id).subscribe({
-          next: () => {
-            this.showSuccess(this.translate.instant('rolesPage.roles.toastDeleted'));
-            this.loadRoles();
-            this.loadUsers();
-          },
-          error: () => this.showError(this.translate.instant('rolesPage.roles.errors.delete')),
-        });
+      key: 'dangerConfirm',
+      accept: () => this.executeRoleDelete(role, false),
+    });
+  }
+
+  private executeRoleDelete(role: Role, force: boolean): void {
+    this.service.deleteRole(role.id, force).subscribe({
+      next: () => {
+        this.showSuccess(this.translate.instant('rolesPage.roles.toastDeleted'));
+        this.loadRoles();
+        this.loadUsers();
+      },
+      error: (err) => {
+        const code = err?.error?.message ?? err?.error ?? err?.message;
+        if (!force && code === 'role.assigned') {
+          this.confirm.confirm({
+            header: this.translate.instant('rolesPage.roles.forceDeleteTitle'),
+            message: this.translate.instant('rolesPage.roles.forceDeleteMessage', { name: role.name }),
+            acceptLabel: this.translate.instant('rolesPage.common.forceDelete'),
+            rejectLabel: this.translate.instant('rolesPage.common.cancel'),
+            acceptButtonStyleClass: 'p-button-danger',
+            key: 'forceConfirm',
+            accept: () => this.executeRoleDelete(role, true),
+          });
+          return;
+        }
+        const key = code === 'role.assigned'
+          ? 'rolesPage.roles.errors.deleteAssigned'
+          : 'rolesPage.roles.errors.delete';
+        this.showError(this.translate.instant(key));
       },
     });
   }
@@ -416,6 +485,21 @@ export class RolesPageComponent implements OnInit {
         this.showError(this.translate.instant('rolesPage.users.errors.roles'));
       },
     });
+  }
+
+  applyPermissionFilter(value: string): void {
+    const term = (value ?? '').trim();
+    this.permissionsTable?.filterGlobal(term, 'contains');
+  }
+
+  applyRoleFilter(value: string): void {
+    const term = (value ?? '').trim();
+    this.rolesTable?.filterGlobal(term, 'contains');
+  }
+
+  applyUserFilter(value: string): void {
+    const term = (value ?? '').trim();
+    this.usersTable?.filterGlobal(term, 'contains');
   }
 
   // --- Helpers ---

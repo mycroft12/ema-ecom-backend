@@ -8,7 +8,9 @@
 
   .section-toolbar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
     margin-bottom: 0.75rem;
   }
 }
@@ -70,13 +72,13 @@
 }
 
 .required-indicator {
-  color: var(--red-600);
+  color: #d32f2f;
   margin-left: 0.25rem;
   font-weight: 700;
 }
 
 .error {
-  color: var(--red-600);
+  color: #d32f2f;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -102,4 +104,42 @@
   color: var(--surface-500);
   font-size: 0.75rem;
   text-align: center;
+}
+
+.search-input {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 240px;
+}
+
+.danger-confirm {
+  .p-dialog-header {
+    background: #ffe5e5;
+    color: #b71c1c;
+  }
+
+  .p-confirm-dialog-message {
+    color: #b71c1c;
+    font-weight: 600;
+  }
+
+  .p-dialog-content {
+    border-top: 1px solid #ffcdd2;
+  }
+}
+
+.force-confirm {
+  .p-dialog-header {
+    background: #fff4e5;
+    color: #e65100;
+  }
+
+  .p-confirm-dialog-message {
+    color: #e65100;
+    font-weight: 600;
+  }
+
+  .p-dialog-content {
+    border-top: 1px solid #ffcc80;
+  }
 }

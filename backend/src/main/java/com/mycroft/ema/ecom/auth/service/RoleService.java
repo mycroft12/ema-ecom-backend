@@ -9,5 +9,5 @@ public interface RoleService {
   List<Role> findAll();
   Role create(Role r);
   Role update(UUID id, Role r);
-  void delete(UUID id);
+  void delete(UUID id, boolean force);
 }

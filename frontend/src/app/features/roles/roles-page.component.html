@@ -4,15 +4,25 @@
     <div class="col-12">
       <p-card [header]="'rolesPage.permissions.title' | translate" class="section-card fullwidth-table">
         <div class="section-toolbar">
+          <input
+            pInputText
+            class="search-input"
+            type="text"
+            [placeholder]="'rolesPage.common.searchPlaceholder' | translate"
+            [(ngModel)]="permissionFilterValue"
+            (input)="applyPermissionFilter(permissionFilterValue)"
+          />
           <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.permissions.add' | translate" (click)="openPermissionDialog()"></button>
         </div>
         <p-table
+          #permissionsTable
           [value]="permissions"
           [loading]="permissionsLoading"
           responsiveLayout="scroll"
           size="small"
           [rows]="5"
           [paginator]="permissions.length > 5"
+          [globalFilterFields]="['name']"
         >
           <ng-template pTemplate="header">
             <tr>
@@ -54,15 +64,25 @@
     <div class="col-12">
       <p-card [header]="'rolesPage.roles.title' | translate" class="section-card fullwidth-table">
         <div class="section-toolbar">
+          <input
+            pInputText
+            class="search-input"
+            type="text"
+            [placeholder]="'rolesPage.common.searchPlaceholder' | translate"
+            [(ngModel)]="roleFilterValue"
+            (input)="applyRoleFilter(roleFilterValue)"
+          />
           <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.roles.add' | translate" (click)="openRoleDialog()"></button>
         </div>
         <p-table
+          #rolesTable
           [value]="roles"
           [loading]="rolesLoading"
           responsiveLayout="scroll"
           size="small"
           [rows]="5"
           [paginator]="roles.length > 5"
+          [globalFilterFields]="['name']"
         >
           <ng-template pTemplate="header">
             <tr>
@@ -132,15 +152,25 @@
     <div class="col-12">
       <p-card [header]="'rolesPage.users.title' | translate" class="section-card fullwidth-table">
         <div class="section-toolbar">
+          <input
+            pInputText
+            class="search-input"
+            type="text"
+            [placeholder]="'rolesPage.common.searchPlaceholder' | translate"
+            [(ngModel)]="userFilterValue"
+            (input)="applyUserFilter(userFilterValue)"
+          />
           <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.users.add' | translate" (click)="openUserDialog()"></button>
         </div>
         <p-table
+          #usersTable
           [value]="users"
           [loading]="usersLoading"
           responsiveLayout="scroll"
           size="small"
           [rows]="5"
           [paginator]="users.length > 5"
+          [globalFilterFields]="['username','email']"
         >
           <ng-template pTemplate="header">
             <tr>
@@ -376,5 +406,7 @@
   </ng-template>
 </p-dialog>
 
+<p-confirmDialog key="dangerConfirm" styleClass="danger-confirm"></p-confirmDialog>
+<p-confirmDialog key="forceConfirm" styleClass="force-confirm"></p-confirmDialog>
 <p-confirmDialog></p-confirmDialog>
 <p-toast></p-toast>

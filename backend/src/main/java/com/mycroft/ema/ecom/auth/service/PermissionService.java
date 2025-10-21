@@ -9,5 +9,5 @@ public interface PermissionService {
   List<Permission> findAll();
   Permission create(Permission p);
   Permission update(UUID id, Permission p);
-  void delete(UUID id);
+  void delete(UUID id, boolean force);
 }

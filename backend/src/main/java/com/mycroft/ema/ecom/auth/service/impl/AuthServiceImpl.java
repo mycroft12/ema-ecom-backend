@@ -49,8 +49,11 @@ public class AuthServiceImpl implements AuthService {
   public TokenPair login(LoginRequest req){
     var userOpt = users.findByUsername(req.username());
     var user = userOpt.orElse(null);
-    if (user == null || !user.isEnabled() || !encoder.matches(req.password(), user.getPassword())) {
+    if (user == null || !encoder.matches(req.password(), user.getPassword())) {
       throw new org.springframework.security.authentication.BadCredentialsException("bad_credentials");
+    }
+    if (!user.isEnabled()) {
+      throw new org.springframework.security.authentication.DisabledException("account_disabled");
     }
     var access = jwt.generateAccessToken(user);
     var refresh = new RefreshToken();

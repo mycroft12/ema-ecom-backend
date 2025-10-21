@@ -36,5 +36,8 @@ public class RoleController {
 
   @DeleteMapping("/{id}") @PreAuthorize("hasAuthority('role:delete')")
   @Operation(summary = "Delete role")
-  public void delete(@PathVariable UUID id){ roles.delete(id); }
+  public void delete(@PathVariable UUID id,
+                     @RequestParam(value = "force", defaultValue = "false") boolean force){
+    roles.delete(id, force);
+  }
 }

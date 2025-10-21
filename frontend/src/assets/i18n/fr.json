@@ -32,7 +32,8 @@
     "errors": {
       "invalid": "Identifiants invalides",
       "unexpected": "Une erreur inattendue s'est produite",
-      "serverUnreachable": "Serveur injoignable"
+      "serverUnreachable": "Serveur injoignable",
+      "disabled": "Votre compte n'est pas encore activé."
     }
   },
   "products": {
@@ -61,7 +62,6 @@
     "newProduct": "Nouveau produit",
     "editProduct": "Modifier le produit",
     "actions": "Actions",
-
     "downloadExamples": "Télécharger des exemples de modèles",
     "downloadExplain": "Téléchargez un modèle pour voir le format attendu. Le modèle inclut :",
     "row1": "Ligne 1 :",
@@ -73,9 +73,7 @@
     "btnDownloadBasic": "Télécharger le modèle de base",
     "btnDownloadAllTypes": "Télécharger le modèle avec tous les types",
     "tooltipAllTypes": "Inclut tous les types de colonnes disponibles avec des exemples",
-
     "uploading": "Téléversement et traitement du modèle...",
-
     "confirmBulkDeleteHeader": "Confirmer la suppression en lot",
     "confirmBulkDeleteMessage": "Êtes-vous sûr de vouloir supprimer {{count}} produit(s) ?",
     "toastSuccess": "Succès",
@@ -83,14 +81,12 @@
     "toastExportInfo": "Export démarré",
     "toastExportDetail": "Préparation du fichier...",
     "toastDeletedMany": "{{count}} produit(s) supprimé(s)",
-
     "filterName": "Nom du filtre",
     "conditions": "Conditions",
     "addCondition": "Ajouter une condition",
     "makePublic": "Rendre ce filtre public",
     "btnCancel": "Annuler",
     "btnSaveApply": "Enregistrer et appliquer",
-
     "opEquals": "Égal à",
     "opContains": "Contient",
     "opStartsWith": "Commence par",
@@ -156,6 +152,8 @@
         "accept": "Supprimer",
         "reject": "Annuler"
       },
+      "forceDeleteTitle": "Suppression brutforce de la permission",
+      "forceDeleteMessage": "Cette permission est assignée à un ou plusieurs rôles. Cliquez sur Suppression brutforce pour la retirer ?",
       "toast": {
         "created": "Permission créée avec succès",
         "updated": "Permission mise à jour avec succès",
@@ -168,7 +166,8 @@
         "load": "Échec du chargement des permissions",
         "create": "Échec de la création de la permission",
         "update": "Échec de la mise à jour de la permission",
-        "delete": "Échec de la suppression de la permission"
+        "delete": "Échec de la suppression de la permission",
+        "deleteAssigned": "Cette permission est assignée. Utilisez la suppression brutforce pour la retirer."
       }
     },
     "roles": {
@@ -192,6 +191,8 @@
         "accept": "Supprimer",
         "reject": "Annuler"
       },
+      "forceDeleteTitle": "Suppression brutforce du rôle",
+      "forceDeleteMessage": "Ce rôle est assigné à un ou plusieurs utilisateurs. Cliquez sur Suppression brutforce pour le retirer ?",
       "toast": {
         "created": "Rôle créé avec succès",
         "updated": "Rôle mis à jour avec succès",
@@ -207,7 +208,8 @@
         "create": "Échec de la création du rôle",
         "update": "Échec de la mise à jour du rôle",
         "delete": "Échec de la suppression du rôle",
-        "permissions": "Échec de la mise à jour des permissions du rôle"
+        "permissions": "Échec de la mise à jour des permissions du rôle",
+        "deleteAssigned": "Ce rôle est assigné. Utilisez la suppression brutforce pour le retirer."
       },
       "tooltips": {
         "attachPermissions": "Associer ou dissocier des permissions"
@@ -277,7 +279,9 @@
       "save": "Enregistrer",
       "more": "+{{count}} de plus",
       "toastSuccess": "Succès",
-      "toastError": "Erreur"
+      "toastError": "Erreur",
+      "forceDelete": "Suppression brutforce",
+      "searchPlaceholder": "Rechercher..."
     },
     "picklist": {
       "available": "Disponibles",

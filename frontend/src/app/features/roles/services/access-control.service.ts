@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import {
   CreatePermissionPayload,
@@ -36,8 +36,9 @@ export class AccessControlService {
     return this.http.put<Permission>(`${this.baseUrl}/api/permissions/${id}`, payload);
   }
 
-  deletePermission(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/api/permissions/${id}`);
+  deletePermission(id: string, force = false): Observable<void> {
+    const options = force ? { params: new HttpParams().set('force', 'true') } : {};
+    return this.http.delete<void>(`${this.baseUrl}/api/permissions/${id}`, options);
   }
 
   // Roles
@@ -53,8 +54,9 @@ export class AccessControlService {
     return this.http.put<Role>(`${this.baseUrl}/api/roles/${id}`, payload);
   }
 
-  deleteRole(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/api/roles/${id}`);
+  deleteRole(id: string, force = false): Observable<void> {
+    const options = force ? { params: new HttpParams().set('force', 'true') } : {};
+    return this.http.delete<void>(`${this.baseUrl}/api/roles/${id}`, options);
   }
 
   // Users
