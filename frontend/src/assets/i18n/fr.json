@@ -58,6 +58,7 @@
     "searchPlaceholder": "Rechercher...",
     "searchKeywordPlaceholder": "Mot-clé de recherche",
     "columnTogglePlaceholder": "Colonnes",
+    "columnToggleSelectedItems": "{0} colonne(s) sélectionnée(s)",
     "pageReport": "Affichage de {first} à {last} sur {totalRecords} entrées",
     "noImage": "Aucune image",
     "noResults": "Aucun produit trouvé",

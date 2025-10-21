@@ -58,6 +58,7 @@
     "searchPlaceholder": "Search...",
     "searchKeywordPlaceholder": "Search keyword",
     "columnTogglePlaceholder": "Columns",
+    "columnToggleSelectedItems": "{0} columns selected",
     "pageReport": "Showing {first} to {last} of {totalRecords} entries",
     "noImage": "No image",
     "noResults": "No products found",

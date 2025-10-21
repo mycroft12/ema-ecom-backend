@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -22,6 +22,8 @@ import { ProductSchemaService } from '../../services/product-schema.service';
 import { ColumnDefinition, ColumnType } from '../../models/product-schema.model';
 import { TableLazyLoadEvent } from '../../models/filter.model';
 import { AuthService } from '../../../../core/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-table',
@@ -48,7 +50,7 @@ import { AuthService } from '../../../../core/auth.service';
   templateUrl: './product-table.component.html',
   styleUrls: ['./product-table.component.scss']
 })
-export class ProductTableComponent implements OnInit {
+export class ProductTableComponent implements OnInit, OnDestroy {
   @ViewChild('dt1') dt1!: Table;
 
   readonly dataService = inject(ProductDataService);
@@ -70,6 +72,9 @@ export class ProductTableComponent implements OnInit {
   sortOrder: number = 1;
   columnToggleOptions: Array<{ label: string; value: string }> = [];
   selectedColumnKeys: string[] = [];
+  columnToggleSelectedItemsLabel = '';
+
+  private readonly destroy$ = new Subject<void>();
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -111,6 +116,11 @@ export class ProductTableComponent implements OnInit {
     this.refreshActionPermissions();
     // 1) build globalFilterFields from dynamic schema
     this.updateGlobalFilterFields();
+    this.updateColumnToggleSelectedLabel();
+    this.translate.onLangChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.updateColumnToggleSelectedLabel();
+      this.syncColumnToggleOptions();
+    });
 
     // 2) load data (keeps your service flow)
     this.loadData({
@@ -121,6 +131,11 @@ export class ProductTableComponent implements OnInit {
       filters: undefined,
       globalFilter: undefined
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onLazyLoad(event: TableLazyLoadEvent) {
@@ -377,6 +392,10 @@ export class ProductTableComponent implements OnInit {
     if (!this.selectedColumnKeys.length) {
       this.selectedColumnKeys = nextOptions.map(option => option.value);
     }
+  }
+
+  private updateColumnToggleSelectedLabel(): void {
+    this.columnToggleSelectedItemsLabel = this.translate.instant('products.columnToggleSelectedItems');
   }
 
   private buildInitialFormModel(initial?: Record<string, any>): Record<string, any> {
