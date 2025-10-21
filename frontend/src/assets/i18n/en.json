@@ -161,6 +161,9 @@
         "updated": "Permission updated successfully",
         "deleted": "Permission deleted"
       },
+      "toastCreated": "Permission created successfully",
+      "toastUpdated": "Permission updated successfully",
+      "toastDeleted": "Permission deleted",
       "errors": {
         "load": "Failed to fetch permissions",
         "create": "Failed to create permission",
@@ -195,6 +198,10 @@
         "deleted": "Role deleted",
         "permissionsUpdated": "Role permissions updated"
       },
+      "toastCreated": "Role created successfully",
+      "toastUpdated": "Role updated successfully",
+      "toastDeleted": "Role deleted",
+      "toastPermissionsUpdated": "Role permissions updated",
       "errors": {
         "load": "Failed to fetch roles",
         "create": "Failed to create role",
@@ -244,6 +251,10 @@
         "deleted": "User deleted",
         "rolesUpdated": "User roles updated"
       },
+      "toastCreated": "User created successfully",
+      "toastUpdated": "User updated successfully",
+      "toastDeleted": "User deleted",
+      "toastRolesUpdated": "User roles updated",
       "errors": {
         "load": "Failed to fetch users",
         "create": "Failed to create user",

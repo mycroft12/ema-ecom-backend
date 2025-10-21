@@ -25,8 +25,7 @@ import {
   CreateUserPayload,
   UpdateUserPayload,
 } from './models/access-control.model';
-import { Observable, concat, finalize, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-roles-page',
@@ -394,35 +393,19 @@ export class RolesPageComponent implements OnInit {
       return;
     }
     const user = this.activeUserForRoles;
-    const desiredIds = new Set(this.userPickListTarget.map(r => r.id));
-    const currentIds = new Set((user.roles ?? []).map(r => r.id));
+    const desiredRoles = this.userPickListTarget.map(r => ({
+      id: r.id,
+      name: r.name,
+      permissions: r.permissions ?? [],
+    }));
+    const payload: UpdateUserPayload = {
+      username: user.username,
+      email: user.email,
+      enabled: user.enabled,
+      roles: desiredRoles,
+    };
 
-    const toAttach = Array.from(desiredIds).filter(id => !currentIds.has(id));
-    const toDetach = Array.from(currentIds).filter(id => !desiredIds.has(id));
-
-    if (toAttach.length === 0 && toDetach.length === 0) {
-      this.userRolesDialogVisible = false;
-      this.activeUserForRoles = null;
-      return;
-    }
-
-    const operations: Observable<unknown>[] = [];
-
-    if (toAttach.length) {
-      operations.push(
-        this.service.attachRolesToUser(user.id, toAttach).pipe(map(() => null)),
-      );
-    }
-
-    if (toDetach.length) {
-      operations.push(
-        this.service.detachRolesFromUser(user.id, toDetach).pipe(map(() => null)),
-      );
-    }
-
-    const sequence$ = operations.length ? concat(...operations) : of(null);
-
-    sequence$.subscribe({
+    this.service.updateUser(user.id, payload).subscribe({
       next: () => {
         this.showSuccess(this.translate.instant('rolesPage.users.toastRolesUpdated'));
         this.userRolesDialogVisible = false;

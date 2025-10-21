@@ -161,6 +161,9 @@
         "updated": "تم تحديث الإذن بنجاح",
         "deleted": "تم حذف الإذن"
       },
+      "toastCreated": "تم إنشاء الإذن بنجاح",
+      "toastUpdated": "تم تحديث الإذن بنجاح",
+      "toastDeleted": "تم حذف الإذن",
       "errors": {
         "load": "فشل في تحميل الأذونات",
         "create": "فشل في إنشاء الإذن",
@@ -195,6 +198,10 @@
         "deleted": "تم حذف الدور",
         "permissionsUpdated": "تم تحديث أذونات الدور"
       },
+      "toastCreated": "تم إنشاء الدور بنجاح",
+      "toastUpdated": "تم تحديث الدور بنجاح",
+      "toastDeleted": "تم حذف الدور",
+      "toastPermissionsUpdated": "تم تحديث أذونات الدور",
       "errors": {
         "load": "فشل في تحميل الأدوار",
         "create": "فشل في إنشاء الدور",
@@ -244,6 +251,10 @@
         "deleted": "تم حذف المستخدم",
         "rolesUpdated": "تم تحديث أدوار المستخدم"
       },
+      "toastCreated": "تم إنشاء المستخدم بنجاح",
+      "toastUpdated": "تم تحديث المستخدم بنجاح",
+      "toastDeleted": "تم حذف المستخدم",
+      "toastRolesUpdated": "تم تحديث أدوار المستخدم",
       "errors": {
         "load": "فشل في تحميل المستخدمين",
         "create": "فشل في إنشاء المستخدم",

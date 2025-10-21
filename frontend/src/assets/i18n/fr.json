@@ -161,6 +161,9 @@
         "updated": "Permission mise à jour avec succès",
         "deleted": "Permission supprimée"
       },
+      "toastCreated": "Permission créée avec succès",
+      "toastUpdated": "Permission mise à jour avec succès",
+      "toastDeleted": "Permission supprimée",
       "errors": {
         "load": "Échec du chargement des permissions",
         "create": "Échec de la création de la permission",
@@ -195,6 +198,10 @@
         "deleted": "Rôle supprimé",
         "permissionsUpdated": "Permissions du rôle mises à jour"
       },
+      "toastCreated": "Rôle créé avec succès",
+      "toastUpdated": "Rôle mis à jour avec succès",
+      "toastDeleted": "Rôle supprimé",
+      "toastPermissionsUpdated": "Permissions du rôle mises à jour",
       "errors": {
         "load": "Échec du chargement des rôles",
         "create": "Échec de la création du rôle",
@@ -244,6 +251,10 @@
         "deleted": "Utilisateur supprimé",
         "rolesUpdated": "Rôles de l'utilisateur mis à jour"
       },
+      "toastCreated": "Utilisateur créé avec succès",
+      "toastUpdated": "Utilisateur mis à jour avec succès",
+      "toastDeleted": "Utilisateur supprimé",
+      "toastRolesUpdated": "Rôles de l'utilisateur mis à jour",
       "errors": {
         "load": "Échec du chargement des utilisateurs",
         "create": "Échec de la création de l'utilisateur",
