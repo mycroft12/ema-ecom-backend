@@ -16,6 +16,7 @@ import { TagModule } from 'primeng/tag';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AccessControlService } from './services/access-control.service';
+import { AuthService } from '../../core/auth.service';
 import {
   Permission,
   Role,
@@ -63,6 +64,7 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
   private readonly confirm = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
   private readonly translate = inject(TranslateService);
+  private readonly auth = inject(AuthService);
 
   permissions: Permission[] = [];
   roles: Role[] = [];
@@ -347,6 +349,7 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
         this.activeRoleForPermissions = null;
         this.loadRoles();
         this.loadUsers();
+        this.refreshSessionTokens();
       },
       error: () => this.showError(this.translate.instant('rolesPage.roles.errors.permissions')),
     });
@@ -502,6 +505,20 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
   applyUserFilter(value: string): void {
     const term = (value ?? '').trim();
     this.usersTable?.filterGlobal(term, 'contains');
+  }
+
+  private refreshSessionTokens(): void {
+    const refresh$ = this.auth.refreshAccessToken();
+    refresh$.subscribe({
+      next: tokens => {
+        if (tokens) {
+          this.auth.saveLoginResponse(tokens);
+        }
+      },
+      error: () => {
+        // ignore refresh failures silently
+      }
+    });
   }
 
   // --- Helpers ---
