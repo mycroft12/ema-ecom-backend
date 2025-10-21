@@ -86,15 +86,25 @@ public class ImportConfigureController {
   }
 
   private void createColumnPermissions(String domain, TemplateAnalysisResponse analysis) {
-    if (analysis.getColumns() == null) {
-      return;
-    }
     String prefix = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
     if (prefix.isEmpty()) {
       return;
     }
+    createActionPermissions(prefix);
+    if (analysis.getColumns() == null) {
+      return;
+    }
     analysis.getColumns().forEach(column -> {
       String permissionName = prefix + ":access:" + column.getName();
+      var permission = permissionService.ensure(permissionName);
+      assignPermissionToAdmin(permission.getId());
+    });
+  }
+
+  private void createActionPermissions(String prefix) {
+    List<String> actions = List.of("add", "update", "delete");
+    actions.forEach(action -> {
+      String permissionName = prefix + ":action:" + action;
       var permission = permissionService.ensure(permissionName);
       assignPermissionToAdmin(permission.getId());
     });

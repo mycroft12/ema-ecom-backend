@@ -80,6 +80,15 @@
     "toastExportInfo": "Export démarré",
     "toastExportDetail": "Préparation du fichier...",
     "toastDeletedMany": "{{count}} produit(s) supprimé(s)",
+    "toastCreated": "Produit créé avec succès",
+    "toastUpdated": "Produit mis à jour avec succès",
+    "toastDeleted": "Produit supprimé",
+    "errors": {
+      "loadOne": "Impossible de charger les détails du produit",
+      "create": "Échec de la création du produit",
+      "update": "Échec de la mise à jour du produit",
+      "delete": "Échec de la suppression du produit"
+    },
     "filterName": "Nom du filtre",
     "conditions": "Conditions",
     "addCondition": "Ajouter une condition",

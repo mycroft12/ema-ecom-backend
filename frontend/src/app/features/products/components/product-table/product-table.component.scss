@@ -39,3 +39,23 @@
     /* remove extra icon offset some themes add */
     th .header-filter .p-column-filter-menu-button .p-button-icon { margin: 0; }
 }
+
+.caption-toolbar {
+    width: 100%;
+}
+
+.actions-cell .p-button {
+    width: 2.2rem;
+    height: 2.2rem;
+}
+
+.product-dialog {
+    width: 100%;
+    max-width: 520px;
+}
+
+.product-dialog .field {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}

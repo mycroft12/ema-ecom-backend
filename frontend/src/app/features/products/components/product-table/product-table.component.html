@@ -18,9 +18,17 @@
         >
             <!-- CAPTION -->
             <ng-template pTemplate="caption">
-                <div class="flex">
-                    <p-button label="Clear" [outlined]="true" icon="pi pi-filter-slash" (click)="clear(dt1)"></p-button>
-                    <p-iconfield iconPosition="left" class="ml-auto">
+                <div class="flex flex-wrap items-center gap-2 caption-toolbar">
+                    <div class="flex gap-2">
+                        <p-button label="Clear" [outlined]="true" icon="pi pi-filter-slash" (click)="clear(dt1)"></p-button>
+                        <p-button
+                                *ngIf="canAdd"
+                                [label]="'products.newProduct' | translate"
+                                icon="pi pi-plus"
+                                (click)="openCreateDialog()"
+                        ></p-button>
+                    </div>
+                    <p-iconfield iconPosition="left" class="ml-auto search-field">
                         <p-inputicon>
                             <i class="pi pi-search"></i>
                         </p-inputicon>
@@ -108,6 +116,9 @@
                             </div>
                         </th>
                     }
+                    @if (showActionColumn) {
+                        <th class="actions-header text-center">{{ 'products.actions' | translate }}</th>
+                    }
                 </tr>
             </ng-template>
 
@@ -174,18 +185,42 @@
                             }
                         </td>
                     }
+                    @if (showActionColumn) {
+                        <td class="actions-cell text-center">
+                            <div class="flex justify-content-center gap-2">
+                                <button
+                                        *ngIf="canEdit"
+                                        pButton
+                                        type="button"
+                                        icon="pi pi-pencil"
+                                        class="p-button-rounded p-button-text"
+                                        (click)="openEditDialog(product.id)"
+                                        [disabled]="!product?.id"
+                                ></button>
+                                <button
+                                        *ngIf="canDelete"
+                                        pButton
+                                        type="button"
+                                        icon="pi pi-trash"
+                                        class="p-button-rounded p-button-text p-button-danger"
+                                        (click)="confirmDeleteProduct(product.id)"
+                                        [disabled]="!product?.id"
+                                ></button>
+                            </div>
+                        </td>
+                    }
                 </tr>
             </ng-template>
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td [attr.colspan]="schemaService.visibleColumns().length">{{ 'products.noResults' | translate }}</td>
+                    <td [attr.colspan]="schemaService.visibleColumns().length + (showActionColumn ? 1 : 0)">{{ 'products.noResults' | translate }}</td>
                 </tr>
             </ng-template>
 
             <ng-template pTemplate="loadingbody">
                 <tr>
-                    <td [attr.colspan]="schemaService.visibleColumns().length">
+                    <td [attr.colspan]="schemaService.visibleColumns().length + (showActionColumn ? 1 : 0)">
                         <div class="flex align-items-center justify-content-center p-3">
                             <i class="pi pi-spin pi-spinner mr-2"></i>
                             <span>{{ 'products.loading' | translate }}</span>
@@ -195,6 +230,87 @@
             </ng-template>
         </p-table>
     </div>
+
+    <p-dialog
+            [(visible)]="displayDialog"
+            [modal]="true"
+            [header]="dialogHeader"
+            [draggable]="false"
+            [resizable]="false"
+            class="product-dialog"
+    >
+        <form #productForm="ngForm" (ngSubmit)="saveProduct(productForm)" class="flex flex-column gap-3">
+            <ng-container *ngFor="let column of schemaService.visibleColumns(); trackBy: trackColumn">
+                <div class="field">
+                    <label [for]="'field-' + column.name">{{ column.displayName }}</label>
+                    <ng-container [ngSwitch]="column.type">
+                        <input
+                                *ngSwitchCase="ColumnType.INTEGER"
+                                pInputText
+                                type="number"
+                                [name]="'field-' + column.name"
+                                [id]="'field-' + column.name"
+                                [(ngModel)]="formModel[column.name]"
+                                [required]="column.required"
+                        />
+                        <input
+                                *ngSwitchCase="ColumnType.DECIMAL"
+                                pInputText
+                                type="number"
+                                step="any"
+                                [name]="'field-' + column.name"
+                                [id]="'field-' + column.name"
+                                [(ngModel)]="formModel[column.name]"
+                                [required]="column.required"
+                        />
+                        <input
+                                *ngSwitchCase="ColumnType.DATE"
+                                pInputText
+                                type="date"
+                                [name]="'field-' + column.name"
+                                [id]="'field-' + column.name"
+                                [(ngModel)]="formModel[column.name]"
+                                [required]="column.required"
+                        />
+                        <div *ngSwitchCase="ColumnType.BOOLEAN" class="flex align-items-center gap-2">
+                            <input
+                                    type="checkbox"
+                                    [name]="'field-' + column.name"
+                                    [id]="'field-' + column.name"
+                                    [(ngModel)]="formModel[column.name]"
+                            />
+                            <label [for]="'field-' + column.name" class="mb-0">{{ formModel[column.name] ? ('common.yes' | translate) : ('common.no' | translate) }}</label>
+                        </div>
+                        <input
+                                *ngSwitchDefault
+                                pInputText
+                                type="text"
+                                [name]="'field-' + column.name"
+                                [id]="'field-' + column.name"
+                                [(ngModel)]="formModel[column.name]"
+                                [required]="column.required"
+                        />
+                    </ng-container>
+                </div>
+            </ng-container>
+            <div class="flex justify-content-end gap-2">
+                <button
+                        type="button"
+                        pButton
+                        class="p-button-text"
+                        [label]="'common.cancel' | translate"
+                        (click)="closeDialog()"
+                        [disabled]="saving"
+                ></button>
+                <button
+                        type="submit"
+                        pButton
+                        [label]="submitLabel"
+                        [loading]="saving"
+                ></button>
+            </div>
+        </form>
+    </p-dialog>
 </div>
 
 <p-toast></p-toast>

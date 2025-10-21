@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
@@ -14,11 +14,13 @@ import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { SliderModule } from 'primeng/slider';
+import { DialogModule } from 'primeng/dialog';
 
 import { ProductDataService } from '../../services/product-data.service';
 import { ProductSchemaService } from '../../services/product-schema.service';
-import { ColumnType } from '../../models/product-schema.model';
+import { ColumnDefinition, ColumnType } from '../../models/product-schema.model';
 import { TableLazyLoadEvent } from '../../models/filter.model';
+import { AuthService } from '../../../../core/auth.service';
 
 @Component({
   selector: 'app-product-table',
@@ -37,7 +39,8 @@ import { TableLazyLoadEvent } from '../../models/filter.model';
     SelectModule,
     ProgressBarModule,
     TagModule,
-    SliderModule
+    SliderModule,
+    DialogModule
   ],
   providers: [MessageService],
   templateUrl: './product-table.component.html',
@@ -50,6 +53,7 @@ export class ProductTableComponent implements OnInit {
   readonly schemaService = inject(ProductSchemaService);
   private readonly messageService = inject(MessageService);
   readonly translate = inject(TranslateService);
+  private readonly auth = inject(AuthService);
 
   ColumnType = ColumnType; // expose enum to template
 
@@ -71,8 +75,33 @@ export class ProductTableComponent implements OnInit {
   activityMax = 100;
   activityRange: [number, number] = [0, 100];
 
+  private readonly actionPrefix = 'product:action:';
+  private permissionsState = { add: false, edit: false, delete: false };
+
+  displayDialog = false;
+  dialogMode: 'create' | 'edit' = 'create';
+  formModel: Record<string, any> = {};
+  editingProductId: string | null = null;
+  saving = false;
+  formSubmitted = false;
+
+  get canAdd(): boolean { return this.permissionsState.add; }
+  get canEdit(): boolean { return this.permissionsState.edit; }
+  get canDelete(): boolean { return this.permissionsState.delete; }
+  get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
+  get dialogHeader(): string {
+    return this.dialogMode === 'create'
+      ? this.translate.instant('products.newProduct')
+      : this.translate.instant('products.editProduct');
+  }
+  get submitLabel(): string {
+    return this.translate.instant('common.save');
+  }
+  trackColumn = (_: number, column: ColumnDefinition) => column.name;
+
   ngOnInit() {
     this.loading = true;
+    this.refreshActionPermissions();
     // 1) build globalFilterFields from dynamic schema
     this.updateGlobalFilterFields();
 
@@ -142,6 +171,107 @@ export class ProductTableComponent implements OnInit {
     });
   }
 
+  private refreshActionPermissions(): void {
+    const permissions = new Set(this.auth.permissions() ?? []);
+    this.permissionsState = {
+      add: permissions.has(this.actionPermission('add')),
+      edit: permissions.has(this.actionPermission('update')),
+      delete: permissions.has(this.actionPermission('delete'))
+    };
+  }
+
+  private actionPermission(action: 'add' | 'update' | 'delete'): string {
+    return `${this.actionPrefix}${action}`;
+  }
+
+  openCreateDialog(): void {
+    if (!this.canAdd) {
+      return;
+    }
+    this.dialogMode = 'create';
+    this.editingProductId = null;
+    this.formModel = this.buildInitialFormModel();
+    this.formSubmitted = false;
+    this.displayDialog = true;
+  }
+
+  openEditDialog(productId: string): void {
+    if (!this.canEdit || !productId) {
+      return;
+    }
+    this.dialogMode = 'edit';
+    this.editingProductId = productId;
+    this.formModel = this.buildInitialFormModel();
+    this.formSubmitted = false;
+    this.displayDialog = true;
+    this.dataService.getProduct(productId).subscribe({
+      next: product => {
+        this.formModel = this.buildInitialFormModel(product);
+      },
+      error: () => {
+        this.displayDialog = false;
+        this.showError(this.translate.instant('products.errors.loadOne'));
+      }
+    });
+  }
+
+  saveProduct(form: NgForm): void {
+    this.formSubmitted = true;
+    if (form.invalid) {
+      return;
+    }
+    const attributes = this.collectAttributesFromFormModel();
+    this.saving = true;
+    const request$ = this.dialogMode === 'create'
+      ? this.dataService.createProduct(attributes)
+      : this.dataService.updateProduct(this.editingProductId!, attributes);
+
+    request$.subscribe({
+      next: () => {
+        this.saving = false;
+        this.showSuccess(this.translate.instant(
+          this.dialogMode === 'create' ? 'products.toastCreated' : 'products.toastUpdated'
+        ));
+        this.closeDialog();
+        this.reloadTable();
+      },
+      error: () => {
+        this.saving = false;
+        this.showError(this.translate.instant(
+          this.dialogMode === 'create' ? 'products.errors.create' : 'products.errors.update'
+        ));
+      }
+    });
+  }
+
+  closeDialog(): void {
+    this.displayDialog = false;
+    this.formSubmitted = false;
+    this.saving = false;
+    this.editingProductId = null;
+  }
+
+  confirmDeleteProduct(productId: string): void {
+    if (!this.canDelete || !productId) {
+      return;
+    }
+    const header = this.translate.instant('products.confirmBulkDeleteHeader');
+    const message = this.translate.instant('products.confirmBulkDeleteMessage', { count: 1 });
+    if (window.confirm(`${header}\n${message}`)) {
+      this.deleteProduct(productId);
+    }
+  }
+
+  private deleteProduct(productId: string): void {
+    this.dataService.deleteProduct(productId).subscribe({
+      next: () => {
+        this.showSuccess(this.translate.instant('products.toastDeleted'));
+        this.reloadTable();
+      },
+      error: () => this.showError(this.translate.instant('products.errors.delete'))
+    });
+  }
+
   updateGlobalFilterFields() {
     this.globalFilterFields = this.schemaService.visibleColumns().map(c => c.name);
   }
@@ -160,6 +290,113 @@ export class ProductTableComponent implements OnInit {
       sortOrder: undefined,
       filters: undefined,
       globalFilter: undefined
+    });
+  }
+
+  private reloadTable(): void {
+    const event: TableLazyLoadEvent = {
+      first: this.first,
+      rows: this.rows,
+      sortField: (this.dt1 as any)?.sortField,
+      sortOrder: (this.dt1 as any)?.sortOrder,
+      filters: (this.dt1 as any)?.filters,
+      globalFilter: this.searchValue
+    };
+    this.loadData(event);
+  }
+
+  private buildInitialFormModel(initial?: Record<string, any>): Record<string, any> {
+    const model: Record<string, any> = {};
+    const columns = this.schemaService.visibleColumns();
+    columns.forEach(column => {
+      const rawValue = initial ? initial[column.name] : undefined;
+      model[column.name] = this.normalizeValueForInput(column, rawValue);
+    });
+    return model;
+  }
+
+  private normalizeValueForInput(column: ColumnDefinition, value: any): any {
+    if (value === null || value === undefined) {
+      return this.defaultValueForType(column.type);
+    }
+    switch (column.type) {
+      case ColumnType.BOOLEAN:
+        return Boolean(value);
+      case ColumnType.INTEGER:
+      case ColumnType.DECIMAL:
+        return value;
+      case ColumnType.DATE: {
+        const date = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return '';
+        }
+        return date.toISOString().substring(0, 10);
+      }
+      default:
+        return value;
+    }
+  }
+
+  private defaultValueForType(type: ColumnType): any {
+    switch (type) {
+      case ColumnType.BOOLEAN:
+        return false;
+      default:
+        return '';
+    }
+  }
+
+  private collectAttributesFromFormModel(): Record<string, any> {
+    const attributes: Record<string, any> = {};
+    const columns = this.schemaService.visibleColumns();
+    columns.forEach(column => {
+      if (column.primaryKey && column.autoGenerated) {
+        return;
+      }
+      const raw = this.formModel[column.name];
+      const value = this.castValueForColumn(column, raw);
+      if (value !== undefined) {
+        attributes[column.name] = value;
+      }
+    });
+    return attributes;
+  }
+
+  private castValueForColumn(column: ColumnDefinition, value: any): any {
+    if (value === '' || value === undefined) {
+      return column.required ? null : undefined;
+    }
+    switch (column.type) {
+      case ColumnType.BOOLEAN:
+        return !!value;
+      case ColumnType.INTEGER: {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : Math.trunc(parsed);
+      }
+      case ColumnType.DECIMAL: {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : parsed;
+      }
+      case ColumnType.DATE:
+        return value ? new Date(value).toISOString() : null;
+      default:
+        return value;
+    }
+  }
+
+  private showSuccess(detail: string): void {
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translate.instant('products.toastSuccess'),
+      detail
+    });
+  }
+
+  private showError(detail: string): void {
+    this.messageService.add({
+      severity: 'error',
+      summary: this.translate.instant('products.toastError'),
+      detail
     });
   }
 

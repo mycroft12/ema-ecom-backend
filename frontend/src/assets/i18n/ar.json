@@ -80,6 +80,15 @@
     "toastExportInfo": "بدأ التصدير",
     "toastExportDetail": "جارٍ تحضير الملف...",
     "toastDeletedMany": "تم حذف {{count}} منتج(ات)",
+    "toastCreated": "تم إنشاء المنتج بنجاح",
+    "toastUpdated": "تم تحديث المنتج بنجاح",
+    "toastDeleted": "تم حذف المنتج",
+    "errors": {
+      "loadOne": "تعذر تحميل تفاصيل المنتج",
+      "create": "فشل إنشاء المنتج",
+      "update": "فشل تحديث المنتج",
+      "delete": "فشل حذف المنتج"
+    },
     "filterName": "اسم الفلتر",
     "conditions": "الشروط",
     "addCondition": "إضافة شرط",

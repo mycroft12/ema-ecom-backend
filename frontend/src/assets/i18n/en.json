@@ -80,6 +80,15 @@
     "toastExportInfo": "Export Started",
     "toastExportDetail": "Preparing Excel file...",
     "toastDeletedMany": "{{count}} product(s) deleted",
+    "toastCreated": "Product created successfully",
+    "toastUpdated": "Product updated successfully",
+    "toastDeleted": "Product deleted",
+    "errors": {
+      "loadOne": "Failed to load product details",
+      "create": "Failed to create product",
+      "update": "Failed to update product",
+      "delete": "Failed to delete product"
+    },
     "filterName": "Filter Name",
     "conditions": "Conditions",
     "addCondition": "Add Condition",

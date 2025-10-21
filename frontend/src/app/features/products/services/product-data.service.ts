@@ -65,14 +65,14 @@ export class ProductDataService {
     );
   }
 
-  createProduct(product: Partial<Product>): Observable<Product> {
-    return this.http.post<RawProductDto>(this.apiUrl, product).pipe(
+  createProduct(attributes: Record<string, any>): Observable<Product> {
+    return this.http.post<RawProductDto>(this.apiUrl, { attributes }).pipe(
       map(dto => this.flattenProduct(dto))
     );
   }
 
-  updateProduct(id: string, product: Partial<Product>): Observable<Product> {
-    return this.http.put<RawProductDto>(`${this.apiUrl}/${id}`, product).pipe(
+  updateProduct(id: string, attributes: Record<string, any>): Observable<Product> {
+    return this.http.put<RawProductDto>(`${this.apiUrl}/${id}`, { attributes }).pipe(
       map(dto => this.flattenProduct(dto))
     );
   }
