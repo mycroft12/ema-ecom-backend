@@ -73,6 +73,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   columnToggleOptions: Array<{ label: string; value: string }> = [];
   selectedColumnKeys: string[] = [];
   columnToggleSelectedItemsLabel = '';
+  dialogStyle = { width: 'clamp(550px, 70vw, 1040px)' };
 
   private readonly destroy$ = new Subject<void>();
 
