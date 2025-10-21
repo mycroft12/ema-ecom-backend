@@ -20,7 +20,7 @@ export class ProductDataService {
   readonly totalRecords = this.totalRecordsSignal.asReadonly();
   readonly isLoading = this.loadingSignal.asReadonly();
 
-  loadProducts(event: TableLazyLoadEvent, customFilterId?: number): Observable<ProductPageResponse> {
+  loadProducts(event: TableLazyLoadEvent): Observable<ProductPageResponse> {
     this.loadingSignal.set(true);
 
     let params = new HttpParams()
@@ -37,16 +37,15 @@ export class ProductDataService {
     }
 
     if (event.filters) {
-      Object.keys(event.filters).forEach(key => {
-        const fv = (event.filters as any)[key];
-        if (fv?.value !== null && fv?.value !== undefined) {
-          params = params.set(`filter.${key}`, fv.value);
+      Object.entries(event.filters).forEach(([key, metadata]) => {
+        const detail = this.extractFilterDetail(metadata);
+        if (detail && !this.isEmptyFilterValue(detail.value)) {
+          params = params.set(`filter.${key}`, detail.value);
+          if (detail.matchMode) {
+            params = params.set(`filter.${key}.matchMode`, detail.matchMode);
+          }
         }
       });
-    }
-
-    if (customFilterId) {
-      params = params.set('customFilterId', customFilterId);
     }
 
     return this.http.get<ProductPageResponse>(this.apiUrl, { params }).pipe(
@@ -93,6 +92,49 @@ export class ProductDataService {
       };
       perform();
     });
+  }
+
+  private extractFilterDetail(metadata: any): { value: any; matchMode?: string } | null {
+    if (!metadata) {
+      return null;
+    }
+    if (Array.isArray(metadata)) {
+      for (const item of metadata) {
+        const detail = this.extractFilterDetail(item);
+        if (detail) {
+          return detail;
+        }
+      }
+      return null;
+    }
+    if (!this.isEmptyFilterValue(metadata.value)) {
+      return { value: metadata.value, matchMode: metadata.matchMode };
+    }
+    if (Array.isArray(metadata.constraints)) {
+      for (const constraint of metadata.constraints) {
+        const detail = this.extractFilterDetail(constraint);
+        if (detail) {
+          return {
+            value: detail.value,
+            matchMode: detail.matchMode ?? metadata.matchMode
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  private isEmptyFilterValue(value: any): boolean {
+    if (value === null || value === undefined) {
+      return true;
+    }
+    if (typeof value === 'string') {
+      return value.trim() === '';
+    }
+    if (Array.isArray(value)) {
+      return value.length === 0;
+    }
+    return false;
   }
 
   private flattenProduct(dto: RawProductDto | null | undefined): Product {

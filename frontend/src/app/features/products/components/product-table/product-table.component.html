@@ -27,19 +27,13 @@
                                 (click)="clear(dt1)"
                         ></p-button>
                         <p-button
-                                [label]="'products.btnCustomFilters' | translate"
-                                [outlined]="true"
-                                icon="pi pi-sliders-h"
-                                (click)="openFilterBuilder()"
-                        ></p-button>
-                        <p-button
                                 *ngIf="canAdd"
                                 [label]="'products.newProduct' | translate"
                                 icon="pi pi-plus"
                                 (click)="openCreateDialog()"
                         ></p-button>
                     </div>
-                    <div class="flex items-center gap-2 ml-auto">
+                    <div class="flex items-center ml-auto">
                         <p-iconfield iconPosition="left" class="search-field">
                             <p-inputicon>
                                 <i class="pi pi-search"></i>
@@ -52,16 +46,6 @@
                                     [placeholder]="'products.searchKeywordPlaceholder' | translate"
                             />
                         </p-iconfield>
-                        <div class="flex items-center gap-1" *ngIf="activeCustomFilter">
-                            <p-tag icon="pi pi-filter" [value]="activeCustomFilter?.name" styleClass="px-3"></p-tag>
-                            <button
-                                    type="button"
-                                    pButton
-                                    class="p-button-text p-button-sm"
-                                    icon="pi pi-times"
-                                    (click)="clearActiveCustomFilter()"
-                            ></button>
-                        </div>
                     </div>
                 </div>
             </ng-template>
@@ -252,20 +236,6 @@
             </ng-template>
         </p-table>
     </div>
-
-    <p-dialog
-            [(visible)]="displayFilterBuilder"
-            [modal]="true"
-            [header]="'products.filterBuilderTitle' | translate"
-            [draggable]="false"
-            [resizable]="false"
-            [style]="{ width: '50vw' }"
-    >
-        <app-custom-filter-builder
-                (filterApplied)="onCustomFilterApplied($event)"
-                (cancel)="cancelCustomFilter()"
-        ></app-custom-filter-builder>
-    </p-dialog>
 
     <p-dialog
             [(visible)]="displayDialog"

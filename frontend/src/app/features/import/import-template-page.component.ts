@@ -30,12 +30,11 @@ import { AuthService } from '../../core/auth.service';
             id="domain"
             [(ngModel)]="domain"
             name="domain"
-            [options]="componentOptions"
+            [options]="domainOptions"
             optionValue="value"
+            optionDisabled="disabled"
             [placeholder]="('import.domainPlaceholder' | translate)"
             [showClear]="true"
-           
-            [optionDisabled]="isOptionDisabled"
           >
             <ng-template pTemplate="selectedItem" let-selected>
               <div>{{ selected?.key | translate }}</div>
@@ -177,12 +176,6 @@ export class ImportTemplatePageComponent implements OnInit {
     return this.configuredTables.includes(domain);
   }
 
-  isOptionDisabled = (option: any): boolean => {
-    // Disable the option if it's configured
-    return this.isTableConfigured(option.value);
-  }
-
-
   resetTable(domain: string): void {
     // if (!this.isAdmin) return;
 
@@ -222,11 +215,18 @@ export class ImportTemplatePageComponent implements OnInit {
     return option ? option.key : domain;
   }
 
-  componentOptions = [
+  private readonly componentOptions = [
     { key: 'import.domainProduct', value: 'product' },
     { key: 'import.domainEmployee', value: 'employee' },
     { key: 'import.domainDelivery', value: 'delivery' }
   ];
+
+  get domainOptions() {
+    return this.componentOptions.map(option => ({
+      ...option,
+      disabled: this.isTableConfigured(option.value)
+    }));
+  }
 
   downloadExample(){
     this.error = '';
