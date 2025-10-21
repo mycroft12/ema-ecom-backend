@@ -54,8 +54,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class CustomFilterBuilderComponent {
   readonly schemaService = inject(ProductSchemaService);
   readonly filterService = inject(ProductFilterService);
+  private readonly translate = inject(TranslateService);
 
-  @Output() filterApplied = new EventEmitter<void>();
+  @Output() filterApplied = new EventEmitter<CustomFilter>();
   @Output() cancel = new EventEmitter<void>();
 
   filterName = '';
@@ -82,16 +83,21 @@ export class CustomFilterBuilderComponent {
 
   saveAndApply(): void {
     const filter: CustomFilter = {
-      name: this.filterName || 'My Filter',
+      name: this.filterName || this.translate.instant('products.defaultFilterName'),
       entityType: 'products',
       conditions: this.conditions(),
       isPublic: this.isPublic
     };
-    this.filterService.saveFilter(filter).subscribe(() => {
-      // set active filter to the last created (simplistic approach: reload and pick by name)
-      const found = this.filterService.filters().find(f => f.name === filter.name);
-      if (found) this.filterService.setActiveFilter(found);
-      this.filterApplied.emit();
+    this.filterService.saveFilter(filter).subscribe(saved => {
+      this.filterService.setActiveFilter(saved);
+      this.filterApplied.emit(saved);
+      this.resetForm();
     });
+  }
+
+  private resetForm(): void {
+    this.filterName = '';
+    this.isPublic = false;
+    this.conditions.set([]);
   }
 }

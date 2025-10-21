@@ -20,8 +20,10 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProductDataService } from '../../services/product-data.service';
 import { ProductSchemaService } from '../../services/product-schema.service';
 import { ColumnDefinition, ColumnType } from '../../models/product-schema.model';
-import { TableLazyLoadEvent } from '../../models/filter.model';
+import { CustomFilter, FilterOperator, TableLazyLoadEvent } from '../../models/filter.model';
 import { AuthService } from '../../../../core/auth.service';
+import { ProductFilterService } from '../../services/product-filter.service';
+import { CustomFilterBuilderComponent } from '../custom-filter-builder/custom-filter-builder.component';
 
 @Component({
   selector: 'app-product-table',
@@ -42,7 +44,8 @@ import { AuthService } from '../../../../core/auth.service';
     TagModule,
     SliderModule,
     DialogModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    CustomFilterBuilderComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './product-table.component.html',
@@ -57,6 +60,7 @@ export class ProductTableComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   readonly translate = inject(TranslateService);
   private readonly auth = inject(AuthService);
+  private readonly filterService = inject(ProductFilterService);
 
   ColumnType = ColumnType; // expose enum to template
 
@@ -87,6 +91,8 @@ export class ProductTableComponent implements OnInit {
   editingProductId: string | null = null;
   saving = false;
   formSubmitted = false;
+  displayFilterBuilder = false;
+  activeCustomFilter: CustomFilter | null = null;
 
   get canAdd(): boolean { return this.permissionsState.add; }
   get canEdit(): boolean { return this.permissionsState.edit; }
@@ -107,6 +113,8 @@ export class ProductTableComponent implements OnInit {
     this.refreshActionPermissions();
     // 1) build globalFilterFields from dynamic schema
     this.updateGlobalFilterFields();
+    this.filterService.loadFilters();
+    this.activeCustomFilter = this.filterService.activeFilter();
 
     // 2) load data (keeps your service flow)
     this.loadData({
@@ -128,7 +136,8 @@ export class ProductTableComponent implements OnInit {
   private loadData(event: TableLazyLoadEvent) {
     this.loading = true;
     this.updateGlobalFilterFields();
-    this.dataService.loadProducts(event).subscribe({
+    const activeFilter = this.filterService.activeFilter();
+    this.dataService.loadProducts(event, activeFilter?.id).subscribe({
       next: resp => {
         this.totalRecords = resp.totalElements ?? 0;
         // 3) once data is in memory, derive example-like options dynamically
@@ -172,6 +181,20 @@ export class ProductTableComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  openFilterBuilder(): void {
+    this.displayFilterBuilder = true;
+  }
+
+  onCustomFilterApplied(filter: CustomFilter): void {
+    this.displayFilterBuilder = false;
+    this.activeCustomFilter = filter;
+    this.applyCustomFilter(filter);
+  }
+
+  cancelCustomFilter(): void {
+    this.displayFilterBuilder = false;
   }
 
   private refreshActionPermissions(): void {
@@ -291,6 +314,7 @@ export class ProductTableComponent implements OnInit {
     this.repFilterModel = [];
     this.statusFilterModel = undefined;
     this.activityRange = [this.activityMin, this.activityMax];
+    this.clearActiveCustomFilter();
     this.loadData({
       first: 0,
       rows: this.rows,
@@ -406,6 +430,75 @@ export class ProductTableComponent implements OnInit {
       summary: this.translate.instant('products.toastError'),
       detail
     });
+  }
+
+  private applyCustomFilter(filter: CustomFilter): void {
+    if (!filter || !filter.conditions?.length) {
+      this.clearActiveCustomFilter();
+      return;
+    }
+    const filters: Record<string, any> = {};
+    for (const condition of filter.conditions) {
+      const matchMode = this.mapOperatorToMatchMode(condition.operator);
+      if (!matchMode) {
+        continue;
+      }
+      filters[condition.field] = { value: condition.value, matchMode };
+    }
+    if (this.dt1) {
+      (this.dt1 as any).filters = filters;
+    }
+    this.filterService.setActiveFilter(filter);
+    this.first = 0;
+    this.loadData({
+      first: 0,
+      rows: this.rows,
+      sortField: (this.dt1 as any)?.sortField,
+      sortOrder: (this.dt1 as any)?.sortOrder,
+      filters,
+      globalFilter: this.searchValue
+    });
+  }
+
+  clearActiveCustomFilter(): void {
+    this.activeCustomFilter = null;
+    this.filterService.setActiveFilter(null);
+    this.first = 0;
+    if (this.dt1) {
+      (this.dt1 as any).filters = {};
+    }
+    this.reloadTable();
+  }
+
+  private mapOperatorToMatchMode(operator: FilterOperator | undefined): string | null {
+    switch (operator) {
+      case FilterOperator.EQUALS:
+        return 'equals';
+      case FilterOperator.CONTAINS:
+        return 'contains';
+      case FilterOperator.STARTS_WITH:
+        return 'startsWith';
+      case FilterOperator.ENDS_WITH:
+        return 'endsWith';
+      case FilterOperator.GREATER_THAN:
+        return 'gt';
+      case FilterOperator.LESS_THAN:
+        return 'lt';
+      case FilterOperator.GREATER_THAN_OR_EQUAL:
+        return 'gte';
+      case FilterOperator.LESS_THAN_OR_EQUAL:
+        return 'lte';
+      case FilterOperator.BETWEEN:
+        return 'between';
+      case FilterOperator.IN:
+        return 'in';
+      case FilterOperator.IS_NULL:
+        return 'isNull';
+      case FilterOperator.IS_NOT_NULL:
+        return 'notNull';
+      default:
+        return null;
+    }
   }
 
   /* ===========================

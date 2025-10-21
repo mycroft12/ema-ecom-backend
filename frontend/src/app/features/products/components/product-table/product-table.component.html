@@ -19,8 +19,19 @@
             <!-- CAPTION -->
             <ng-template pTemplate="caption">
                 <div class="flex flex-wrap items-center gap-2 caption-toolbar">
-                    <div class="flex gap-2">
-                        <p-button label="Clear" [outlined]="true" icon="pi pi-filter-slash" (click)="clear(dt1)"></p-button>
+                    <div class="flex flex-wrap gap-2">
+                        <p-button
+                                [label]="'common.clear' | translate"
+                                [outlined]="true"
+                                icon="pi pi-filter-slash"
+                                (click)="clear(dt1)"
+                        ></p-button>
+                        <p-button
+                                [label]="'products.btnCustomFilters' | translate"
+                                [outlined]="true"
+                                icon="pi pi-sliders-h"
+                                (click)="openFilterBuilder()"
+                        ></p-button>
                         <p-button
                                 *ngIf="canAdd"
                                 [label]="'products.newProduct' | translate"
@@ -28,19 +39,30 @@
                                 (click)="openCreateDialog()"
                         ></p-button>
                     </div>
-                    <p-iconfield iconPosition="left" class="ml-auto search-field">
-                        <p-inputicon>
-                            <i class="pi pi-search"></i>
-                        </p-inputicon>
-                        <input
-                                pInputText
-                                type="text"
-                                [(ngModel)]="searchValue"
-                                (input)="dt1.filterGlobal(searchValue, 'contains')"
-                                placeholder="Search keyword"
-                        />
-
-                    </p-iconfield>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <p-iconfield iconPosition="left" class="search-field">
+                            <p-inputicon>
+                                <i class="pi pi-search"></i>
+                            </p-inputicon>
+                            <input
+                                    pInputText
+                                    type="text"
+                                    [(ngModel)]="searchValue"
+                                    (input)="dt1.filterGlobal(searchValue, 'contains')"
+                                    [placeholder]="'products.searchKeywordPlaceholder' | translate"
+                            />
+                        </p-iconfield>
+                        <div class="flex items-center gap-1" *ngIf="activeCustomFilter">
+                            <p-tag icon="pi pi-filter" [value]="activeCustomFilter?.name" styleClass="px-3"></p-tag>
+                            <button
+                                    type="button"
+                                    pButton
+                                    class="p-button-text p-button-sm"
+                                    icon="pi pi-times"
+                                    (click)="clearActiveCustomFilter()"
+                            ></button>
+                        </div>
+                    </div>
                 </div>
             </ng-template>
 
@@ -67,7 +89,7 @@
                                                 [(ngModel)]="repFilterModel"
                                                 [options]="representativeOptions"
                                                 optionLabel="name"
-                                                placeholder="Any"
+                                                [placeholder]="'products.anyOption' | translate"
                                                 (onChange)="filter($event.value)"
                                                 style="min-width: 14rem"
                                                 [panelStyle]="{ minWidth: '16rem' }"
@@ -89,7 +111,7 @@
                                                 optionLabel="label"
                                                 optionValue="value"
                                                 (onChange)="filter($event.value)"
-                                                placeholder="Select One"
+                                                [placeholder]="'products.selectOneOption' | translate"
                                                 styleClass="w-full"
                                         >
                                             <ng-template pTemplate="item" let-option>
@@ -230,6 +252,20 @@
             </ng-template>
         </p-table>
     </div>
+
+    <p-dialog
+            [(visible)]="displayFilterBuilder"
+            [modal]="true"
+            [header]="'products.filterBuilderTitle' | translate"
+            [draggable]="false"
+            [resizable]="false"
+            [style]="{ width: '50vw' }"
+    >
+        <app-custom-filter-builder
+                (filterApplied)="onCustomFilterApplied($event)"
+                (cancel)="cancelCustomFilter()"
+        ></app-custom-filter-builder>
+    </p-dialog>
 
     <p-dialog
             [(visible)]="displayDialog"
