@@ -14,10 +14,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { DividerModule } from 'primeng/divider';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { TemplateDownloadComponent } from '../template-download/template-download.component';
-import { UploadProgressComponent } from '../upload-progress/upload-progress.component';
 import { HttpEventType } from '@angular/common/http';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-schema-configuration',

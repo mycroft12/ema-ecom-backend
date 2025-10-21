@@ -10,11 +10,13 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class ProductServiceImpl implements ProductService {
 
   private final JdbcTemplate jdbc;
@@ -48,6 +50,7 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
+  @Transactional
   public ProductViewDto create(ProductCreateDto dto){
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
     Set<String> valid = tableColumns();
@@ -74,6 +77,7 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
+  @Transactional
   public ProductViewDto update(UUID id, ProductUpdateDto dto){
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
     if(attrs.isEmpty()){
@@ -99,8 +103,12 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
+  @Transactional
   public void delete(UUID id){
-    jdbc.update("delete from " + TABLE + " where id = ?", id);
+    int updated = jdbc.update("delete from " + TABLE + " where id = ?", id);
+    if (updated == 0) {
+      throw new NotFoundException("Product not found");
+    }
   }
 
   @Override
