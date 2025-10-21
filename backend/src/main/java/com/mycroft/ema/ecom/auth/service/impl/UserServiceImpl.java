@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -45,8 +46,22 @@ public class UserServiceImpl implements UserService {
     if (u.getPassword() != null && !u.getPassword().isBlank()) {
       existing.setPassword(encoder.encode(u.getPassword()));
     }
+    if (u.getEmail() != null) {
+      var trimmed = u.getEmail().trim();
+      existing.setEmail(trimmed.isEmpty() ? null : trimmed);
+    }
     existing.setEnabled(u.isEnabled());
-    if (u.getRoles() != null) existing.setRoles(u.getRoles());
+    if (u.getRoles() != null) {
+      Set<UUID> roleIds = u.getRoles().stream()
+          .map(Role::getId)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toSet());
+      if (roleIds.isEmpty()) {
+        existing.setRoles(new HashSet<>());
+      } else {
+        existing.setRoles(new HashSet<>(roles.findAllById(roleIds)));
+      }
+    }
     return users.save(existing);
   }
 

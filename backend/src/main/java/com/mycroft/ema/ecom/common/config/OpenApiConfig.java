@@ -12,7 +12,7 @@ public class OpenApiConfig {
   OpenAPI api() {
     return new OpenAPI().info(new Info()
         .title("EMA E-commerce API")
-        .description("Employees • Products • Rules")
+        .description("Employees • Products")
         .version("v1"));
   }
 

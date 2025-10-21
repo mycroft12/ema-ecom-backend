@@ -51,7 +51,7 @@ public class PermissionServiceImpl implements PermissionService {
     return perms.findByName(name).orElseGet(() -> {
       Permission p = new Permission();
       p.setName(name);
-      return perms.save(p);
+      return perms.saveAndFlush(p);
     });
   }
 }

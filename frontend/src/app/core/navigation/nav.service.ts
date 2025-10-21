@@ -15,7 +15,6 @@ export class NavService {
       { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: ['product:read'] },
       { labelKey: 'menu.employees', icon: 'pi pi-users', route: '/employees', permissions: ['employee:read'] },
       { labelKey: 'menu.delivery', icon: 'pi pi-truck', route: '/delivery', permissions: ['delivery:read'] },
-      { labelKey: 'menu.rules', icon: 'pi pi-sliders-h', route: '/rules', permissions: ['rule:read'] },
       { labelKey: 'menu.roles', icon: 'pi pi-id-card', route: '/roles', permissions: ['role:read'] },
       { labelKey: 'menu.import', icon: 'pi pi-spin pi-cog', route: '/import', permissions: ['import:configure'] },
     ];

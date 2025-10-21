@@ -36,11 +36,6 @@ INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'permission:create'
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'permission:update') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'permission:delete') ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'rule:read') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'rule:create') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'rule:update') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'rule:delete') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'rule:evaluate') ON CONFLICT (name) DO NOTHING;
 
 -- Ensure ADMIN role exists
 INSERT INTO roles(id, name) VALUES (gen_random_uuid(), 'ADMIN') ON CONFLICT (name) DO NOTHING;

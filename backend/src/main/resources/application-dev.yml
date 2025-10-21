@@ -39,5 +39,5 @@ app:
   auth:
     admin:
       username: admin
-      password: admin
+      password: Admin123@
   frontend-base-url: http://localhost:4200
