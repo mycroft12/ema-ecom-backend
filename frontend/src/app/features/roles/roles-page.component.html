@@ -223,10 +223,10 @@
   [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
 >
   <form [formGroup]="permissionForm" class="form-grid">
-    <span class="p-float-label">
+    <div class="form-field">
+      <label class="field-label" for="permissionName">{{ 'rolesPage.permissions.form.nameLabel' | translate }}</label>
       <input pInputText id="permissionName" formControlName="name" />
-      <label for="permissionName">{{ 'rolesPage.permissions.form.nameLabel' | translate }}</label>
-    </span>
+    </div>
     <small class="error" *ngIf="permissionForm.controls['name'].invalid && permissionForm.controls['name'].touched">
       {{ 'rolesPage.permissions.form.nameRequired' | translate }}
     </small>
@@ -246,10 +246,10 @@
   [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
 >
   <form [formGroup]="roleForm" class="form-grid">
-    <span class="p-float-label">
+    <div class="form-field">
+      <label class="field-label" for="roleName">{{ 'rolesPage.roles.form.nameLabel' | translate }}</label>
       <input pInputText id="roleName" formControlName="name" />
-      <label for="roleName">{{ 'rolesPage.roles.form.nameLabel' | translate }}</label>
-    </span>
+    </div>
     <small class="error" *ngIf="roleForm.controls['name'].invalid && roleForm.controls['name'].touched">
       {{ 'rolesPage.roles.form.nameRequired' | translate }}
     </small>
@@ -269,28 +269,28 @@
   [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
 >
   <form [formGroup]="userForm" class="form-grid">
-    <span class="p-float-label">
+    <div class="form-field">
+      <label class="field-label" for="username">{{ 'rolesPage.users.form.usernameLabel' | translate }}</label>
       <input pInputText id="username" formControlName="username" />
-      <label for="username">{{ 'rolesPage.users.form.usernameLabel' | translate }}</label>
-    </span>
+    </div>
     <small class="error" *ngIf="userForm.controls['username'].invalid && userForm.controls['username'].touched">
       {{ 'rolesPage.users.form.usernameRequired' | translate }}
     </small>
 
-    <span class="p-float-label">
+    <div class="form-field">
+      <label class="field-label" for="email">{{ 'rolesPage.users.form.emailLabel' | translate }}</label>
       <input pInputText id="email" formControlName="email" type="email" />
-      <label for="email">{{ 'rolesPage.users.form.emailLabel' | translate }}</label>
-    </span>
+    </div>
     <small class="error" *ngIf="userForm.controls['email'].invalid && userForm.controls['email'].touched">
       {{ 'rolesPage.users.form.emailInvalid' | translate }}
     </small>
 
-    <span class="p-float-label">
-      <input pInputText id="password" formControlName="password" type="password" autocomplete="new-password" />
-      <label for="password">
+    <div class="form-field">
+      <label class="field-label" for="password">
         {{ editingUser ? ('rolesPage.users.form.passwordOptional' | translate) : ('rolesPage.users.form.passwordLabel' | translate) }}
       </label>
-    </span>
+      <input pInputText id="password" formControlName="password" type="password" autocomplete="new-password" />
+    </div>
     <small class="error" *ngIf="userForm.controls['password'].invalid && userForm.controls['password'].touched">
       {{ 'rolesPage.users.form.passwordRequired' | translate }}
     </small>

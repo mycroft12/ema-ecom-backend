@@ -58,15 +58,32 @@
   gap: 1rem;
 }
 
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-label {
+  font-weight: 600;
+  color: var(--surface-700);
+}
+
 .error {
-  color: var(--red-500);
+  color: var(--red-600);
   font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .checkbox-field {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
+  label {
+    font-weight: 600;
+    color: var(--surface-700);
+  }
 }
 
 .picklist-item {
