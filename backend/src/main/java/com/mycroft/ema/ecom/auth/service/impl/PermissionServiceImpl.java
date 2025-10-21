@@ -45,4 +45,13 @@ public class PermissionServiceImpl implements PermissionService {
       throw new BadRequestException("permission.assigned", ex);
     }
   }
+
+  @Override
+  public Permission ensure(String name){
+    return perms.findByName(name).orElseGet(() -> {
+      Permission p = new Permission();
+      p.setName(name);
+      return perms.save(p);
+    });
+  }
 }

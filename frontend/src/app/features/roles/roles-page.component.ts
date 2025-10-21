@@ -6,6 +6,7 @@ import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { PasswordModule } from 'primeng/password';
 import { CheckboxModule } from 'primeng/checkbox';
 import { PickListModule } from 'primeng/picklist';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -38,6 +39,7 @@ import { finalize } from 'rxjs';
     ButtonModule,
     DialogModule,
     InputTextModule,
+    PasswordModule,
     CheckboxModule,
     PickListModule,
     ConfirmDialogModule,

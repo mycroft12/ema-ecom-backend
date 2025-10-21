@@ -2,12 +2,14 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ProductSchema, SchemaConfigurationRequest, TemplateValidationResult } from '../models/product-schema.model';
+import { ProductSchema, SchemaConfigurationRequest, TemplateValidationResult, ColumnDefinition } from '../models/product-schema.model';
+import { AuthService } from '../../../core/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class ProductSchemaService {
   private readonly http = inject(HttpClient);
   private readonly apiBase = environment.apiBase;
+  private readonly auth = inject(AuthService);
 
   private readonly schemaSignal = signal<ProductSchema | null>(null);
   private readonly loadingSignal = signal<boolean>(false);
@@ -60,6 +62,7 @@ export class ProductSchemaService {
     }).pipe(
         tap(resp => {
           const columns = resp?.columns ?? [];
+          const filteredColumns = this.filterColumnsByPermission(columns);
           this.schemaSignal.set({
             id: 0,
             tableName: 'product_config',
@@ -67,7 +70,7 @@ export class ProductSchemaService {
             domain: 'products',
             version: 1,
             status: 'ACTIVE',
-            columns,
+            columns: filteredColumns,
             createdAt: new Date()
           } as unknown as ProductSchema);
           this.loadingSignal.set(false);
@@ -143,5 +146,21 @@ export class ProductSchemaService {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  private filterColumnsByPermission(columns: ColumnDefinition[]): ColumnDefinition[] {
+    const perms = new Set(this.auth.permissions() ?? []);
+    const prefix = 'product:access:';
+    const relevant = Array.from(perms).filter(p => p.startsWith(prefix));
+    if (relevant.length === 0) {
+      return [];
+    }
+    return columns.filter(col => {
+      if (!col?.name) {
+        return true;
+      }
+      const required = prefix + col.name;
+      return perms.has(required);
+    });
   }
 }

@@ -2,6 +2,7 @@ package com.mycroft.ema.ecom.domains.imports.web;
 
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import com.mycroft.ema.ecom.domains.imports.service.ExcelTemplateService;
+import com.mycroft.ema.ecom.auth.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.ClassPathResource;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/import/configure")
@@ -26,10 +28,13 @@ public class ImportConfigureController {
 
   private final ExcelTemplateService templateService;
   private final JdbcTemplate jdbcTemplate;
+  private final PermissionService permissionService;
 
-  public ImportConfigureController(ExcelTemplateService templateService, JdbcTemplate jdbcTemplate) {
+  public ImportConfigureController(ExcelTemplateService templateService, JdbcTemplate jdbcTemplate,
+                                   PermissionService permissionService) {
     this.templateService = templateService;
     this.jdbcTemplate = jdbcTemplate;
+    this.permissionService = permissionService;
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -75,7 +80,31 @@ public class ImportConfigureController {
 
     templateService.populateData(file, analysis);
 
+    createColumnPermissions(domain, analysis);
+
     return analysis;
+  }
+
+  private void createColumnPermissions(String domain, TemplateAnalysisResponse analysis) {
+    if (analysis.getColumns() == null) {
+      return;
+    }
+    String prefix = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
+    if (prefix.isEmpty()) {
+      return;
+    }
+    analysis.getColumns().forEach(column -> {
+      String permissionName = prefix + ":access:" + column.getName();
+      var permission = permissionService.ensure(permissionName);
+      assignPermissionToAdmin(permission.getId());
+    });
+  }
+
+  private void assignPermissionToAdmin(java.util.UUID permissionId) {
+    jdbcTemplate.update(
+        "INSERT INTO roles_permissions(role_id, permission_id) " +
+            "SELECT r.id, ? FROM roles r WHERE r.name = 'ADMIN' " +
+            "ON CONFLICT DO NOTHING", permissionId);
   }
 
   @GetMapping(value = "/template-example")

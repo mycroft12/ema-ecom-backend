@@ -329,7 +329,14 @@
         {{ editingUser ? ('rolesPage.users.form.passwordOptional' | translate) : ('rolesPage.users.form.passwordLabel' | translate) }}
         <span class="required-indicator" *ngIf="!editingUser">*</span>
       </label>
-      <input pInputText id="password" formControlName="password" type="password" autocomplete="new-password" />
+      <p-password
+        inputId="password"
+        formControlName="password"
+        [toggleMask]="true"
+        [feedback]="false"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+      ></p-password>
     </div>
     <small class="error" *ngIf="userForm.controls['password'].invalid && userForm.controls['password'].touched">
       {{ 'rolesPage.users.form.passwordRequired' | translate }}

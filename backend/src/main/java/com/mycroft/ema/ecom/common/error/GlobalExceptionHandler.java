@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ErrorResponse> handleDisabled(DisabledException ex) {
-        String code = "error.auth.disabled";
+        String code = "auth.errors.disabled";
         String msg = messageSource.getMessage(code, null, "Your account is not activated yet.", LocaleContextHolder.getLocale());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(code, msg));
     }

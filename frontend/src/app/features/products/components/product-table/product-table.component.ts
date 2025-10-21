@@ -95,6 +95,7 @@ export class ProductTableComponent implements OnInit {
 
   private loadData(event: TableLazyLoadEvent) {
     this.loading = true;
+    this.updateGlobalFilterFields();
     this.dataService.loadProducts(event).subscribe({
       next: resp => {
         this.totalRecords = resp.totalElements ?? 0;

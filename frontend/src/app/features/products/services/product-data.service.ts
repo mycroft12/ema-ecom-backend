@@ -4,11 +4,13 @@ import { Observable, map, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Product, ProductPageResponse, RawProductDto } from '../models/product.model';
 import { TableLazyLoadEvent } from '../models/filter.model';
+import { ProductSchemaService } from './product-schema.service';
 
 @Injectable({ providedIn: 'root' })
 export class ProductDataService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiBase}/api/products`;
+  private readonly schemaService = inject(ProductSchemaService);
 
   private readonly productsSignal = signal<Product[]>([]);
   private readonly totalRecordsSignal = signal<number>(0);
@@ -98,9 +100,22 @@ export class ProductDataService {
       return { id: '' };
     }
     const attributes = dto.attributes ?? {};
+    const schemaLoaded = !!this.schemaService.schema();
+    let filteredAttributes: Record<string, any>;
+    if (!schemaLoaded) {
+      filteredAttributes = attributes;
+    } else {
+      const allowedNames = new Set(this.schemaService.visibleColumns().map(c => c.name));
+      filteredAttributes = Object.entries(attributes).reduce<Record<string, any>>((acc, [key, value]) => {
+        if (allowedNames.has(key)) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+    }
     return {
       id: dto.id,
-      ...attributes
+      ...filteredAttributes
     };
   }
 

@@ -10,4 +10,5 @@ public interface PermissionService {
   Permission create(Permission p);
   Permission update(UUID id, Permission p);
   void delete(UUID id, boolean force);
+  Permission ensure(String name);
 }
