@@ -41,3 +41,8 @@ app:
       username: admin
       password: Admin123@
   frontend-base-url: http://localhost:4200
+
+logging:
+  level:
+    org.springframework.jdbc.core: TRACE
+    com.mycroft.ema.ecom.domains.products.service.impl.ProductServiceImpl: DEBUG
