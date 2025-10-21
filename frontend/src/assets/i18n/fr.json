@@ -1,7 +1,9 @@
 {
   "common": {
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "cancel": "Annuler",
+    "save": "Enregistrer"
   },
   "app": {
     "title": "EMA E-Commerce Panel",
@@ -75,6 +77,8 @@
     "uploading": "Téléversement et traitement du modèle...",
     "confirmBulkDeleteHeader": "Confirmer la suppression en lot",
     "confirmBulkDeleteMessage": "Êtes-vous sûr de vouloir supprimer {{count}} produit(s) ?",
+    "confirmDeleteHeader": "Supprimer le produit",
+    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer ce produit ?",
     "toastSuccess": "Succès",
     "toastError": "Erreur",
     "toastExportInfo": "Export démarré",

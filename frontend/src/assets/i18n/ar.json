@@ -1,7 +1,9 @@
 {
   "common": {
     "yes": "نعم",
-    "no": "لا"
+    "no": "لا",
+    "cancel": "إلغاء",
+    "save": "حفظ"
   },
   "app": {
     "title": "لوحة إدارة التجارة الإلكترونية",
@@ -75,6 +77,8 @@
     "uploading": "جارٍ رفع ومعالجة النموذج...",
     "confirmBulkDeleteHeader": "تأكيد الحذف الجماعي",
     "confirmBulkDeleteMessage": "هل أنت متأكد من حذف {{count}} منتج(ات)؟",
+    "confirmDeleteHeader": "حذف المنتج",
+    "confirmDeleteMessage": "هل أنت متأكد من رغبتك في حذف هذا المنتج؟",
     "toastSuccess": "تم بنجاح",
     "toastError": "خطأ",
     "toastExportInfo": "بدأ التصدير",

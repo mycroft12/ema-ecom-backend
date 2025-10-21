@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
@@ -15,6 +15,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { SliderModule } from 'primeng/slider';
 import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 import { ProductDataService } from '../../services/product-data.service';
 import { ProductSchemaService } from '../../services/product-schema.service';
@@ -40,9 +41,10 @@ import { AuthService } from '../../../../core/auth.service';
     ProgressBarModule,
     TagModule,
     SliderModule,
-    DialogModule
+    DialogModule,
+    ConfirmDialogModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './product-table.component.html',
   styleUrls: ['./product-table.component.scss']
 })
@@ -52,6 +54,7 @@ export class ProductTableComponent implements OnInit {
   readonly dataService = inject(ProductDataService);
   readonly schemaService = inject(ProductSchemaService);
   private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
   readonly translate = inject(TranslateService);
   private readonly auth = inject(AuthService);
 
@@ -255,11 +258,16 @@ export class ProductTableComponent implements OnInit {
     if (!this.canDelete || !productId) {
       return;
     }
-    const header = this.translate.instant('products.confirmBulkDeleteHeader');
-    const message = this.translate.instant('products.confirmBulkDeleteMessage', { count: 1 });
-    if (window.confirm(`${header}\n${message}`)) {
-      this.deleteProduct(productId);
-    }
+    const header = this.translate.instant('products.confirmDeleteHeader');
+    const message = this.translate.instant('products.confirmDeleteMessage');
+    this.confirmationService.confirm({
+      header,
+      message,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.translate.instant('common.yes'),
+      rejectLabel: this.translate.instant('common.cancel'),
+      accept: () => this.deleteProduct(productId)
+    });
   }
 
   private deleteProduct(productId: string): void {
