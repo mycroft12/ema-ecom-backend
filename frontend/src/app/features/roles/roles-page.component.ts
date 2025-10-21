@@ -11,6 +11,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AccessControlService } from './services/access-control.service';
 import {
@@ -43,6 +44,7 @@ import { map } from 'rxjs/operators';
     ToastModule,
     CardModule,
     TagModule,
+    TranslateModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './roles-page.component.html',
@@ -53,6 +55,7 @@ export class RolesPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly confirm = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
+  private readonly translate = inject(TranslateService);
 
   permissions: Permission[] = [];
   roles: Role[] = [];
@@ -112,7 +115,7 @@ export class RolesPageComponent implements OnInit {
       .pipe(finalize(() => (this.permissionsLoading = false)))
       .subscribe({
         next: data => (this.permissions = data ?? []),
-        error: () => this.showError('Failed to fetch permissions'),
+        error: () => this.showError(this.translate.instant('rolesPage.permissions.errors.load')),
       });
   }
 
@@ -123,7 +126,7 @@ export class RolesPageComponent implements OnInit {
       .pipe(finalize(() => (this.rolesLoading = false)))
       .subscribe({
         next: data => (this.roles = data ?? []),
-        error: () => this.showError('Failed to fetch roles'),
+        error: () => this.showError(this.translate.instant('rolesPage.roles.errors.load')),
       });
   }
 
@@ -134,7 +137,7 @@ export class RolesPageComponent implements OnInit {
       .pipe(finalize(() => (this.usersLoading = false)))
       .subscribe({
         next: data => (this.users = data ?? []),
-        error: () => this.showError('Failed to fetch users'),
+        error: () => this.showError(this.translate.instant('rolesPage.users.errors.load')),
       });
   }
 
@@ -150,6 +153,7 @@ export class RolesPageComponent implements OnInit {
       this.permissionForm.markAllAsTouched();
       return;
     }
+    const isEdit = !!this.editingPermission;
     const payload: CreatePermissionPayload | UpdatePermissionPayload = {
       name: this.permissionForm.value.name,
     };
@@ -159,30 +163,34 @@ export class RolesPageComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.showSuccess(`Permission ${this.editingPermission ? 'updated' : 'created'} successfully`);
+        const key = isEdit ? 'rolesPage.permissions.toastUpdated' : 'rolesPage.permissions.toastCreated';
+        this.showSuccess(this.translate.instant(key));
         this.permissionDialogVisible = false;
         this.editingPermission = null;
         this.loadPermissions();
         this.loadRoles(); // ensure updated relationships
       },
-      error: () => this.showError(`Failed to ${this.editingPermission ? 'update' : 'create'} permission`),
+      error: () => {
+        const key = isEdit ? 'rolesPage.permissions.errors.update' : 'rolesPage.permissions.errors.create';
+        this.showError(this.translate.instant(key));
+      },
     });
   }
 
   confirmDeletePermission(permission: Permission): void {
     this.confirm.confirm({
-      message: `Delete permission "${permission.name}"?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      message: this.translate.instant('rolesPage.permissions.confirmDelete.message', { name: permission.name }),
+      acceptLabel: this.translate.instant('rolesPage.permissions.confirmDelete.accept'),
+      rejectLabel: this.translate.instant('rolesPage.permissions.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.service.deletePermission(permission.id).subscribe({
           next: () => {
-            this.showSuccess('Permission deleted');
+            this.showSuccess(this.translate.instant('rolesPage.permissions.toastDeleted'));
             this.loadPermissions();
             this.loadRoles();
           },
-          error: () => this.showError('Failed to delete permission'),
+          error: () => this.showError(this.translate.instant('rolesPage.permissions.errors.delete')),
         });
       },
     });
@@ -200,6 +208,7 @@ export class RolesPageComponent implements OnInit {
       this.roleForm.markAllAsTouched();
       return;
     }
+    const isEdit = !!this.editingRole;
     const nameValue: string = this.roleForm.value.name;
     const createPayload: CreateRolePayload = { name: nameValue };
     const updatePayload: UpdateRolePayload = { name: nameValue };
@@ -209,30 +218,34 @@ export class RolesPageComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.showSuccess(`Role ${this.editingRole ? 'updated' : 'created'} successfully`);
+        const key = isEdit ? 'rolesPage.roles.toastUpdated' : 'rolesPage.roles.toastCreated';
+        this.showSuccess(this.translate.instant(key));
         this.roleDialogVisible = false;
         this.editingRole = null;
         this.loadRoles();
         this.loadUsers();
       },
-      error: () => this.showError(`Failed to ${this.editingRole ? 'update' : 'create'} role`),
+      error: () => {
+        const key = isEdit ? 'rolesPage.roles.errors.update' : 'rolesPage.roles.errors.create';
+        this.showError(this.translate.instant(key));
+      },
     });
   }
 
   confirmDeleteRole(role: Role): void {
     this.confirm.confirm({
-      message: `Delete role "${role.name}"?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      message: this.translate.instant('rolesPage.roles.confirmDelete.message', { name: role.name }),
+      acceptLabel: this.translate.instant('rolesPage.roles.confirmDelete.accept'),
+      rejectLabel: this.translate.instant('rolesPage.roles.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.service.deleteRole(role.id).subscribe({
           next: () => {
-            this.showSuccess('Role deleted');
+            this.showSuccess(this.translate.instant('rolesPage.roles.toastDeleted'));
             this.loadRoles();
             this.loadUsers();
           },
-          error: () => this.showError('Failed to delete role'),
+          error: () => this.showError(this.translate.instant('rolesPage.roles.errors.delete')),
         });
       },
     });
@@ -259,13 +272,13 @@ export class RolesPageComponent implements OnInit {
     };
     this.service.updateRole(role.id, payload).subscribe({
       next: () => {
-        this.showSuccess('Role permissions updated');
+        this.showSuccess(this.translate.instant('rolesPage.roles.toastPermissionsUpdated'));
         this.rolePermissionsDialogVisible = false;
         this.activeRoleForPermissions = null;
         this.loadRoles();
         this.loadUsers();
       },
-      error: () => this.showError('Failed to update role permissions'),
+      error: () => this.showError(this.translate.instant('rolesPage.roles.errors.permissions')),
     });
   }
 
@@ -315,39 +328,39 @@ export class RolesPageComponent implements OnInit {
       }
       this.service.updateUser(this.editingUser.id, updatePayload).subscribe({
         next: () => {
-          this.showSuccess('User updated successfully');
+          this.showSuccess(this.translate.instant('rolesPage.users.toastUpdated'));
           this.userDialogVisible = false;
           this.editingUser = null;
           this.loadUsers();
         },
-        error: () => this.showError('Failed to update user'),
+        error: () => this.showError(this.translate.instant('rolesPage.users.errors.update')),
       });
     } else {
       const createPayload: CreateUserPayload = payload as CreateUserPayload;
       this.service.createUser(createPayload).subscribe({
         next: () => {
-          this.showSuccess('User created successfully');
+          this.showSuccess(this.translate.instant('rolesPage.users.toastCreated'));
           this.userDialogVisible = false;
           this.loadUsers();
         },
-        error: () => this.showError('Failed to create user'),
+        error: () => this.showError(this.translate.instant('rolesPage.users.errors.create')),
       });
     }
   }
 
   confirmDeleteUser(user: User): void {
     this.confirm.confirm({
-      message: `Delete user "${user.username}"?`,
-      acceptLabel: 'Delete',
-      rejectLabel: 'Cancel',
+      message: this.translate.instant('rolesPage.users.confirmDelete.message', { name: user.username }),
+      acceptLabel: this.translate.instant('rolesPage.users.confirmDelete.accept'),
+      rejectLabel: this.translate.instant('rolesPage.users.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.service.deleteUser(user.id).subscribe({
           next: () => {
-            this.showSuccess('User deleted');
+            this.showSuccess(this.translate.instant('rolesPage.users.toastDeleted'));
             this.loadUsers();
           },
-          error: () => this.showError('Failed to delete user'),
+          error: () => this.showError(this.translate.instant('rolesPage.users.errors.delete')),
         });
       },
     });
@@ -411,13 +424,13 @@ export class RolesPageComponent implements OnInit {
 
     sequence$.subscribe({
       next: () => {
-        this.showSuccess('User roles updated');
+        this.showSuccess(this.translate.instant('rolesPage.users.toastRolesUpdated'));
         this.userRolesDialogVisible = false;
         this.activeUserForRoles = null;
         this.loadUsers();
       },
       error: () => {
-        this.showError('Failed to update user roles');
+        this.showError(this.translate.instant('rolesPage.users.errors.roles'));
       },
     });
   }
@@ -428,28 +441,48 @@ export class RolesPageComponent implements OnInit {
   }
 
   private showSuccess(detail: string): void {
-    this.messages.add({ severity: 'success', summary: 'Success', detail });
+    this.messages.add({
+      severity: 'success',
+      summary: this.translate.instant('rolesPage.common.toastSuccess'),
+      detail
+    });
   }
 
   private showError(detail: string): void {
-    this.messages.add({ severity: 'error', summary: 'Error', detail });
+    this.messages.add({
+      severity: 'error',
+      summary: this.translate.instant('rolesPage.common.toastError'),
+      detail
+    });
   }
 
   getRolePermissionTooltip(role: Role): string | null {
     const perms = role.permissions ?? [];
-    if (perms.length <= 10) {
-      return null;
-    }
     return perms.map(p => p.name).join(', ');
   }
 
   getRolePermissionsDisplay(role: Role): Permission[] {
     const perms = role.permissions ?? [];
-    return perms.slice(0, 10);
+    return perms.slice(0, 8);
   }
 
   getRolePermissionsOverflow(role: Role): number {
     const total = role.permissions?.length ?? 0;
-    return total > 10 ? total - 10 : 0;
+    return total > 8 ? total - 8 : 0;
+  }
+
+  getUserRolesTooltip(user: User): string | null {
+    const roles = user.roles ?? [];
+    return roles.map(r => r.name).join(', ');
+  }
+
+  getUserRolesDisplay(user: User): Role[] {
+    const roles = user.roles ?? [];
+    return roles.slice(0, 8);
+  }
+
+  getUserRolesOverflow(user: User): number {
+    const total = user.roles?.length ?? 0;
+    return total > 8 ? total - 8 : 0;
   }
 }

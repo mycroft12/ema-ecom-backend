@@ -134,5 +134,148 @@
     "adminOnly": "Options d'administrateur",
     "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",
     "confirmUploadHeader": "Confirmer le téléversement du modèle"
+  },
+  "rolesPage": {
+    "permissions": {
+      "title": "Permissions",
+      "add": "Ajouter",
+      "columns": {
+        "name": "Nom"
+      },
+      "empty": "Aucune permission trouvée",
+      "dialogs": {
+        "createTitle": "Nouvelle permission",
+        "editTitle": "Modifier la permission"
+      },
+      "form": {
+        "nameLabel": "Nom",
+        "nameRequired": "Le nom de la permission est obligatoire"
+      },
+      "confirmDelete": {
+        "message": "Supprimer la permission \"{{name}}\" ?",
+        "accept": "Supprimer",
+        "reject": "Annuler"
+      },
+      "toast": {
+        "created": "Permission créée avec succès",
+        "updated": "Permission mise à jour avec succès",
+        "deleted": "Permission supprimée"
+      },
+      "errors": {
+        "load": "Échec du chargement des permissions",
+        "create": "Échec de la création de la permission",
+        "update": "Échec de la mise à jour de la permission",
+        "delete": "Échec de la suppression de la permission"
+      }
+    },
+    "roles": {
+      "title": "Rôles",
+      "add": "Ajouter",
+      "columns": {
+        "name": "Nom",
+        "permissions": "Permissions"
+      },
+      "empty": "Aucun rôle trouvé",
+      "dialogs": {
+        "createTitle": "Nouveau rôle",
+        "editTitle": "Modifier le rôle"
+      },
+      "form": {
+        "nameLabel": "Nom",
+        "nameRequired": "Le nom du rôle est obligatoire"
+      },
+      "confirmDelete": {
+        "message": "Supprimer le rôle \"{{name}}\" ?",
+        "accept": "Supprimer",
+        "reject": "Annuler"
+      },
+      "toast": {
+        "created": "Rôle créé avec succès",
+        "updated": "Rôle mis à jour avec succès",
+        "deleted": "Rôle supprimé",
+        "permissionsUpdated": "Permissions du rôle mises à jour"
+      },
+      "errors": {
+        "load": "Échec du chargement des rôles",
+        "create": "Échec de la création du rôle",
+        "update": "Échec de la mise à jour du rôle",
+        "delete": "Échec de la suppression du rôle",
+        "permissions": "Échec de la mise à jour des permissions du rôle"
+      },
+      "tooltips": {
+        "attachPermissions": "Associer ou dissocier des permissions"
+      },
+      "picklist": {
+        "title": "Associer des permissions au rôle"
+      }
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "add": "Ajouter",
+      "columns": {
+        "username": "Nom d'utilisateur",
+        "email": "Email",
+        "status": "Statut",
+        "roles": "Rôles"
+      },
+      "empty": "Aucun utilisateur trouvé",
+      "dialogs": {
+        "createTitle": "Nouvel utilisateur",
+        "editTitle": "Modifier l'utilisateur"
+      },
+      "form": {
+        "usernameLabel": "Nom d'utilisateur",
+        "usernameRequired": "Le nom d'utilisateur est obligatoire",
+        "emailLabel": "Email",
+        "emailInvalid": "Veuillez saisir une adresse email valide",
+        "passwordLabel": "Mot de passe",
+        "passwordOptional": "Nouveau mot de passe (optionnel)",
+        "passwordRequired": "Le mot de passe doit contenir au moins 6 caractères",
+        "enabled": "Activé"
+      },
+      "confirmDelete": {
+        "message": "Supprimer l'utilisateur \"{{name}}\" ?",
+        "accept": "Supprimer",
+        "reject": "Annuler"
+      },
+      "toast": {
+        "created": "Utilisateur créé avec succès",
+        "updated": "Utilisateur mis à jour avec succès",
+        "deleted": "Utilisateur supprimé",
+        "rolesUpdated": "Rôles de l'utilisateur mis à jour"
+      },
+      "errors": {
+        "load": "Échec du chargement des utilisateurs",
+        "create": "Échec de la création de l'utilisateur",
+        "update": "Échec de la mise à jour de l'utilisateur",
+        "delete": "Échec de la suppression de l'utilisateur",
+        "roles": "Échec de la mise à jour des rôles de l'utilisateur"
+      },
+      "tooltips": {
+        "attachRoles": "Associer ou dissocier des rôles"
+      },
+      "picklist": {
+        "title": "Attribuer un rôle à l'utilisateur",
+        "info": "Un seul rôle peut être attribué à la fois.",
+        "selected": "Sélectionné"
+      }
+    },
+    "common": {
+      "actions": "Actions",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "more": "+{{count}} de plus",
+      "toastSuccess": "Succès",
+      "toastError": "Erreur"
+    },
+    "picklist": {
+      "available": "Disponibles",
+      "assigned": "Attribuées",
+      "selected": "Sélectionné"
+    },
+    "statuses": {
+      "enabled": "Activé",
+      "disabled": "Désactivé"
+    }
   }
 }

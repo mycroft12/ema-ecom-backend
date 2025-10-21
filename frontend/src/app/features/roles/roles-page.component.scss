@@ -19,6 +19,26 @@
   gap: 0.25rem;
 }
 
+
+
+.fullwidth-table {
+  width: 100%;
+
+  ::ng-deep .p-datatable-table {
+    width: 100%;
+  }
+}
+
+.permissions-column {
+  width: auto;
+  min-width: 48rem;
+}
+
+.users-roles-column {
+  width: auto;
+  min-width: 24rem;
+}
+
 .tag-wrap {
   display: flex;
   flex-wrap: wrap;

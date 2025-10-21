@@ -134,5 +134,148 @@
     "adminOnly": "Admin Options",
     "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",
     "confirmUploadHeader": "Confirm Template Upload"
+  },
+  "rolesPage": {
+    "permissions": {
+      "title": "Permissions",
+      "add": "Add",
+      "columns": {
+        "name": "Name"
+      },
+      "empty": "No permissions found",
+      "dialogs": {
+        "createTitle": "New Permission",
+        "editTitle": "Edit Permission"
+      },
+      "form": {
+        "nameLabel": "Name",
+        "nameRequired": "Permission name is required"
+      },
+      "confirmDelete": {
+        "message": "Delete permission \"{{name}}\"?",
+        "accept": "Delete",
+        "reject": "Cancel"
+      },
+      "toast": {
+        "created": "Permission created successfully",
+        "updated": "Permission updated successfully",
+        "deleted": "Permission deleted"
+      },
+      "errors": {
+        "load": "Failed to fetch permissions",
+        "create": "Failed to create permission",
+        "update": "Failed to update permission",
+        "delete": "Failed to delete permission"
+      }
+    },
+    "roles": {
+      "title": "Roles",
+      "add": "Add",
+      "columns": {
+        "name": "Name",
+        "permissions": "Permissions"
+      },
+      "empty": "No roles found",
+      "dialogs": {
+        "createTitle": "New Role",
+        "editTitle": "Edit Role"
+      },
+      "form": {
+        "nameLabel": "Name",
+        "nameRequired": "Role name is required"
+      },
+      "confirmDelete": {
+        "message": "Delete role \"{{name}}\"?",
+        "accept": "Delete",
+        "reject": "Cancel"
+      },
+      "toast": {
+        "created": "Role created successfully",
+        "updated": "Role updated successfully",
+        "deleted": "Role deleted",
+        "permissionsUpdated": "Role permissions updated"
+      },
+      "errors": {
+        "load": "Failed to fetch roles",
+        "create": "Failed to create role",
+        "update": "Failed to update role",
+        "delete": "Failed to delete role",
+        "permissions": "Failed to update role permissions"
+      },
+      "tooltips": {
+        "attachPermissions": "Attach or detach permissions"
+      },
+      "picklist": {
+        "title": "Attach Permissions to Role"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "add": "Add",
+      "columns": {
+        "username": "Username",
+        "email": "Email",
+        "status": "Status",
+        "roles": "Roles"
+      },
+      "empty": "No users found",
+      "dialogs": {
+        "createTitle": "New User",
+        "editTitle": "Edit User"
+      },
+      "form": {
+        "usernameLabel": "Username",
+        "usernameRequired": "Username is required",
+        "emailLabel": "Email",
+        "emailInvalid": "Enter a valid email address",
+        "passwordLabel": "Password",
+        "passwordOptional": "New Password (optional)",
+        "passwordRequired": "Password must be at least 6 characters",
+        "enabled": "Enabled"
+      },
+      "confirmDelete": {
+        "message": "Delete user \"{{name}}\"?",
+        "accept": "Delete",
+        "reject": "Cancel"
+      },
+      "toast": {
+        "created": "User created successfully",
+        "updated": "User updated successfully",
+        "deleted": "User deleted",
+        "rolesUpdated": "User roles updated"
+      },
+      "errors": {
+        "load": "Failed to fetch users",
+        "create": "Failed to create user",
+        "update": "Failed to update user",
+        "delete": "Failed to delete user",
+        "roles": "Failed to update user roles"
+      },
+      "tooltips": {
+        "attachRoles": "Attach or detach roles"
+      },
+      "picklist": {
+        "title": "Assign Role to User",
+        "info": "Only one role can be assigned at a time.",
+        "selected": "Selected"
+      }
+    },
+    "common": {
+      "actions": "Actions",
+      "cancel": "Cancel",
+      "save": "Save",
+      "more": "+{{count}} more",
+      "toastSuccess": "Success",
+      "toastError": "Error"
+    },
+    "picklist": {
+      "available": "Available",
+      "assigned": "Assigned",
+      "selected": "Selected"
+    },
+    "statuses": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    }
   }
 }

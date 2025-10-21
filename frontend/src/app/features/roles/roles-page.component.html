@@ -1,10 +1,10 @@
 <div class="roles-page">
   <div class="grid gap-4">
     <!-- Permissions -->
-    <div class="col-12 lg:col-4">
-      <p-card header="Permissions" class="section-card">
+    <div class="col-12">
+      <p-card [header]="'rolesPage.permissions.title' | translate" class="section-card fullwidth-table">
         <div class="section-toolbar">
-          <button pButton type="button" icon="pi pi-plus" label="Add" (click)="openPermissionDialog()"></button>
+          <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.permissions.add' | translate" (click)="openPermissionDialog()"></button>
         </div>
         <p-table
           [value]="permissions"
@@ -16,8 +16,8 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>Name</th>
-              <th style="width: 7rem;">Actions</th>
+              <th>{{ 'rolesPage.permissions.columns.name' | translate }}</th>
+              <th style="width: 7rem;">{{ 'rolesPage.common.actions' | translate }}</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-permission>
@@ -43,7 +43,7 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="2">No permissions found</td>
+              <td colspan="2">{{ 'rolesPage.permissions.empty' | translate }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -51,10 +51,10 @@
     </div>
 
     <!-- Roles -->
-    <div class="col-12 lg:col-4">
-      <p-card header="Roles" class="section-card">
+    <div class="col-12">
+      <p-card [header]="'rolesPage.roles.title' | translate" class="section-card fullwidth-table">
         <div class="section-toolbar">
-          <button pButton type="button" icon="pi pi-plus" label="Add" (click)="openRoleDialog()"></button>
+          <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.roles.add' | translate" (click)="openRoleDialog()"></button>
         </div>
         <p-table
           [value]="roles"
@@ -66,9 +66,9 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>Name</th>
-              <th>Permissions</th>
-              <th style="width: 10rem;">Actions</th>
+              <th>{{ 'rolesPage.roles.columns.name' | translate }}</th>
+              <th class="permissions-column">{{ 'rolesPage.roles.columns.permissions' | translate }}</th>
+              <th style="width: 10rem;">{{ 'rolesPage.common.actions' | translate }}</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-role>
@@ -84,8 +84,12 @@
                     [value]="perm.name"
                     severity="info"
                   ></p-tag>
-                  <span class="tag-overflow" *ngIf="getRolePermissionsOverflow(role) as overflow">
-                    +{{ overflow }} more
+                  <span
+                    class="tag-overflow"
+                    *ngIf="getRolePermissionsOverflow(role) as overflow"
+                    [attr.title]="getRolePermissionTooltip(role)"
+                  >
+                    {{ 'rolesPage.common.more' | translate: { count: overflow } }}
                   </span>
                 </div>
               </td>
@@ -96,7 +100,7 @@
                   icon="pi pi-link"
                   class="p-button-rounded p-button-text"
                   (click)="openRolePermissionsDialog(role)"
-                  title="Attach permissions"
+                  [title]="'rolesPage.roles.tooltips.attachPermissions' | translate"
                 ></button>
                 <button
                   pButton
@@ -117,7 +121,7 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="3">No roles found</td>
+              <td colspan="3">{{ 'rolesPage.roles.empty' | translate }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -125,10 +129,10 @@
     </div>
 
     <!-- Users -->
-    <div class="col-12 lg:col-4">
-      <p-card header="Users" class="section-card">
+    <div class="col-12">
+      <p-card [header]="'rolesPage.users.title' | translate" class="section-card fullwidth-table">
         <div class="section-toolbar">
-          <button pButton type="button" icon="pi pi-plus" label="Add" (click)="openUserDialog()"></button>
+          <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.users.add' | translate" (click)="openUserDialog()"></button>
         </div>
         <p-table
           [value]="users"
@@ -140,11 +144,11 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Roles</th>
-              <th style="width: 10rem;">Actions</th>
+              <th>{{ 'rolesPage.users.columns.username' | translate }}</th>
+              <th>{{ 'rolesPage.users.columns.email' | translate }}</th>
+              <th>{{ 'rolesPage.users.columns.status' | translate }}</th>
+              <th class="users-roles-column">{{ 'rolesPage.users.columns.roles' | translate }}</th>
+              <th style="width: 10rem;">{{ 'rolesPage.common.actions' | translate }}</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-user>
@@ -152,15 +156,25 @@
               <td>{{ user.username }}</td>
               <td>{{ user.email || '—' }}</td>
               <td>
-                <p-tag [value]="user.enabled ? 'Enabled' : 'Disabled'" [severity]="user.enabled ? 'success' : 'danger'"></p-tag>
+                <p-tag
+                  [value]="user.enabled ? ('rolesPage.statuses.enabled' | translate) : ('rolesPage.statuses.disabled' | translate)"
+                  [severity]="user.enabled ? 'success' : 'danger'"
+                ></p-tag>
               </td>
               <td>
-                <div class="tag-wrap">
+                <div class="tag-wrap" [attr.title]="getUserRolesTooltip(user)">
                   <p-tag
-                    *ngFor="let role of user.roles; trackBy: trackById"
+                    *ngFor="let role of getUserRolesDisplay(user); trackBy: trackById"
                     [value]="role.name"
                     severity="info"
                   ></p-tag>
+                  <span
+                    class="tag-overflow"
+                    *ngIf="getUserRolesOverflow(user) as overflow"
+                    [attr.title]="getUserRolesTooltip(user)"
+                  >
+                    {{ 'rolesPage.common.more' | translate: { count: overflow } }}
+                  </span>
                 </div>
               </td>
               <td class="actions-column">
@@ -170,7 +184,7 @@
                   icon="pi pi-link"
                   class="p-button-rounded p-button-text"
                   (click)="openUserRolesDialog(user)"
-                  title="Attach roles"
+                  [title]="'rolesPage.users.tooltips.attachRoles' | translate"
                 ></button>
                 <button
                   pButton
@@ -191,7 +205,7 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="5">No users found</td>
+              <td colspan="5">{{ 'rolesPage.users.empty' | translate }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -202,7 +216,7 @@
 
 <!-- Permission dialog -->
 <p-dialog
-  header="{{ editingPermission ? 'Edit Permission' : 'New Permission' }}"
+  [header]="(editingPermission ? 'rolesPage.permissions.dialogs.editTitle' : 'rolesPage.permissions.dialogs.createTitle') | translate"
   [(visible)]="permissionDialogVisible"
   [modal]="true"
   [style]="{ width: '25rem' }"
@@ -211,21 +225,21 @@
   <form [formGroup]="permissionForm" class="form-grid">
     <span class="p-float-label">
       <input pInputText id="permissionName" formControlName="name" />
-      <label for="permissionName">Name</label>
+      <label for="permissionName">{{ 'rolesPage.permissions.form.nameLabel' | translate }}</label>
     </span>
     <small class="error" *ngIf="permissionForm.controls['name'].invalid && permissionForm.controls['name'].touched">
-      Permission name is required
+      {{ 'rolesPage.permissions.form.nameRequired' | translate }}
     </small>
   </form>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" class="p-button-text" (click)="permissionDialogVisible = false"></button>
-    <button pButton type="button" label="Save" (click)="savePermission()"></button>
+    <button pButton type="button" [label]="'rolesPage.common.cancel' | translate" class="p-button-text" (click)="permissionDialogVisible = false"></button>
+    <button pButton type="button" [label]="'rolesPage.common.save' | translate" (click)="savePermission()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- Role dialog -->
 <p-dialog
-  header="{{ editingRole ? 'Edit Role' : 'New Role' }}"
+  [header]="(editingRole ? 'rolesPage.roles.dialogs.editTitle' : 'rolesPage.roles.dialogs.createTitle') | translate"
   [(visible)]="roleDialogVisible"
   [modal]="true"
   [style]="{ width: '25rem' }"
@@ -234,21 +248,21 @@
   <form [formGroup]="roleForm" class="form-grid">
     <span class="p-float-label">
       <input pInputText id="roleName" formControlName="name" />
-      <label for="roleName">Name</label>
+      <label for="roleName">{{ 'rolesPage.roles.form.nameLabel' | translate }}</label>
     </span>
     <small class="error" *ngIf="roleForm.controls['name'].invalid && roleForm.controls['name'].touched">
-      Role name is required
+      {{ 'rolesPage.roles.form.nameRequired' | translate }}
     </small>
   </form>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" class="p-button-text" (click)="roleDialogVisible = false"></button>
-    <button pButton type="button" label="Save" (click)="saveRole()"></button>
+    <button pButton type="button" [label]="'rolesPage.common.cancel' | translate" class="p-button-text" (click)="roleDialogVisible = false"></button>
+    <button pButton type="button" [label]="'rolesPage.common.save' | translate" (click)="saveRole()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- User dialog -->
 <p-dialog
-  header="{{ editingUser ? 'Edit User' : 'New User' }}"
+  [header]="(editingUser ? 'rolesPage.users.dialogs.editTitle' : 'rolesPage.users.dialogs.createTitle') | translate"
   [(visible)]="userDialogVisible"
   [modal]="true"
   [style]="{ width: '28rem' }"
@@ -257,42 +271,44 @@
   <form [formGroup]="userForm" class="form-grid">
     <span class="p-float-label">
       <input pInputText id="username" formControlName="username" />
-      <label for="username">Username</label>
+      <label for="username">{{ 'rolesPage.users.form.usernameLabel' | translate }}</label>
     </span>
     <small class="error" *ngIf="userForm.controls['username'].invalid && userForm.controls['username'].touched">
-      Username is required
+      {{ 'rolesPage.users.form.usernameRequired' | translate }}
     </small>
 
     <span class="p-float-label">
       <input pInputText id="email" formControlName="email" type="email" />
-      <label for="email">Email</label>
+      <label for="email">{{ 'rolesPage.users.form.emailLabel' | translate }}</label>
     </span>
     <small class="error" *ngIf="userForm.controls['email'].invalid && userForm.controls['email'].touched">
-      Enter a valid email address
+      {{ 'rolesPage.users.form.emailInvalid' | translate }}
     </small>
 
     <span class="p-float-label">
       <input pInputText id="password" formControlName="password" type="password" autocomplete="new-password" />
-      <label for="password">{{ editingUser ? 'New Password (optional)' : 'Password' }}</label>
+      <label for="password">
+        {{ editingUser ? ('rolesPage.users.form.passwordOptional' | translate) : ('rolesPage.users.form.passwordLabel' | translate) }}
+      </label>
     </span>
     <small class="error" *ngIf="userForm.controls['password'].invalid && userForm.controls['password'].touched">
-      Password must be at least 6 characters
+      {{ 'rolesPage.users.form.passwordRequired' | translate }}
     </small>
 
     <div class="checkbox-field">
       <p-checkbox formControlName="enabled" inputId="enabled"></p-checkbox>
-      <label for="enabled">Enabled</label>
+      <label for="enabled">{{ 'rolesPage.users.form.enabled' | translate }}</label>
     </div>
   </form>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" class="p-button-text" (click)="userDialogVisible = false"></button>
-    <button pButton type="button" label="Save" (click)="saveUser()"></button>
+    <button pButton type="button" [label]="'rolesPage.common.cancel' | translate" class="p-button-text" (click)="userDialogVisible = false"></button>
+    <button pButton type="button" [label]="'rolesPage.common.save' | translate" (click)="saveUser()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- Role permissions picklist -->
 <p-dialog
-  header="Attach Permissions to Role"
+  [header]="'rolesPage.roles.picklist.title' | translate"
   [(visible)]="rolePermissionsDialogVisible"
   [modal]="true"
   [style]="{ width: '45rem' }"
@@ -301,8 +317,8 @@
   <p-pickList
     [source]="rolePickListSource"
     [target]="rolePickListTarget"
-    sourceHeader="Available"
-    targetHeader="Assigned"
+    [sourceHeader]="'rolesPage.picklist.available' | translate"
+    [targetHeader]="'rolesPage.picklist.assigned' | translate"
     filterBy="name"
     [showSourceControls]="false"
     [showTargetControls]="false"
@@ -314,14 +330,14 @@
     </ng-template>
   </p-pickList>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" class="p-button-text" (click)="rolePermissionsDialogVisible = false"></button>
-    <button pButton type="button" label="Save" (click)="saveRolePermissions()"></button>
+    <button pButton type="button" [label]="'rolesPage.common.cancel' | translate" class="p-button-text" (click)="rolePermissionsDialogVisible = false"></button>
+    <button pButton type="button" [label]="'rolesPage.common.save' | translate" (click)="saveRolePermissions()"></button>
   </ng-template>
 </p-dialog>
 
 <!-- User roles picklist -->
 <p-dialog
-  header="Assign Role to User"
+  [header]="'rolesPage.users.picklist.title' | translate"
   [(visible)]="userRolesDialogVisible"
   [modal]="true"
   [style]="{ width: '38rem' }"
@@ -330,8 +346,8 @@
   <p-pickList
     [source]="userPickListSource"
     [target]="userPickListTarget"
-    sourceHeader="Available"
-    targetHeader="Selected"
+    [sourceHeader]="'rolesPage.picklist.available' | translate"
+    [targetHeader]="'rolesPage.picklist.selected' | translate"
     filterBy="name"
     [showSourceControls]="false"
     [showTargetControls]="false"
@@ -343,10 +359,10 @@
       <div class="picklist-item">{{ item.name }}</div>
     </ng-template>
   </p-pickList>
-  <small class="info-text">Only one role can be assigned at a time.</small>
+  <small class="info-text">{{ 'rolesPage.users.picklist.info' | translate }}</small>
   <ng-template pTemplate="footer">
-    <button pButton type="button" label="Cancel" class="p-button-text" (click)="userRolesDialogVisible = false"></button>
-    <button pButton type="button" label="Save" (click)="saveUserRoles()"></button>
+    <button pButton type="button" [label]="'rolesPage.common.cancel' | translate" class="p-button-text" (click)="userRolesDialogVisible = false"></button>
+    <button pButton type="button" [label]="'rolesPage.common.save' | translate" (click)="saveUserRoles()"></button>
   </ng-template>
 </p-dialog>
 

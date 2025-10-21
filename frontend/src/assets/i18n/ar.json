@@ -134,5 +134,148 @@
     "adminOnly": "خيارات المسؤول",
     "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",
     "confirmUploadHeader": "تأكيد رفع النموذج"
+  },
+  "rolesPage": {
+    "permissions": {
+      "title": "الأذونات",
+      "add": "إضافة",
+      "columns": {
+        "name": "الاسم"
+      },
+      "empty": "لا توجد أذونات",
+      "dialogs": {
+        "createTitle": "إضافة إذن جديد",
+        "editTitle": "تعديل الإذن"
+      },
+      "form": {
+        "nameLabel": "الاسم",
+        "nameRequired": "اسم الإذن مطلوب"
+      },
+      "confirmDelete": {
+        "message": "حذف الإذن \"{{name}}\"؟",
+        "accept": "حذف",
+        "reject": "إلغاء"
+      },
+      "toast": {
+        "created": "تم إنشاء الإذن بنجاح",
+        "updated": "تم تحديث الإذن بنجاح",
+        "deleted": "تم حذف الإذن"
+      },
+      "errors": {
+        "load": "فشل في تحميل الأذونات",
+        "create": "فشل في إنشاء الإذن",
+        "update": "فشل في تحديث الإذن",
+        "delete": "فشل في حذف الإذن"
+      }
+    },
+    "roles": {
+      "title": "الأدوار",
+      "add": "إضافة",
+      "columns": {
+        "name": "الاسم",
+        "permissions": "الأذونات"
+      },
+      "empty": "لا توجد أدوار",
+      "dialogs": {
+        "createTitle": "دور جديد",
+        "editTitle": "تعديل الدور"
+      },
+      "form": {
+        "nameLabel": "الاسم",
+        "nameRequired": "اسم الدور مطلوب"
+      },
+      "confirmDelete": {
+        "message": "حذف الدور \"{{name}}\"؟",
+        "accept": "حذف",
+        "reject": "إلغاء"
+      },
+      "toast": {
+        "created": "تم إنشاء الدور بنجاح",
+        "updated": "تم تحديث الدور بنجاح",
+        "deleted": "تم حذف الدور",
+        "permissionsUpdated": "تم تحديث أذونات الدور"
+      },
+      "errors": {
+        "load": "فشل في تحميل الأدوار",
+        "create": "فشل في إنشاء الدور",
+        "update": "فشل في تحديث الدور",
+        "delete": "فشل في حذف الدور",
+        "permissions": "فشل في تحديث أذونات الدور"
+      },
+      "tooltips": {
+        "attachPermissions": "ربط أو فصل الأذونات"
+      },
+      "picklist": {
+        "title": "ربط الأذونات بالدور"
+      }
+    },
+    "users": {
+      "title": "المستخدمون",
+      "add": "إضافة",
+      "columns": {
+        "username": "اسم المستخدم",
+        "email": "البريد الإلكتروني",
+        "status": "الحالة",
+        "roles": "الأدوار"
+      },
+      "empty": "لا يوجد مستخدمون",
+      "dialogs": {
+        "createTitle": "مستخدم جديد",
+        "editTitle": "تعديل المستخدم"
+      },
+      "form": {
+        "usernameLabel": "اسم المستخدم",
+        "usernameRequired": "اسم المستخدم مطلوب",
+        "emailLabel": "البريد الإلكتروني",
+        "emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+        "passwordLabel": "كلمة المرور",
+        "passwordOptional": "كلمة مرور جديدة (اختياري)",
+        "passwordRequired": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+        "enabled": "مفعل"
+      },
+      "confirmDelete": {
+        "message": "حذف المستخدم \"{{name}}\"؟",
+        "accept": "حذف",
+        "reject": "إلغاء"
+      },
+      "toast": {
+        "created": "تم إنشاء المستخدم بنجاح",
+        "updated": "تم تحديث المستخدم بنجاح",
+        "deleted": "تم حذف المستخدم",
+        "rolesUpdated": "تم تحديث أدوار المستخدم"
+      },
+      "errors": {
+        "load": "فشل في تحميل المستخدمين",
+        "create": "فشل في إنشاء المستخدم",
+        "update": "فشل في تحديث المستخدم",
+        "delete": "فشل في حذف المستخدم",
+        "roles": "فشل في تحديث أدوار المستخدم"
+      },
+      "tooltips": {
+        "attachRoles": "ربط أو فصل الأدوار"
+      },
+      "picklist": {
+        "title": "تعيين دور للمستخدم",
+        "info": "يمكن تعيين دور واحد فقط في كل مرة.",
+        "selected": "المحددة"
+      }
+    },
+    "common": {
+      "actions": "إجراءات",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "more": "+{{count}} إضافية",
+      "toastSuccess": "نجاح",
+      "toastError": "خطأ"
+    },
+    "picklist": {
+      "available": "المتاحة",
+      "assigned": "المعيّنة",
+      "selected": "المحددة"
+    },
+    "statuses": {
+      "enabled": "مفعل",
+      "disabled": "غير مفعل"
+    }
   }
 }
