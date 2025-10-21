@@ -1,6 +1,5 @@
 package com.mycroft.ema.ecom.domains.products.web;
 
-import com.mycroft.ema.ecom.common.web.PageResponse;
 import com.mycroft.ema.ecom.domains.products.dto.ProductCreateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductUpdateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductViewDto;
@@ -11,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,8 +32,15 @@ public class ProductController {
   )
   public ResponseDto.ProductSearchResponse search(@RequestParam(required = false) String q,
                                                   @RequestParam(defaultValue = "false") boolean includeSchema,
-                                                  Pageable pageable){
-    var page = service.search(q, pageable);
+                                                  Pageable pageable,
+                                                  @RequestParam MultiValueMap<String, String> requestParams){
+    MultiValueMap<String, String> filterParams = new LinkedMultiValueMap<>();
+    requestParams.forEach((key, values) -> {
+      if (key != null && key.startsWith("filter.")) {
+        filterParams.put(key, values);
+      }
+    });
+    var page = service.search(q, filterParams, pageable);
     List<ResponseDto.ColumnDto> columns = includeSchema ? service.listColumns() : null;
     return ResponseDto.ProductSearchResponse.of(page, columns);
   }

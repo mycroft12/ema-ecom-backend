@@ -42,7 +42,7 @@
                                     pInputText
                                     type="text"
                                     [(ngModel)]="searchValue"
-                                    (input)="dt1.filterGlobal(searchValue, 'contains')"
+                                    (input)="onGlobalFilter($event, dt1)"
                                     [placeholder]="'products.searchKeywordPlaceholder' | translate"
                             />
                         </p-iconfield>

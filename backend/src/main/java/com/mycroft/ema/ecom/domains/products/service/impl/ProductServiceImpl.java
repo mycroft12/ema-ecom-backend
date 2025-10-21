@@ -8,11 +8,15 @@ import com.mycroft.ema.ecom.domains.products.dto.ResponseDto;
 import com.mycroft.ema.ecom.domains.products.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -38,17 +42,58 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public Page<ProductViewDto> search(String q, Pageable pageable) {
+  public Page<ProductViewDto> search(String q, MultiValueMap<String, String> filters, Pageable pageable) {
     if (!tableExists()) {
       return new PageImpl<>(Collections.emptyList(), pageable, 0);
     }
-    long total = jdbc.queryForObject("select count(*) from " + quotedTable, Long.class);
+    Map<String, ColumnMeta> columnLookup = columnMetadata();
+    List<String> searchableColumns = columnLookup.values().stream()
+        .map(ColumnMeta::name)
+        .filter(name -> name != null && !"id".equalsIgnoreCase(name))
+        .toList();
+
+    List<Object> filterArgs = new ArrayList<>();
+    List<String> whereParts = new ArrayList<>();
+
+    String trimmedQuery = q == null ? null : q.trim();
+    if (StringUtils.hasText(trimmedQuery) && !searchableColumns.isEmpty()) {
+      String clause = searchableColumns.stream()
+          .map(col -> "lower(" + col + "::text) like ?")
+          .collect(Collectors.joining(" OR "));
+      whereParts.add("(" + clause + ")");
+      String pattern = "%" + trimmedQuery.toLowerCase(Locale.ROOT) + "%";
+      searchableColumns.forEach(col -> filterArgs.add(pattern));
+    }
+
+    List<FilterCriterion> criteria = extractFilterCriteria(filters);
+    for (FilterCriterion criterion : criteria) {
+      if (!StringUtils.hasText(criterion.field())) {
+        continue;
+      }
+      ColumnMeta meta = columnLookup.get(criterion.field().toLowerCase(Locale.ROOT));
+      if (meta == null || "id".equalsIgnoreCase(meta.name())) {
+        continue;
+      }
+      Optional<String> clause = buildColumnFilterClause(meta, criterion, filterArgs);
+      clause.ifPresent(whereParts::add);
+    }
+
+    String whereClause = whereParts.isEmpty() ? "" : " where " + String.join(" and ", whereParts);
+
+    String countSql = "select count(*) from " + quotedTable + whereClause;
+    Long totalCount = jdbc.queryForObject(countSql, filterArgs.toArray(), Long.class);
+    long total = totalCount == null ? 0 : totalCount;
+
     int pageSize = pageable.getPageSize();
     int offset = (int) pageable.getOffset();
 
-    // naive order by id; you can extend with dynamic sorting later
+    List<Object> dataArgs = new ArrayList<>(filterArgs);
+    dataArgs.add(pageSize);
+    dataArgs.add(offset);
+
+    // naive order by id; extend with dynamic sorting later
     List<Map<String, Object>> rows = jdbc.queryForList(
-            "select * from " + quotedTable + " order by id limit ? offset ?", pageSize, offset);
+        "select * from " + quotedTable + whereClause + " order by id limit ? offset ?", dataArgs.toArray());
 
     List<ProductViewDto> content = new ArrayList<>();
     for (Map<String, Object> row : rows) {
@@ -286,5 +331,228 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private record ColumnMeta(String name, String dataType) {}
+  private record FilterCriterion(String field, String matchMode, String value) {}
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  private List<FilterCriterion> extractFilterCriteria(MultiValueMap<String, String> params) {
+    if (params == null || params.isEmpty()) {
+      return List.of();
+    }
+    Map<String, FilterCriterionBuilder> builders = new HashMap<>();
+    params.forEach((key, values) -> {
+      if (key == null || !key.startsWith("filter.")) {
+        return;
+      }
+      String rest = key.substring("filter.".length());
+      if (rest.isEmpty()) {
+        return;
+      }
+      String lowerRest = rest.toLowerCase(Locale.ROOT);
+      String field;
+      if (lowerRest.endsWith(".matchmode")) {
+        field = lowerRest.substring(0, lowerRest.indexOf(".matchmode"));
+        builders.computeIfAbsent(field, f -> new FilterCriterionBuilder()).matchMode = firstValue(values);
+      } else {
+        field = lowerRest;
+        builders.computeIfAbsent(field, f -> new FilterCriterionBuilder()).value = firstValue(values);
+      }
+    });
+    return builders.entrySet().stream()
+        .map(entry -> {
+          FilterCriterionBuilder builder = entry.getValue();
+          if (!StringUtils.hasText(builder.value)) {
+            return null;
+          }
+          return new FilterCriterion(entry.getKey(), builder.matchMode, builder.value);
+        })
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private Optional<String> buildColumnFilterClause(ColumnMeta meta, FilterCriterion criterion, List<Object> args) {
+    if (!StringUtils.hasText(criterion.value())) {
+      return Optional.empty();
+    }
+    String matchMode = StringUtils.hasText(criterion.matchMode())
+        ? criterion.matchMode().toLowerCase(Locale.ROOT)
+        : "equals";
+    String columnName = meta.name();
+    switch (matchMode) {
+      case "contains": {
+        String pattern = "%" + criterion.value().toLowerCase(Locale.ROOT) + "%";
+        args.add(pattern);
+        return Optional.of("lower(" + columnName + "::text) like ?");
+      }
+      case "equals": {
+        if (isBoolean(meta.dataType())) {
+          Boolean boolValue = parseBoolean(criterion.value());
+          if (boolValue == null) return Optional.empty();
+          args.add(boolValue);
+          return Optional.of(columnName + " = ?");
+        }
+        if (isNumeric(meta.dataType())) {
+          BigDecimal number = parseBigDecimal(criterion.value());
+          if (number == null) return Optional.empty();
+          args.add(number);
+          return Optional.of(columnName + " = ?");
+        }
+        args.add(criterion.value().toLowerCase(Locale.ROOT));
+        return Optional.of("lower(" + columnName + "::text) = ?");
+      }
+      case "in": {
+        List<String> values = parseStringList(criterion.value());
+        if (values.isEmpty()) return Optional.empty();
+        List<String> placeholders = new ArrayList<>();
+        for (String val : values) {
+          args.add(val.toLowerCase(Locale.ROOT));
+          placeholders.add("?");
+        }
+        return Optional.of("lower(" + columnName + "::text) in (" + String.join(", ", placeholders) + ")");
+      }
+      case "between": {
+        List<BigDecimal> numbers = parseNumberList(criterion.value());
+        if (numbers.size() < 2) return Optional.empty();
+        args.add(numbers.get(0));
+        args.add(numbers.get(1));
+        return Optional.of(columnName + " between ? and ?");
+      }
+      case "startswith": {
+        args.add(criterion.value().toLowerCase(Locale.ROOT) + "%");
+        return Optional.of("lower(" + columnName + "::text) like ?");
+      }
+      case "endswith": {
+        args.add("%" + criterion.value().toLowerCase(Locale.ROOT));
+        return Optional.of("lower(" + columnName + "::text) like ?");
+      }
+      case "gt":
+      case "lt":
+      case "gte":
+      case "lte": {
+        BigDecimal number = parseBigDecimal(criterion.value());
+        if (number == null) return Optional.empty();
+        String operator = switch (matchMode) {
+          case "gt" -> ">";
+          case "lt" -> "<";
+          case "gte" -> ">=";
+          case "lte" -> "<=";
+          default -> "=";
+        };
+        args.add(number);
+        return Optional.of(columnName + " " + operator + " ?");
+      }
+      case "isnull": {
+        return Optional.of(columnName + " is null");
+      }
+      case "notnull":
+      case "isnotnull": {
+        return Optional.of(columnName + " is not null");
+      }
+      default: {
+        String pattern = "%" + criterion.value().toLowerCase(Locale.ROOT) + "%";
+        args.add(pattern);
+        return Optional.of("lower(" + columnName + "::text) like ?");
+      }
+    }
+  }
+
+  private static String firstValue(List<String> values) {
+    if (values == null || values.isEmpty()) {
+      return null;
+    }
+    return values.get(0);
+  }
+
+  private List<String> parseStringList(String raw) {
+    String trimmed = raw == null ? "" : raw.trim();
+    if (trimmed.isEmpty()) {
+      return List.of();
+    }
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        List<Object> list = OBJECT_MAPPER.readValue(trimmed, new TypeReference<>() {});
+        return list.stream()
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .map(s -> s.toLowerCase(Locale.ROOT))
+            .toList();
+      } catch (Exception ex) {
+        if (log.isDebugEnabled()) {
+          log.debug("Failed to parse filter list '{}'", raw, ex);
+        }
+      }
+    }
+    return List.of(trimmed.toLowerCase(Locale.ROOT));
+  }
+
+  private List<BigDecimal> parseNumberList(String raw) {
+    String trimmed = raw == null ? "" : raw.trim();
+    if (trimmed.isEmpty()) {
+      return List.of();
+    }
+    List<BigDecimal> numbers = new ArrayList<>();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        List<Object> list = OBJECT_MAPPER.readValue(trimmed, new TypeReference<>() {});
+        for (Object obj : list) {
+          if (obj == null) continue;
+          BigDecimal number = parseBigDecimal(obj.toString());
+          if (number != null) {
+            numbers.add(number);
+          }
+        }
+      } catch (Exception ex) {
+        if (log.isDebugEnabled()) {
+          log.debug("Failed to parse numeric filter '{}'", raw, ex);
+        }
+      }
+    } else {
+      BigDecimal number = parseBigDecimal(trimmed);
+      if (number != null) {
+        numbers.add(number);
+      }
+    }
+    return numbers;
+  }
+
+  private BigDecimal parseBigDecimal(String raw) {
+    if (!StringUtils.hasText(raw)) {
+      return null;
+    }
+    try {
+      return new BigDecimal(raw.trim());
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private Boolean parseBoolean(String raw) {
+    if (!StringUtils.hasText(raw)) {
+      return null;
+    }
+    String value = raw.trim().toLowerCase(Locale.ROOT);
+    if ("true".equals(value) || "1".equals(value) || "yes".equals(value)) {
+      return Boolean.TRUE;
+    }
+    if ("false".equals(value) || "0".equals(value) || "no".equals(value)) {
+      return Boolean.FALSE;
+    }
+    return null;
+  }
+
+  private boolean isNumeric(String dataType) {
+    if (dataType == null) return false;
+    String dt = dataType.toLowerCase(Locale.ROOT);
+    return dt.contains("int") || dt.contains("numeric") || dt.contains("decimal") || dt.contains("double") || dt.contains("real");
+  }
+
+  private boolean isBoolean(String dataType) {
+    if (dataType == null) return false;
+    return dataType.toLowerCase(Locale.ROOT).contains("bool");
+  }
+
+  private static class FilterCriterionBuilder {
+    String value;
+    String matchMode;
+  }
 
 }

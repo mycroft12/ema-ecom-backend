@@ -128,6 +128,9 @@ export class ProductTableComponent implements OnInit {
   private loadData(event: TableLazyLoadEvent) {
     this.loading = true;
     this.updateGlobalFilterFields();
+    if (event.globalFilter !== undefined) {
+      this.searchValue = event.globalFilter ?? '';
+    }
     this.dataService.loadProducts(event).subscribe({
       next: resp => {
         this.totalRecords = resp.totalElements ?? 0;
@@ -181,6 +184,12 @@ export class ProductTableComponent implements OnInit {
       edit: permissions.has(this.actionPermission('update')),
       delete: permissions.has(this.actionPermission('delete'))
     };
+  }
+
+  onGlobalFilter(event: Event, table: Table): void {
+    const value = (event.target as HTMLInputElement)?.value ?? '';
+    this.searchValue = value;
+    table.filterGlobal(value, 'contains');
   }
 
   private actionPermission(action: 'add' | 'update' | 'delete'): string {

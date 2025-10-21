@@ -94,7 +94,7 @@ export class ProductDataService {
     });
   }
 
-  private extractFilterDetail(metadata: any): { value: any; matchMode?: string } | null {
+  private extractFilterDetail(metadata: any): { value: string; matchMode?: string } | null {
     if (!metadata) {
       return null;
     }
@@ -107,8 +107,9 @@ export class ProductDataService {
       }
       return null;
     }
-    if (!this.isEmptyFilterValue(metadata.value)) {
-      return { value: metadata.value, matchMode: metadata.matchMode };
+    const serialized = this.serializeFilterValue(metadata.value);
+    if (serialized !== null) {
+      return { value: serialized, matchMode: metadata.matchMode };
     }
     if (Array.isArray(metadata.constraints)) {
       for (const constraint of metadata.constraints) {
@@ -124,12 +125,62 @@ export class ProductDataService {
     return null;
   }
 
+  private serializeFilterValue(value: any): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    if (Array.isArray(value)) {
+      const normalized = value
+        .map(item => this.normalizeFilterPrimitive(item))
+        .filter(item => item !== null && item !== undefined);
+      if (!normalized.length) {
+        return null;
+      }
+      return JSON.stringify(normalized);
+    }
+    if (typeof value === 'object') {
+      const normalized = this.normalizeFilterPrimitive(value);
+      if (normalized === null || normalized === undefined) {
+        return null;
+      }
+      return String(normalized).trim() || null;
+    }
+    const stringValue = String(value).trim();
+    return stringValue === '' ? null : stringValue;
+  }
+
+  private normalizeFilterPrimitive(value: any): any {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    if (typeof value === 'object') {
+      if ('value' in value) {
+        return value.value;
+      }
+      if ('name' in value) {
+        return value.name;
+      }
+      if ('label' in value) {
+        return value.label;
+      }
+      return Object.values(value)
+        .filter(v => v !== null && v !== undefined)
+        .map(v => String(v))
+        .join(' ');
+    }
+    return value;
+  }
+
   private isEmptyFilterValue(value: any): boolean {
     if (value === null || value === undefined) {
       return true;
     }
     if (typeof value === 'string') {
-      return value.trim() === '';
+      const trimmed = value.trim();
+      if (!trimmed || trimmed === '[]' || trimmed === '{}' || trimmed === 'null') {
+        return true;
+      }
+      return false;
     }
     if (Array.isArray(value)) {
       return value.length === 0;
