@@ -91,9 +91,10 @@ public class ProductServiceImpl implements ProductService {
     dataArgs.add(pageSize);
     dataArgs.add(offset);
 
-    // naive order by id; extend with dynamic sorting later
+    String orderClause = buildOrderByClause(pageable, columnLookup);
+
     List<Map<String, Object>> rows = jdbc.queryForList(
-        "select * from " + quotedTable + whereClause + " order by id limit ? offset ?", dataArgs.toArray());
+        "select * from " + quotedTable + whereClause + orderClause + " limit ? offset ?", dataArgs.toArray());
 
     List<ProductViewDto> content = new ArrayList<>();
     for (Map<String, Object> row : rows) {
@@ -333,6 +334,25 @@ public class ProductServiceImpl implements ProductService {
   private record ColumnMeta(String name, String dataType) {}
   private record FilterCriterion(String field, String matchMode, String value) {}
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  private String buildOrderByClause(Pageable pageable, Map<String, ColumnMeta> columnLookup) {
+    if (pageable == null || pageable.getSort().isUnsorted()) {
+      return " order by id";
+    }
+    for (Sort.Order order : pageable.getSort()) {
+      String property = order.getProperty();
+      if (!StringUtils.hasText(property)) {
+        continue;
+      }
+      ColumnMeta meta = columnLookup.get(property.toLowerCase(Locale.ROOT));
+      if (meta == null || !StringUtils.hasText(meta.name())) {
+        continue;
+      }
+      String direction = order.isDescending() ? "desc" : "asc";
+      return " order by " + meta.name() + " " + direction + ", id asc";
+    }
+    return " order by id";
+  }
 
   private List<FilterCriterion> extractFilterCriteria(MultiValueMap<String, String> params) {
     if (params == null || params.isEmpty()) {

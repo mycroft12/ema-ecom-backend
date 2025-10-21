@@ -66,6 +66,8 @@ export class ProductTableComponent implements OnInit {
   rows = 10;
   totalRecords = 0;
   first = 0;
+  sortField?: string;
+  sortOrder: number = 1;
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -131,7 +133,14 @@ export class ProductTableComponent implements OnInit {
     if (event.globalFilter !== undefined) {
       this.searchValue = event.globalFilter ?? '';
     }
-    this.dataService.loadProducts(event).subscribe({
+    this.sortField = event.sortField ?? this.sortField;
+    this.sortOrder = event.sortOrder ?? this.sortOrder;
+
+    this.dataService.loadProducts({
+      ...event,
+      sortField: this.sortField,
+      sortOrder: this.sortOrder
+    }).subscribe({
       next: resp => {
         this.totalRecords = resp.totalElements ?? 0;
         // 3) once data is in memory, derive example-like options dynamically
@@ -175,6 +184,11 @@ export class ProductTableComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  onSort(event: { field: string; order: number }): void {
+    this.sortField = event.field;
+    this.sortOrder = event.order;
   }
 
   private refreshActionPermissions(): void {
@@ -297,6 +311,8 @@ export class ProductTableComponent implements OnInit {
     table.clear();
     this.searchValue = '';
     this.first = 0;
+    this.sortField = undefined;
+    this.sortOrder = 1;
     this.repFilterModel = [];
     this.statusFilterModel = undefined;
     this.activityRange = [this.activityMin, this.activityMax];
@@ -314,8 +330,8 @@ export class ProductTableComponent implements OnInit {
     const event: TableLazyLoadEvent = {
       first: this.first,
       rows: this.rows,
-      sortField: (this.dt1 as any)?.sortField,
-      sortOrder: (this.dt1 as any)?.sortOrder,
+      sortField: this.sortField ?? (this.dt1 as any)?.sortField,
+      sortOrder: this.sortOrder ?? (this.dt1 as any)?.sortOrder,
       filters: (this.dt1 as any)?.filters,
       globalFilter: this.searchValue
     };

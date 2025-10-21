@@ -15,7 +15,9 @@
             [first]="first"
             [globalFilterFields]="globalFilterFields"
             (onLazyLoad)="onLazyLoad($event)"
+            (onSort)="onSort($event)"
         >
+            (onSort)="onSort($event)"
             <!-- CAPTION -->
             <ng-template pTemplate="caption">
                 <div class="flex flex-wrap items-center gap-2 caption-toolbar">
@@ -54,9 +56,13 @@
             <ng-template pTemplate="header">
                 <tr>
                     @for (column of schemaService.visibleColumns(); track column.name) {
-                        <th [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'">
+                        <th
+                                [pSortableColumn]="column.name"
+                                [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'"
+                        >
                             <div class="header-cell">
                                 <span class="header-title">{{ column.displayName }}</span>
+                                <p-sortIcon [field]="column.name"></p-sortIcon>
                                 <!-- default filter type from column type -->
                                 <p-columnFilter
                                         styleClass="header-filter"
