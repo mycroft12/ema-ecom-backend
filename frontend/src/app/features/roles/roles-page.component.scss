@@ -69,6 +69,12 @@
   color: var(--surface-700);
 }
 
+.required-indicator {
+  color: var(--red-600);
+  margin-left: 0.25rem;
+  font-weight: 700;
+}
+
 .error {
   color: var(--red-600);
   font-size: 0.75rem;

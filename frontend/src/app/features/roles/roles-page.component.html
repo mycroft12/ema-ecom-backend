@@ -224,7 +224,10 @@
 >
   <form [formGroup]="permissionForm" class="form-grid">
     <div class="form-field">
-      <label class="field-label" for="permissionName">{{ 'rolesPage.permissions.form.nameLabel' | translate }}</label>
+      <label class="field-label" for="permissionName">
+        {{ 'rolesPage.permissions.form.nameLabel' | translate }}
+        <span class="required-indicator">*</span>
+      </label>
       <input pInputText id="permissionName" formControlName="name" />
     </div>
     <small class="error" *ngIf="permissionForm.controls['name'].invalid && permissionForm.controls['name'].touched">
@@ -247,7 +250,10 @@
 >
   <form [formGroup]="roleForm" class="form-grid">
     <div class="form-field">
-      <label class="field-label" for="roleName">{{ 'rolesPage.roles.form.nameLabel' | translate }}</label>
+      <label class="field-label" for="roleName">
+        {{ 'rolesPage.roles.form.nameLabel' | translate }}
+        <span class="required-indicator">*</span>
+      </label>
       <input pInputText id="roleName" formControlName="name" />
     </div>
     <small class="error" *ngIf="roleForm.controls['name'].invalid && roleForm.controls['name'].touched">
@@ -270,7 +276,10 @@
 >
   <form [formGroup]="userForm" class="form-grid">
     <div class="form-field">
-      <label class="field-label" for="username">{{ 'rolesPage.users.form.usernameLabel' | translate }}</label>
+      <label class="field-label" for="username">
+        {{ 'rolesPage.users.form.usernameLabel' | translate }}
+        <span class="required-indicator">*</span>
+      </label>
       <input pInputText id="username" formControlName="username" />
     </div>
     <small class="error" *ngIf="userForm.controls['username'].invalid && userForm.controls['username'].touched">
@@ -288,6 +297,7 @@
     <div class="form-field">
       <label class="field-label" for="password">
         {{ editingUser ? ('rolesPage.users.form.passwordOptional' | translate) : ('rolesPage.users.form.passwordLabel' | translate) }}
+        <span class="required-indicator" *ngIf="!editingUser">*</span>
       </label>
       <input pInputText id="password" formControlName="password" type="password" autocomplete="new-password" />
     </div>
@@ -296,7 +306,7 @@
     </small>
 
     <div class="checkbox-field">
-      <p-checkbox formControlName="enabled" inputId="enabled"></p-checkbox>
+      <p-checkbox formControlName="enabled" inputId="enabled" [binary]="true"></p-checkbox>
       <label for="enabled">{{ 'rolesPage.users.form.enabled' | translate }}</label>
     </div>
   </form>

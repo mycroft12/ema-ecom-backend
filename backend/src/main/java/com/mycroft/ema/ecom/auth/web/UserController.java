@@ -36,49 +36,49 @@ public class UserController {
   }
 
   @PostMapping
-  @PreAuthorize("hasAuthority('user:create')")
+  @PreAuthorize("hasAuthority('user:create') or hasRole('ADMIN')")
   @Operation(summary = "Create user")
   public User create(@RequestBody User u){
     return users.create(u);
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("hasAuthority('user:update')")
+  @PreAuthorize("hasAuthority('user:update') or hasRole('ADMIN')")
   @Operation(summary = "Update user")
   public User update(@PathVariable UUID id, @RequestBody User u){
     return users.update(id, u);
   }
 
   @DeleteMapping("/{id}")
-  @PreAuthorize("hasAuthority('user:delete')")
+  @PreAuthorize("hasAuthority('user:delete') or hasRole('ADMIN')")
   @Operation(summary = "Delete user")
   public void delete(@PathVariable UUID id){
     users.delete(id);
   }
 
   @PostMapping("/{id}/enable")
-  @PreAuthorize("hasAuthority('user:update')")
+  @PreAuthorize("hasAuthority('user:update') or hasRole('ADMIN')")
   @Operation(summary = "Enable user")
   public User enable(@PathVariable UUID id){
     return users.enable(id);
   }
 
   @PostMapping("/{id}/disable")
-  @PreAuthorize("hasAuthority('user:update')")
+  @PreAuthorize("hasAuthority('user:update') or hasRole('ADMIN')")
   @Operation(summary = "Disable user")
   public User disable(@PathVariable UUID id){
     return users.disable(id);
   }
 
   @PostMapping("/{id}/roles/attach")
-  @PreAuthorize("hasAuthority('user:update')")
+  @PreAuthorize("hasAuthority('user:update') or hasRole('ADMIN')")
   @Operation(summary = "Attach roles to user")
   public User attachRoles(@PathVariable UUID id, @RequestBody RoleIdsRequest req){
     return users.attachRoles(id, req.roleIds());
   }
 
   @PostMapping("/{id}/roles/detach")
-  @PreAuthorize("hasAuthority('user:update')")
+  @PreAuthorize("hasAuthority('user:update') or hasRole('ADMIN')")
   @Operation(summary = "Detach roles from user")
   public User detachRoles(@PathVariable UUID id, @RequestBody RoleIdsRequest req){
     return users.detachRoles(id, req.roleIds());
