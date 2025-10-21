@@ -3,7 +3,8 @@
     "yes": "Oui",
     "no": "Non",
     "cancel": "Annuler",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "clear": "Effacer"
   },
   "app": {
     "title": "EMA E-Commerce Panel",
