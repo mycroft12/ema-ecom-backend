@@ -313,6 +313,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private deleteProduct(productId: string): void {
     this.dataService.deleteProduct(productId).subscribe({
       next: () => {
+        this.resetFiltersAndState();
         this.showSuccess(this.translate.instant('products.toastDeleted'));
         this.reloadTable();
       },
@@ -328,13 +329,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
 
   clear(table: Table) {
     table.clear();
-    this.searchValue = '';
-    this.first = 0;
-    this.sortField = undefined;
-    this.sortOrder = 1;
-    this.repFilterModel = [];
-    this.statusFilterModel = undefined;
-    this.activityRange = [this.activityMin, this.activityMax];
+    this.resetFiltersAndState();
     this.loadData({
       first: 0,
       rows: this.rows,
@@ -343,6 +338,21 @@ export class ProductTableComponent implements OnInit, OnDestroy {
       filters: undefined,
       globalFilter: undefined
     });
+  }
+
+  private resetFiltersAndState(): void {
+    this.searchValue = '';
+    this.first = 0;
+    this.sortField = undefined;
+    this.sortOrder = 1;
+    this.repFilterModel = [];
+    this.statusFilterModel = undefined;
+    this.activityRange = [this.activityMin, this.activityMax];
+    this.selectedColumnKeys = this.columnToggleOptions.map(option => option.value);
+    if (this.dt1) {
+      this.dt1.clear();
+      this.dt1.first = 0;
+    }
   }
 
   private reloadTable(): void {
