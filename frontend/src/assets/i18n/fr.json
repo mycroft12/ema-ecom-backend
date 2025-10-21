@@ -160,6 +160,7 @@
         "nameRequired": "Le nom de la permission est obligatoire"
       },
       "confirmDelete": {
+        "header": "Supprimer la permission",
         "message": "Supprimer la permission \"{{name}}\" ?",
         "accept": "Supprimer",
         "reject": "Annuler"
@@ -199,6 +200,7 @@
         "nameRequired": "Le nom du rôle est obligatoire"
       },
       "confirmDelete": {
+        "header": "Supprimer le rôle",
         "message": "Supprimer le rôle \"{{name}}\" ?",
         "accept": "Supprimer",
         "reject": "Annuler"
@@ -255,6 +257,7 @@
         "enabled": "Activé"
       },
       "confirmDelete": {
+        "header": "Supprimer l'utilisateur",
         "message": "Supprimer l'utilisateur \"{{name}}\" ?",
         "accept": "Supprimer",
         "reject": "Annuler"

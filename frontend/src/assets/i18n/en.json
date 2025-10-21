@@ -160,6 +160,7 @@
         "nameRequired": "Permission name is required"
       },
       "confirmDelete": {
+        "header": "Delete Permission",
         "message": "Delete permission \"{{name}}\"?",
         "accept": "Delete",
         "reject": "Cancel"
@@ -200,6 +201,7 @@
         "nameRequired": "Role name is required"
       },
       "confirmDelete": {
+        "header": "Delete Role",
         "message": "Delete role \"{{name}}\"?",
         "accept": "Delete",
         "reject": "Cancel"
@@ -257,6 +259,7 @@
         "enabled": "Enabled"
       },
       "confirmDelete": {
+        "header": "Delete User",
         "message": "Delete user \"{{name}}\"?",
         "accept": "Delete",
         "reject": "Cancel"

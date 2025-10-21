@@ -160,6 +160,7 @@
         "nameRequired": "اسم الإذن مطلوب"
       },
       "confirmDelete": {
+        "header": "حذف الإذن",
         "message": "حذف الإذن \"{{name}}\"؟",
         "accept": "حذف",
         "reject": "إلغاء"
@@ -199,6 +200,7 @@
         "nameRequired": "اسم الدور مطلوب"
       },
       "confirmDelete": {
+        "header": "حذف الدور",
         "message": "حذف الدور \"{{name}}\"؟",
         "accept": "حذف",
         "reject": "إلغاء"
@@ -255,6 +257,7 @@
         "enabled": "مفعل"
       },
       "confirmDelete": {
+        "header": "حذف المستخدم",
         "message": "حذف المستخدم \"{{name}}\"؟",
         "accept": "حذف",
         "reject": "إلغاء"

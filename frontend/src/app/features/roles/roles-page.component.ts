@@ -209,10 +209,13 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
 
   confirmDeletePermission(permission: Permission): void {
     this.confirm.confirm({
+      header: this.translate.instant('rolesPage.permissions.confirmDelete.header'),
       message: this.translate.instant('rolesPage.permissions.confirmDelete.message', { name: permission.name }),
       acceptLabel: this.translate.instant('rolesPage.permissions.confirmDelete.accept'),
       rejectLabel: this.translate.instant('rolesPage.permissions.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      icon: 'pi pi-exclamation-triangle',
       key: 'dangerConfirm',
       accept: () => this.executePermissionDelete(permission, false),
     });
@@ -234,6 +237,8 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
             acceptLabel: this.translate.instant('rolesPage.common.forceDelete'),
             rejectLabel: this.translate.instant('rolesPage.common.cancel'),
             acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+            icon: 'pi pi-exclamation-triangle',
             key: 'forceConfirm',
             accept: () => this.executePermissionDelete(permission, true),
           });
@@ -285,10 +290,13 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
 
   confirmDeleteRole(role: Role): void {
     this.confirm.confirm({
+      header: this.translate.instant('rolesPage.roles.confirmDelete.header'),
       message: this.translate.instant('rolesPage.roles.confirmDelete.message', { name: role.name }),
       acceptLabel: this.translate.instant('rolesPage.roles.confirmDelete.accept'),
       rejectLabel: this.translate.instant('rolesPage.roles.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      icon: 'pi pi-exclamation-triangle',
       key: 'dangerConfirm',
       accept: () => this.executeRoleDelete(role, false),
     });
@@ -310,6 +318,8 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
             acceptLabel: this.translate.instant('rolesPage.common.forceDelete'),
             rejectLabel: this.translate.instant('rolesPage.common.cancel'),
             acceptButtonStyleClass: 'p-button-danger',
+            rejectButtonStyleClass: 'p-button-text',
+            icon: 'pi pi-exclamation-triangle',
             key: 'forceConfirm',
             accept: () => this.executeRoleDelete(role, true),
           });
@@ -423,10 +433,13 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
 
   confirmDeleteUser(user: User): void {
     this.confirm.confirm({
+      header: this.translate.instant('rolesPage.users.confirmDelete.header'),
       message: this.translate.instant('rolesPage.users.confirmDelete.message', { name: user.username }),
       acceptLabel: this.translate.instant('rolesPage.users.confirmDelete.accept'),
       rejectLabel: this.translate.instant('rolesPage.users.confirmDelete.reject'),
       acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.service.deleteUser(user.id).subscribe({
           next: () => {
