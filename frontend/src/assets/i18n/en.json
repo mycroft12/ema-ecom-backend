@@ -57,6 +57,7 @@
     "btnExport": "Export",
     "searchPlaceholder": "Search...",
     "searchKeywordPlaceholder": "Search keyword",
+    "columnTogglePlaceholder": "Columns",
     "pageReport": "Showing {first} to {last} of {totalRecords} entries",
     "noImage": "No image",
     "noResults": "No products found",

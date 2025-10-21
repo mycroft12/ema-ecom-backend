@@ -57,6 +57,7 @@
     "btnExport": "Exporter",
     "searchPlaceholder": "Rechercher...",
     "searchKeywordPlaceholder": "Mot-clé de recherche",
+    "columnTogglePlaceholder": "Colonnes",
     "pageReport": "Affichage de {first} à {last} sur {totalRecords} entrées",
     "noImage": "Aucune image",
     "noResults": "Aucun produit trouvé",

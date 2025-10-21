@@ -4,6 +4,7 @@
     <div class="card">
         <p-table
             #dt1
+            styleClass="products-table"
             [value]="dataService.products()"
             dataKey="id"
             [rowsPerPageOptions]="[10, 25, 50]"
@@ -13,11 +14,13 @@
             [rows]="rows"
             [totalRecords]="totalRecords"
             [first]="first"
+            [tableStyle]="{ 'min-width': '1200px' }"
+            [scrollable]="true"
+            scrollDirection="horizontal"
             [globalFilterFields]="globalFilterFields"
             (onLazyLoad)="onLazyLoad($event)"
             (onSort)="onSort($event)"
         >
-            (onSort)="onSort($event)"
             <!-- CAPTION -->
             <ng-template pTemplate="caption">
                 <div class="flex flex-wrap items-center gap-2 caption-toolbar">
@@ -34,6 +37,17 @@
                                 icon="pi pi-plus"
                                 (click)="openCreateDialog()"
                         ></p-button>
+                        <p-multiselect
+                                class="column-toggle"
+                                [options]="columnToggleOptions"
+                                [(ngModel)]="selectedColumnKeys"
+                                optionLabel="label"
+                                optionValue="value"
+                                display="chip"
+                                [showToggleAll]="false"
+                                [placeholder]="'products.columnTogglePlaceholder' | translate"
+                                (onChange)="onColumnToggleChange($event.value)"
+                        ></p-multiselect>
                     </div>
                     <div class="flex items-center ml-auto">
                         <p-iconfield iconPosition="left" class="search-field">
@@ -56,22 +70,23 @@
             <ng-template pTemplate="header">
                 <tr>
                     @for (column of schemaService.visibleColumns(); track column.name) {
-                        <th
-                                [pSortableColumn]="column.name"
-                                [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'"
-                        >
-                            <div class="header-cell">
-                                <span class="header-title">{{ column.displayName }}</span>
-                                <p-sortIcon [field]="column.name"></p-sortIcon>
-                                <!-- default filter type from column type -->
-                                <p-columnFilter
-                                        styleClass="header-filter"
-                                        [type]="getFilterType(column)"
-                                        [field]="column.name"
-                                        display="menu"
-                                        [matchMode]="getMatchMode(column)"
-                                        [showMatchModes]="getShowMatchModes(column)"
-                                >
+                        @if (!isColumnHidden(column.name)) {
+                            <th
+                                    [pSortableColumn]="column.name"
+                                    [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'"
+                            >
+                                <div class="header-cell">
+                                    <span class="header-title">{{ column.displayName }}</span>
+                                    <p-sortIcon [field]="column.name"></p-sortIcon>
+                                    <!-- default filter type from column type -->
+                                    <p-columnFilter
+                                            styleClass="header-filter"
+                                            [type]="getFilterType(column)"
+                                            [field]="column.name"
+                                            display="menu"
+                                            [matchMode]="getMatchMode(column)"
+                                            [showMatchModes]="getShowMatchModes(column)"
+                                    >
                                     <!-- Special-case filter UIs (keep example’s UX) -->
                                     <!-- Representative: multi-select IN filter -->
                                     <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isRepresentative(column)">
@@ -124,12 +139,13 @@
                                             <span>{{ activityRange?.[0] ?? activityMin }} - {{ activityRange?.[1] ?? activityMax }}</span>
                                         </div>
                                     </ng-template>
-                                </p-columnFilter>
-                            </div>
-                        </th>
+                                    </p-columnFilter>
+                                </div>
+                            </th>
+                        }
                     }
                     @if (showActionColumn) {
-                        <th class="actions-header text-center">{{ 'products.actions' | translate }}</th>
+                        <th class="actions-header text-center sticky-action">{{ 'products.actions' | translate }}</th>
                     }
                 </tr>
             </ng-template>
@@ -138,7 +154,8 @@
             <ng-template pTemplate="body" let-product>
                 <tr>
                     @for (column of schemaService.visibleColumns(); track column.name) {
-                        <td>
+                        @if (!isColumnHidden(column.name)) {
+                            <td>
                             @switch (column.type) {
                                 @case (ColumnType.MINIO_IMAGE) {
                                     @if (product[column.name]) {
@@ -195,10 +212,11 @@
                                     </ng-template>
                                 }
                             }
-                        </td>
+                            </td>
+                        }
                     }
                     @if (showActionColumn) {
-                        <td class="actions-cell text-center">
+                        <td class="actions-cell text-center sticky-action">
                             <div class="flex justify-content-center gap-2">
                                 <button
                                         *ngIf="canEdit"

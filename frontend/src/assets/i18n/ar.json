@@ -57,6 +57,7 @@
     "btnExport": "تصدير",
     "searchPlaceholder": "بحث...",
     "searchKeywordPlaceholder": "كلمة البحث",
+    "columnTogglePlaceholder": "أعمدة",
     "pageReport": "عرض {first} إلى {last} من أصل {totalRecords}",
     "noImage": "لا توجد صورة",
     "noResults": "لا توجد منتجات",

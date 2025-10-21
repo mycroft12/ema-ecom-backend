@@ -68,6 +68,8 @@ export class ProductTableComponent implements OnInit {
   first = 0;
   sortField?: string;
   sortOrder: number = 1;
+  columnToggleOptions: Array<{ label: string; value: string }> = [];
+  selectedColumnKeys: string[] = [];
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -304,7 +306,9 @@ export class ProductTableComponent implements OnInit {
   }
 
   updateGlobalFilterFields() {
-    this.globalFilterFields = this.schemaService.visibleColumns().map(c => c.name);
+    const columns = this.schemaService.visibleColumns();
+    this.globalFilterFields = columns.map(c => c.name);
+    this.syncColumnToggleOptions(columns);
   }
 
   clear(table: Table) {
@@ -336,6 +340,43 @@ export class ProductTableComponent implements OnInit {
       globalFilter: this.searchValue
     };
     this.loadData(event);
+  }
+
+  onColumnToggleChange(values: string[] | undefined): void {
+    const available = this.columnToggleOptions.map(option => option.value);
+    if (!values || !values.length) {
+      this.selectedColumnKeys = [...available];
+    } else {
+      this.selectedColumnKeys = values.filter(value => available.includes(value));
+      if (!this.selectedColumnKeys.length) {
+        this.selectedColumnKeys = [...available];
+      }
+    }
+  }
+
+  isColumnHidden(columnName: string): boolean {
+    if (!this.selectedColumnKeys.length) {
+      return false;
+    }
+    return !this.selectedColumnKeys.includes(columnName);
+  }
+
+  private syncColumnToggleOptions(columns?: ColumnDefinition[]): void {
+    const sourceColumns = columns ?? this.schemaService.visibleColumns();
+    const nextOptions = sourceColumns.map(column => ({
+      label: column.displayName,
+      value: column.name
+    }));
+    this.columnToggleOptions = nextOptions;
+    if (!this.selectedColumnKeys.length) {
+      this.selectedColumnKeys = nextOptions.map(option => option.value);
+      return;
+    }
+    const availableValues = new Set(nextOptions.map(option => option.value));
+    this.selectedColumnKeys = this.selectedColumnKeys.filter(value => availableValues.has(value));
+    if (!this.selectedColumnKeys.length) {
+      this.selectedColumnKeys = nextOptions.map(option => option.value);
+    }
   }
 
   private buildInitialFormModel(initial?: Record<string, any>): Record<string, any> {

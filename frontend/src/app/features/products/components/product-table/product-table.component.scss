@@ -59,3 +59,28 @@
     flex-direction: column;
     gap: .5rem;
 }
+
+:host ::ng-deep {
+    .products-table {
+        .sticky-action {
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            background: var(--surface-card, #ffffff);
+            box-shadow: -6px 0 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .p-datatable-thead > tr > .sticky-action {
+            z-index: 3;
+            background: var(--surface-card, #ffffff);
+        }
+
+        .p-datatable-tbody > tr > .sticky-action {
+            background: var(--surface-card, #ffffff);
+        }
+    }
+
+    .column-toggle {
+        min-width: 12rem;
+    }
+}
