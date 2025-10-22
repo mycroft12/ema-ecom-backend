@@ -101,6 +101,11 @@
   "import": {
     "title": "استيراد نموذج",
     "description": "قم برفع ملف Excel/CSV لتحليل الأعمدة وتهيئة جدول المجال.",
+    "tabs": {
+      "dynamic": "التكوين الديناميكي",
+      "google": "موصل Google Sheet",
+      "configured": "المكونات المهيأة"
+    },
     "domainLabel": "المكوّن",
     "domainPlaceholder": "اختر المكوّن",
     "domainProduct": "المنتجات",
@@ -129,7 +134,31 @@
     "tableReset": "تم إعادة تعيين الجدول بنجاح",
     "resetError": "فشل في إعادة تعيين الجدول",
     "configuredDomains": "المكونات المهيأة",
+    "configuredEmpty": "لا توجد مكونات مهيأة بعد.",
     "domainConfigured": "تم تهيئة المكوّن {{domain}} وهو جاهز للاستخدام.",
+    "domainConfiguredSource": "تم تهيئة مكون {{domain}} وهو جاهز للاستخدام ({{source}}).",
+    "configuredSource": {
+      "dynamic": "تمت تهيئته ديناميكياً",
+      "google": "Google Sheet"
+    },
+    "google": {
+      "intro": "قم بتوصيل Google Sheet لتهيئة المكوّن وتعبئته تلقائياً.",
+      "step1Title": "اختيار المكوّن",
+      "step1Description": "اختر المكوّن الذي سيتم مزامنته مع Google Sheets.",
+      "componentLabel": "المكوّن",
+      "step2Title": "الاتصال بـ Google Sheet",
+      "step2Description": "أدخل تفاصيل Google Sheet التي ستُستخدم لتهيئة المكوّن.",
+      "sheetUrlLabel": "رابط Google Sheet",
+      "sheetUrlPlaceholder": "https://docs.google.com/spreadsheets/...",
+      "sheetTabLabel": "اسم الورقة (اختياري)",
+      "sheetTabPlaceholder": "Sheet1",
+      "next": "التالي",
+      "back": "السابق",
+      "connect": "تحليل وتهيئة",
+      "successDetail": "تم حفظ اتصال Google Sheet. سيتم تهيئة المكوّن قريباً.",
+      "domainRequired": "يرجى اختيار المكوّن قبل المتابعة.",
+      "sheetRequired": "يرجى إدخال رابط Google Sheet."
+    },
     "adminOnly": "خيارات المسؤول",
     "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",
     "confirmUploadHeader": "تأكيد رفع النموذج"

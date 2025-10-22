@@ -101,6 +101,11 @@
   "import": {
     "title": "Importer un modèle",
     "description": "Téléversez un fichier Excel/CSV pour analyser les colonnes et configurer une table de domaine.",
+    "tabs": {
+      "dynamic": "Configuration dynamique",
+      "google": "Connecteur Google Sheets",
+      "configured": "Composants configurés"
+    },
     "domainLabel": "Composant",
     "domainPlaceholder": "Sélectionnez un composant",
     "domainProduct": "Produits",
@@ -129,7 +134,31 @@
     "tableReset": "La table a été réinitialisée avec succès",
     "resetError": "Échec de la réinitialisation de la table",
     "configuredDomains": "Composants configurés",
+    "configuredEmpty": "Aucun composant n'est encore configuré.",
     "domainConfigured": "Le composant {{domain}} est configuré et prêt à être utilisé.",
+    "domainConfiguredSource": "Le composant {{domain}} est configuré et prêt à être utilisé ({{source}}).",
+    "configuredSource": {
+      "dynamic": "Configuration dynamique",
+      "google": "Google Sheet"
+    },
+    "google": {
+      "intro": "Connectez une feuille Google Sheets pour configurer et alimenter automatiquement un composant.",
+      "step1Title": "Sélectionner un composant",
+      "step1Description": "Choisissez le composant qui sera synchronisé avec Google Sheets.",
+      "componentLabel": "Composant",
+      "step2Title": "Connecter Google Sheets",
+      "step2Description": "Indiquez les informations de la feuille Google Sheets qui sera utilisée pour configurer le composant.",
+      "sheetUrlLabel": "URL Google Sheets",
+      "sheetUrlPlaceholder": "https://docs.google.com/spreadsheets/...",
+      "sheetTabLabel": "Nom de l'onglet (optionnel)",
+      "sheetTabPlaceholder": "Feuille1",
+      "next": "Suivant",
+      "back": "Retour",
+      "connect": "Analyser et configurer",
+      "successDetail": "Connexion Google Sheets enregistrée. Le composant sera configuré sous peu.",
+      "domainRequired": "Veuillez sélectionner un composant avant de continuer.",
+      "sheetRequired": "Saisissez l'URL Google Sheets."
+    },
     "adminOnly": "Options d'administrateur",
     "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",
     "confirmUploadHeader": "Confirmer le téléversement du modèle"

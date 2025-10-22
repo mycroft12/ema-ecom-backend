@@ -101,6 +101,11 @@
   "import": {
     "title": "Import Template",
     "description": "Upload an Excel/CSV template to analyze columns and configure a domain table.",
+    "tabs": {
+      "dynamic": "Dynamic Configuration",
+      "google": "Google Sheet Connector",
+      "configured": "Configured Components"
+    },
     "domainLabel": "Component",
     "domainPlaceholder": "Select component",
     "domainProduct": "Products",
@@ -129,7 +134,31 @@
     "tableReset": "Table has been reset successfully",
     "resetError": "Failed to reset table",
     "configuredDomains": "Configured Components",
+    "configuredEmpty": "No components are configured yet.",
     "domainConfigured": "The {{domain}} component is configured and ready to use.",
+    "domainConfiguredSource": "The {{domain}} component is configured and ready to use ({{source}}).",
+    "configuredSource": {
+      "dynamic": "Dynamically configured",
+      "google": "Google Sheet"
+    },
+    "google": {
+      "intro": "Connect a Google Sheet to automatically configure and populate a component.",
+      "step1Title": "Select Component",
+      "step1Description": "Choose the component that will be synchronized with Google Sheets.",
+      "componentLabel": "Component",
+      "step2Title": "Connect Google Sheet",
+      "step2Description": "Provide the Google Sheet details that will be used to configure the component.",
+      "sheetUrlLabel": "Google Sheet URL",
+      "sheetUrlPlaceholder": "https://docs.google.com/spreadsheets/...",
+      "sheetTabLabel": "Worksheet name (optional)",
+      "sheetTabPlaceholder": "Sheet1",
+      "next": "Next",
+      "back": "Back",
+      "connect": "Analyze & Configure",
+      "successDetail": "Google Sheet connection saved. The component will be configured shortly.",
+      "domainRequired": "Please select a component before continuing.",
+      "sheetRequired": "Enter the Google Sheet URL."
+    },
     "adminOnly": "Admin Options",
     "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",
     "confirmUploadHeader": "Confirm Template Upload"
