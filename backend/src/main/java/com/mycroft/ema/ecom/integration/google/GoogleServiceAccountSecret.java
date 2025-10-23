@@ -3,7 +3,6 @@ package com.mycroft.ema.ecom.integration.google;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -20,11 +19,10 @@ public class GoogleServiceAccountSecret {
   @Id
   private UUID id = SINGLETON_ID;
 
-  @Lob
-  @Column(name = "payload", nullable = false)
+  @Column(name = "payload", nullable = false, columnDefinition = "bytea")
   private byte[] payload;
 
-  @Column(name = "iv", nullable = false, length = 16)
+  @Column(name = "iv", nullable = false, columnDefinition = "bytea")
   private byte[] iv;
 
   @Column(name = "uploaded_by", length = 150)
