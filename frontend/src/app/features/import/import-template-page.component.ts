@@ -14,6 +14,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { StepperModule } from 'primeng/stepper';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../core/auth.service';
 import { environment } from '../../../environments/environment';
 
@@ -46,6 +47,12 @@ interface GoogleSheetMetadata {
   index: number | null;
 }
 
+interface GoogleIntegrationConfig {
+  clientId: string | null;
+  apiKey: string | null;
+  configured: boolean;
+}
+
 // @ts-ignore
 // @ts-ignore
 @Component({
@@ -64,7 +71,8 @@ interface GoogleSheetMetadata {
     TabViewModule,
     StepperModule,
     InputTextModule,
-    MessageModule
+    MessageModule,
+    DialogModule
   ],
   providers: [ConfirmationService, MessageService],
   styles: [
@@ -87,6 +95,34 @@ interface GoogleSheetMetadata {
 
         .google-stepper .p-message {
           margin-top: 1rem;
+        }
+
+        .google-config-link {
+          color: var(--primary-color);
+          text-decoration: none;
+        }
+
+        .google-config-link:hover {
+          text-decoration: underline;
+        }
+
+        .google-config-badge {
+          display: inline-block;
+          padding: 0.15rem 0.4rem;
+          background: var(--surface-200);
+          border-radius: 999px;
+          font-size: 0.85rem;
+          margin: 0 0.25rem;
+        }
+
+        .google-config-steps {
+          margin: 0 0 1rem 0;
+          padding-inline-start: 1.5rem;
+        }
+
+        :host(:dir(rtl)) .google-config-steps {
+          padding-inline-start: 0;
+          padding-inline-end: 1.5rem;
         }
       }`
   ],
@@ -228,6 +264,17 @@ interface GoogleSheetMetadata {
                 <ng-template pTemplate="content" let-activateCallback="activateCallback">
                   <p class="mb-3">{{ 'import.google.step2Description' | translate }}</p>
                   <div class="grid p-fluid">
+                    <div class="col-12" *ngIf="canManageGoogleIntegration">
+                      <button
+                        pButton
+                        type="button"
+                        icon="pi pi-cog"
+                        class="mr-2"
+                        severity="secondary"
+                        [label]="'import.google.configureButton' | translate"
+                        (click)="openGoogleConfigDialog()"
+                      ></button>
+                    </div>
                     <div class="col-12">
                       <button
                         pButton
@@ -236,7 +283,7 @@ interface GoogleSheetMetadata {
                         class="mr-2"
                         [label]="'import.google.pickerButton' | translate"
                         (click)="openDrivePicker()"
-                        [disabled]="googleLoading || (!googlePickerReady && !googlePickerError) || googlePickerError === 'import.google.missingConfig'"
+                        [disabled]="googleLoading || !googlePickerReady"
                       ></button>
                       <span class="text-600 text-sm" *ngIf="!googlePickerReady && !googlePickerError">
                         {{ 'import.google.pickerLoading' | translate }}
@@ -344,6 +391,58 @@ interface GoogleSheetMetadata {
 
     <p-confirmDialog [style]="{width: '450px'}" [acceptLabel]="'common.yes' | translate" [rejectLabel]="'common.no' | translate"></p-confirmDialog>
     <p-toast></p-toast>
+    <p-dialog
+      [(visible)]="showGoogleConfigDialog"
+      [modal]="true"
+      [closable]="false"
+      [breakpoints]="{'960px': '75vw', '640px': '95vw'}"
+      [style]="{ width: '30rem' }"
+      [header]="'import.google.configDialogTitle' | translate"
+    >
+      <p class="mb-3 text-600" [innerHTML]="'import.google.configDialogDescription' | translate"></p>
+      <div class="p-fluid formgrid grid">
+        <div class="field col-12">
+          <label for="googleClientId" class="block mb-2">{{ 'import.google.clientIdLabel' | translate }}</label>
+          <input
+            id="googleClientId"
+            pInputText
+            type="text"
+            [(ngModel)]="googleConfigForm.clientId"
+            autocomplete="off"
+            [disabled]="googleConfigSaving"
+          />
+        </div>
+        <div class="field col-12">
+          <label for="googleApiKey" class="block mb-2">{{ 'import.google.apiKeyLabel' | translate }}</label>
+          <input
+            id="googleApiKey"
+            pInputText
+            type="text"
+            [(ngModel)]="googleConfigForm.apiKey"
+            autocomplete="off"
+            [disabled]="googleConfigSaving"
+          />
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <button
+          pButton
+          type="button"
+          class="p-button-text"
+          [label]="'common.cancel' | translate"
+          (click)="closeGoogleConfigDialog()"
+          [disabled]="googleConfigSaving"
+        ></button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-save"
+          [label]="'common.save' | translate"
+          (click)="saveGoogleIntegrationConfig()"
+          [loading]="googleConfigSaving"
+        ></button>
+      </ng-template>
+    </p-dialog>
   `
 })
 export class ImportTemplatePageComponent implements OnInit {
@@ -375,21 +474,27 @@ export class ImportTemplatePageComponent implements OnInit {
   googleFileLoading = false;
   selectedSpreadsheet: GoogleDriveFile | null = null;
   availableSheets: GoogleSheetMetadata[] = [];
+  canManageGoogleIntegration = false;
+  showGoogleConfigDialog = false;
+  googleConfigSaving = false;
+  googleConfigForm: { clientId: string; apiKey: string } = { clientId: '', apiKey: '' };
+  googleConfigLoaded = false;
   private pickerTokenClient: any = null;
   private oauthToken: string | null = null;
   private pickerApiLoaded = false;
   private gsiLoaded = false;
   private pendingPickerOpen = false;
   private googleScriptsRequested = false;
-  private readonly googleClientId = environment.googlePickerClientId;
-  private readonly googleApiKey = environment.googlePickerApiKey;
+  private googleClientId: string | null = environment.googlePickerClientId || null;
+  private googleApiKey: string | null = environment.googlePickerApiKey || null;
   private readonly googleMimeTypes = environment.googleDriveMimeTypes || 'application/vnd.google-apps.spreadsheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv';
   private readonly pickerScopes = ['https://www.googleapis.com/auth/drive.readonly'];
 
   ngOnInit(): void {
     this.isAdmin = this.auth.hasAny(['import:configure']);
+    this.canManageGoogleIntegration = this.auth.hasAny(['google-sheet:access']);
     this.fetchConfiguredTables();
-    this.initializeGooglePicker();
+    this.loadGoogleIntegrationConfig();
   }
 
   fetchConfiguredTables(): void {
@@ -415,15 +520,44 @@ export class ImportTemplatePageComponent implements OnInit {
     });
   }
 
+  private loadGoogleIntegrationConfig(): void {
+    this.http.get<GoogleIntegrationConfig>('/api/import/google/config').subscribe({
+      next: (config) => {
+        this.googleConfigLoaded = true;
+        const fallbackClientId = environment.googlePickerClientId || null;
+        const fallbackApiKey = environment.googlePickerApiKey || null;
+        this.googleClientId = (config?.clientId ?? fallbackClientId) || null;
+        this.googleApiKey = (config?.apiKey ?? fallbackApiKey) || null;
+        if (this.googleClientId && this.googleApiKey) {
+          this.resetPickerState();
+          this.initializeGooglePicker();
+          this.googlePickerError = '';
+        } else {
+          this.googlePickerError = 'import.google.missingConfig';
+        }
+      },
+      error: (err) => {
+        this.googleConfigLoaded = true;
+        const detail = err?.error?.message || this.translate.instant('import.google.configFetchError');
+        this.googlePickerError = 'import.google.configFetchError';
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail
+        });
+      }
+    });
+  }
+
   private initializeGooglePicker(): void {
-    if (this.googleScriptsRequested) {
-      return;
-    }
-    this.googleScriptsRequested = true;
     if (!this.googleClientId || !this.googleApiKey) {
       this.googlePickerError = 'import.google.missingConfig';
       return;
     }
+    if (this.googleScriptsRequested) {
+      return;
+    }
+    this.googleScriptsRequested = true;
     this.appendScript('https://accounts.google.com/gsi/client', () => {
       this.gsiLoaded = true;
       this.initializeTokenClient();
@@ -461,6 +595,9 @@ export class ImportTemplatePageComponent implements OnInit {
   }
 
   private initializeTokenClient(): void {
+    if (!this.googleClientId) {
+      return;
+    }
     if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
       return;
     }
@@ -595,6 +732,66 @@ export class ImportTemplatePageComponent implements OnInit {
       label: sheet.title,
       value: sheet.title
     }));
+  }
+
+  openGoogleConfigDialog(): void {
+    if (!this.canManageGoogleIntegration) {
+      return;
+    }
+    this.googleConfigForm = {
+      clientId: this.googleClientId ?? '',
+      apiKey: this.googleApiKey ?? ''
+    };
+    this.showGoogleConfigDialog = true;
+  }
+
+  closeGoogleConfigDialog(): void {
+    this.showGoogleConfigDialog = false;
+    this.googleConfigSaving = false;
+  }
+
+  saveGoogleIntegrationConfig(): void {
+    if (!this.canManageGoogleIntegration) {
+      return;
+    }
+    const clientId = this.googleConfigForm.clientId.trim();
+    const apiKey = this.googleConfigForm.apiKey.trim();
+    if (!clientId || !apiKey) {
+      this.googlePickerError = 'import.google.missingConfig';
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.error'),
+        detail: this.translate.instant('import.google.configValidation')
+      });
+      return;
+    }
+    this.googleConfigSaving = true;
+    this.http.put<GoogleIntegrationConfig>('/api/admin/google-integration', { clientId, apiKey }).subscribe({
+      next: (config) => {
+        this.googleConfigSaving = false;
+        this.showGoogleConfigDialog = false;
+        this.googleClientId = config.clientId ?? clientId;
+        this.googleApiKey = config.apiKey ?? apiKey;
+        this.resetPickerState();
+        if (this.googleClientId && this.googleApiKey) {
+          this.initializeGooglePicker();
+        }
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('import.success'),
+          detail: this.translate.instant('import.google.configUpdated')
+        });
+      },
+      error: (err) => {
+        this.googleConfigSaving = false;
+        const detail = err?.error?.message || this.translate.instant('import.google.configUpdateError');
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail
+        });
+      }
+    });
   }
 
   isTableConfigured(domain: DomainKey): boolean {
@@ -861,6 +1058,22 @@ export class ImportTemplatePageComponent implements OnInit {
     if (this.googlePickerError !== 'import.google.missingConfig') {
       this.googlePickerError = '';
     }
+  }
+
+  private resetPickerState(): void {
+    this.googlePickerReady = false;
+    this.googlePickerError = '';
+    this.googleFileLoading = false;
+    this.selectedSpreadsheet = null;
+    this.availableSheets = [];
+    this.googleSheetUrl = '';
+    this.googleSheetName = '';
+    this.googleLoading = false;
+    this.oauthToken = null;
+    this.pickerApiLoaded = false;
+    this.gsiLoaded = false;
+    this.pendingPickerOpen = false;
+    this.googleScriptsRequested = false;
   }
 
   private normalizeGoogleError(message?: string): string {

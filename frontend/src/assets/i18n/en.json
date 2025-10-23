@@ -170,7 +170,16 @@
       "credentialsMissing": "Google service account credentials are missing. Upload the JSON key to the backend or configure the credential path before trying again.",
       "pickerNotReady": "The Google Drive picker is still loading. Please try again in a moment.",
       "oauthDenied": "Access to Google Drive was denied. Please allow access and try again.",
-      "emptySpreadsheet": "The selected spreadsheet does not contain any sheets to import."
+      "emptySpreadsheet": "The selected spreadsheet does not contain any sheets to import.",
+      "configureButton": "Configure Google Integration",
+      "configDialogTitle": "Google Drive Integration",
+      "configDialogDescription": "Provide the Google Client ID and Google API Key that will be used to launch the Google Drive picker.<ol class=\"google-config-steps\"><li>Open the <a class=\"google-config-link\" href=\"https://console.cloud.google.com/\" target=\"_blank\" rel=\"noopener\">Google Cloud Console</a> in your browser and sign in with your administrator account.</li><li>Select the project you use for EMA (or create a new project from the project picker).</li><li>In the left menu choose <span class=\"google-config-badge\">APIs & Services → Credentials</span> and create both an OAuth 2.0 Client ID (Web application) and an API key.</li><li>Still under APIs & Services, open the <a class=\"google-config-link\" href=\"https://console.cloud.google.com/apis/library/drive.googleapis.com\" target=\"_blank\" rel=\"noopener\">Google Drive API</a> and <a class=\"google-config-link\" href=\"https://console.cloud.google.com/apis/library/picker.googleapis.com\" target=\"_blank\" rel=\"noopener\">Google Picker API</a> pages, then click “Enable” for each.</li><li>Copy the generated Client ID and API key into the fields below and click save.</li></ol>",
+      "clientIdLabel": "Google Client ID",
+      "apiKeyLabel": "Google API Key",
+      "configUpdated": "Google integration updated successfully.",
+      "configUpdateError": "Failed to update Google integration settings.",
+      "configFetchError": "Failed to load Google integration settings.",
+      "configValidation": "Please provide both the Google client ID and API key before saving."
     },
     "adminOnly": "Admin Options",
     "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",

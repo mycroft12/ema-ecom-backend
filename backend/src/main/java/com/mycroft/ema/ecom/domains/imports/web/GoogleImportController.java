@@ -5,6 +5,8 @@ import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetConnectResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetMetadataResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetWebhookPayload;
 import com.mycroft.ema.ecom.domains.imports.service.GoogleSheetImportService;
+import com.mycroft.ema.ecom.integration.google.GoogleIntegrationSettingsService;
+import com.mycroft.ema.ecom.integration.google.dto.GoogleIntegrationConfigResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,9 +24,12 @@ public class GoogleImportController {
   private static final Logger log = LoggerFactory.getLogger(GoogleImportController.class);
 
   private final GoogleSheetImportService importService;
+  private final GoogleIntegrationSettingsService integrationSettingsService;
 
-  public GoogleImportController(GoogleSheetImportService importService) {
+  public GoogleImportController(GoogleSheetImportService importService,
+                                GoogleIntegrationSettingsService integrationSettingsService) {
     this.importService = importService;
+    this.integrationSettingsService = integrationSettingsService;
   }
 
   @PostMapping("/connect")
@@ -40,6 +45,13 @@ public class GoogleImportController {
   @Operation(summary = "List sheets within a spreadsheet", description = "Returns the available sheet tabs for the given spreadsheet.")
   public java.util.List<GoogleSheetMetadataResponse> sheets(@PathVariable String spreadsheetId) {
     return importService.listSheets(spreadsheetId);
+  }
+
+  @GetMapping("/config")
+  @PreAuthorize("hasAuthority('import:configure')")
+  @Operation(summary = "Get Google Drive picker configuration", description = "Returns the client configuration needed to launch the Google Drive picker.")
+  public GoogleIntegrationConfigResponse config() {
+    return integrationSettingsService.currentConfig();
   }
 
   @PostMapping("/webhook")

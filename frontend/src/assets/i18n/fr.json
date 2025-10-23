@@ -170,7 +170,16 @@
       "credentialsMissing": "Les identifiants du compte de service Google sont manquants. Téléversez la clé JSON côté backend ou mettez à jour le chemin de configuration avant de réessayer.",
       "pickerNotReady": "Le sélecteur Google Drive est encore en cours de chargement. Veuillez réessayer dans un instant.",
       "oauthDenied": "L'accès à Google Drive a été refusé. Veuillez autoriser l'accès puis réessayer.",
-      "emptySpreadsheet": "La feuille de calcul sélectionnée ne contient aucun onglet à importer."
+      "emptySpreadsheet": "La feuille de calcul sélectionnée ne contient aucun onglet à importer.",
+      "configureButton": "Configurer l'intégration Google",
+      "configDialogTitle": "Intégration Google Drive",
+      "configDialogDescription": "Renseignez le Google Client ID et le Google API Key qui seront utilisés pour ouvrir le sélecteur Google Drive.<ol class=\"google-config-steps\"><li>Ouvrez la <a class=\"google-config-link\" href=\"https://console.cloud.google.com/\" target=\"_blank\" rel=\"noopener\">Google Cloud Console</a> dans votre navigateur et connectez-vous avec votre compte administrateur.</li><li>Sélectionnez le projet utilisé pour EMA (ou créez-en un nouveau depuis le sélecteur de projets).</li><li>Dans le menu de gauche, choisissez <span class=\"google-config-badge\">APIs & Services → Credentials</span> puis créez un identifiant client OAuth 2.0 (Web application) ainsi qu'une clé API.</li><li>Toujours dans APIs & Services, ouvrez les pages <a class=\"google-config-link\" href=\"https://console.cloud.google.com/apis/library/drive.googleapis.com\" target=\"_blank\" rel=\"noopener\">Google Drive API</a> et <a class=\"google-config-link\" href=\"https://console.cloud.google.com/apis/library/picker.googleapis.com\" target=\"_blank\" rel=\"noopener\">Google Picker API</a>, puis cliquez sur « Enable » pour chacune.</li><li>Copiez l'identifiant client et la clé API générés dans les champs ci-dessous et enregistrez.</li></ol>",
+       "clientIdLabel": "Google Client ID",
+      "apiKeyLabel": "Google API Key",
+      "configUpdated": "Intégration Google mise à jour avec succès.",
+      "configUpdateError": "Échec de la mise à jour de l'intégration Google.",
+      "configFetchError": "Échec du chargement de la configuration Google.",
+      "configValidation": "Veuillez fournir l'identifiant client Google et la clé API avant d'enregistrer."
     },
     "adminOnly": "Options d'administrateur",
     "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",

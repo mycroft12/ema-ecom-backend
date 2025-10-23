@@ -170,7 +170,16 @@
       "credentialsMissing": "بيانات اعتماد حساب خدمة Google غير متوفرة. يرجى رفع ملف JSON في الجهة الخلفية أو تحديث مسار الاعتماد قبل المحاولة مرة أخرى.",
       "pickerNotReady": "لا يزال منتقي Google Drive قيد التحميل. يرجى المحاولة مرة أخرى خلال لحظات.",
       "oauthDenied": "تم رفض الوصول إلى Google Drive. يرجى السماح بالوصول ثم المحاولة مرة أخرى.",
-      "emptySpreadsheet": "لا يحتوي جدول البيانات المحدد على أوراق يمكن استيرادها."
+      "emptySpreadsheet": "لا يحتوي جدول البيانات المحدد على أوراق يمكن استيرادها.",
+      "configureButton": "تهيئة تكامل Google",
+      "configDialogTitle": "تكامل Google Drive",
+      "configDialogDescription": "أدخل Google Client ID و Google API Key اللذين سيتم استخدامهما لفتح منتقي Google Drive.<ol class=\"google-config-steps\"><li>افتح <a class=\"google-config-link\" href=\"https://console.cloud.google.com/\" target=\"_blank\" rel=\"noopener\">Google Cloud Console</a> في المتصفح وسجّل الدخول بحساب المسؤول.</li><li>اختر المشروع المخصّص لـ EMA (أو أنشئ مشروعاً جديداً من محدّد المشاريع).</li><li>من القائمة الجانبية اختر <span class=\"google-config-badge\">APIs & Services → Credentials</span> ثم أنشئ OAuth 2.0 Client ID (Web application) ومفتاح API.</li><li>من القسم نفسه افتح صفحات <a class=\"google-config-link\" href=\"https://console.cloud.google.com/apis/library/drive.googleapis.com\" target=\"_blank\" rel=\"noopener\">Google Drive API</a> و <a class=\"google-config-link\" href=\"https://console.cloud.google.com/apis/library/picker.googleapis.com\" target=\"_blank\" rel=\"noopener\">Google Picker API</a> واضغط «Enable» لكل واحدة.</li><li>انسخ Google Client ID و Google API Key اللذين تم إنشاؤهما إلى الحقول أدناه ثم احفظ.</li></ol>",
+     "clientIdLabel": "Google Client ID",
+      "apiKeyLabel": "Google API Key",
+      "configUpdated": "تم تحديث تكامل Google بنجاح.",
+      "configUpdateError": "فشل في تحديث إعدادات تكامل Google.",
+      "configFetchError": "فشل في تحميل إعدادات تكامل Google.",
+      "configValidation": "يرجى إدخال معرّف العميل ومفتاح واجهة برمجة التطبيقات لـ Google قبل الحفظ."
     },
     "adminOnly": "خيارات المسؤول",
     "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",
