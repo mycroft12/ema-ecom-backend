@@ -162,6 +162,7 @@ type ConfigurationSource = 'dynamic' | 'google';
                     [(ngModel)]="googleDomain"
                     [options]="googleDomainOptions"
                     optionValue="value"
+                    optionDisabled="disabled"
                     [placeholder]="('import.domainPlaceholder' | translate)"
                     [showClear]="true"
                     (onChange)="clearGoogleError()"
@@ -408,7 +409,8 @@ export class ImportTemplatePageComponent implements OnInit {
   get googleDomainOptions() {
     return this.componentOptions.map(option => ({
       ...option,
-      configured: this.isTableConfigured(option.value)
+      configured: this.isTableConfigured(option.value),
+      disabled: this.isTableConfigured(option.value)
     }));
   }
 
