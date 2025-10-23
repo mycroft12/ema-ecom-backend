@@ -15,9 +15,36 @@ import { StepperModule } from 'primeng/stepper';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../core/auth.service';
+import { environment } from '../../../environments/environment';
+
+declare const google: any;
+declare const gapi: any;
 
 type DomainKey = 'product' | 'employee' | 'delivery' | '';
 type ConfigurationSource = 'dynamic' | 'google';
+
+interface GoogleSheetConnectResponse {
+  configured: boolean;
+}
+
+interface ConfiguredTableResponse {
+  domain: DomainKey;
+  tableName: string;
+  rowCount: number;
+  source?: ConfigurationSource;
+}
+
+interface GoogleDriveFile {
+  id: string;
+  name: string;
+  url: string;
+}
+
+interface GoogleSheetMetadata {
+  sheetId: number | null;
+  title: string;
+  index: number | null;
+}
 
 // @ts-ignore
 // @ts-ignore
@@ -201,27 +228,51 @@ type ConfigurationSource = 'dynamic' | 'google';
                 <ng-template pTemplate="content" let-activateCallback="activateCallback">
                   <p class="mb-3">{{ 'import.google.step2Description' | translate }}</p>
                   <div class="grid p-fluid">
-                    <div class="col-12 md:col-8">
-                      <label for="googleSheetUrl" class="block mb-2">{{ 'import.google.sheetUrlLabel' | translate }}</label>
-                      <input
-                        id="googleSheetUrl"
-                        pInputText
-                        type="text"
-                        [(ngModel)]="googleSheetUrl"
-                        [placeholder]="'import.google.sheetUrlPlaceholder' | translate"
-                        (ngModelChange)="clearGoogleError()"
-                      />
+                    <div class="col-12">
+                      <button
+                        pButton
+                        type="button"
+                        icon="pi pi-google"
+                        class="mr-2"
+                        [label]="'import.google.pickerButton' | translate"
+                        (click)="openDrivePicker()"
+                        [disabled]="googleLoading || (!googlePickerReady && !googlePickerError) || googlePickerError === 'import.google.missingConfig'"
+                      ></button>
+                      <span class="text-600 text-sm" *ngIf="!googlePickerReady && !googlePickerError">
+                        {{ 'import.google.pickerLoading' | translate }}
+                      </span>
+                      <p-message *ngIf="googlePickerError" severity="warn" [text]="googlePickerError | translate"></p-message>
                     </div>
-                    <div class="col-12 md:col-4">
+                    <div class="col-12" *ngIf="selectedSpreadsheet as file">
+                      <div class="surface-100 border-round p-3 flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                          <div class="font-bold">{{ file.name }}</div>
+                          <div class="text-sm text-600">{{ 'import.google.selectedFile' | translate }}</div>
+                        </div>
+                        <a [href]="file.url" target="_blank" rel="noopener" class="text-primary text-sm">
+                          {{ 'import.google.openInSheets' | translate }}
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-6" *ngIf="selectedSpreadsheet">
                       <label for="googleSheetName" class="block mb-2">{{ 'import.google.sheetTabLabel' | translate }}</label>
-                      <input
+                      <p-dropdown
                         id="googleSheetName"
-                        pInputText
-                        type="text"
+                        class="w-full"
+                        [options]="googleSheetOptions"
+                        optionLabel="label"
+                        optionValue="value"
                         [(ngModel)]="googleSheetName"
                         [placeholder]="'import.google.sheetTabPlaceholder' | translate"
-                        (ngModelChange)="clearGoogleError()"
-                      />
+                        (onChange)="onSheetSelected($event.value)"
+                        [disabled]="googleFileLoading"
+                      ></p-dropdown>
+                      <div class="text-600 text-sm mt-2" *ngIf="googleFileLoading">
+                        <i class="pi pi-spin pi-spinner mr-2"></i>{{ 'import.google.loadingSheets' | translate }}
+                      </div>
+                    </div>
+                    <div class="col-12" *ngIf="selectedSpreadsheet">
+                      <p-message severity="info" [text]="'import.google.shareHint' | translate"></p-message>
                     </div>
                   </div>
                   <p-message *ngIf="googleError" severity="error" [text]="googleError | translate"></p-message>
@@ -319,22 +370,40 @@ export class ImportTemplatePageComponent implements OnInit {
   googleSheetName = '';
   googleLoading = false;
   googleError = '';
+  googlePickerReady = false;
+  googlePickerError = '';
+  googleFileLoading = false;
+  selectedSpreadsheet: GoogleDriveFile | null = null;
+  availableSheets: GoogleSheetMetadata[] = [];
+  private pickerTokenClient: any = null;
+  private oauthToken: string | null = null;
+  private pickerApiLoaded = false;
+  private gsiLoaded = false;
+  private pendingPickerOpen = false;
+  private googleScriptsRequested = false;
+  private readonly googleClientId = environment.googlePickerClientId;
+  private readonly googleApiKey = environment.googlePickerApiKey;
+  private readonly googleMimeTypes = environment.googleDriveMimeTypes || 'application/vnd.google-apps.spreadsheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv';
+  private readonly pickerScopes = ['https://www.googleapis.com/auth/drive.readonly'];
 
   ngOnInit(): void {
     this.isAdmin = this.auth.hasAny(['import:configure']);
     this.fetchConfiguredTables();
+    this.initializeGooglePicker();
   }
 
   fetchConfiguredTables(): void {
-    this.http.get<any[]>('/api/import/configure/tables').subscribe({
+    this.http.get<ConfiguredTableResponse[]>('/api/import/configure/tables').subscribe({
       next: (tables) => {
         const domains = tables.map(t => t.domain as DomainKey);
         this.configuredTables = domains;
-        domains.forEach(domain => {
-          if (!this.configuredSources[domain]) {
-            this.configuredSources[domain] = 'dynamic';
-          }
+        const nextSources: Record<string, ConfigurationSource> = {};
+        tables.forEach(table => {
+          const domain = table.domain as DomainKey;
+          const source = (table as { source?: ConfigurationSource }).source;
+          nextSources[domain] = source === 'google' ? 'google' : 'dynamic';
         });
+        this.configuredSources = nextSources;
       },
       error: (err) => {
         this.messageService.add({ 
@@ -344,6 +413,188 @@ export class ImportTemplatePageComponent implements OnInit {
         });
       }
     });
+  }
+
+  private initializeGooglePicker(): void {
+    if (this.googleScriptsRequested) {
+      return;
+    }
+    this.googleScriptsRequested = true;
+    if (!this.googleClientId || !this.googleApiKey) {
+      this.googlePickerError = 'import.google.missingConfig';
+      return;
+    }
+    this.appendScript('https://accounts.google.com/gsi/client', () => {
+      this.gsiLoaded = true;
+      this.initializeTokenClient();
+    });
+    this.appendScript('https://apis.google.com/js/api.js', () => {
+      if (typeof gapi !== 'undefined' && gapi.load) {
+        gapi.load('client:picker', {
+          callback: () => {
+            this.pickerApiLoaded = true;
+            this.tryEnablePicker();
+          },
+          onerror: () => {
+            this.googlePickerError = 'import.google.pickerNotReady';
+          }
+        });
+      }
+    });
+  }
+
+  private appendScript(src: string, onLoad: () => void): void {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      onLoad();
+      return;
+    }
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = src;
+    script.async = true;
+    script.defer = true;
+    script.onload = onLoad;
+    script.onerror = () => {
+      this.googlePickerError = 'import.google.pickerNotReady';
+    };
+    document.head.appendChild(script);
+  }
+
+  private initializeTokenClient(): void {
+    if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+      return;
+    }
+    this.pickerTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: this.googleClientId,
+      scope: this.pickerScopes.join(' '),
+      callback: (response: any) => {
+        if (response?.access_token) {
+          this.oauthToken = response.access_token;
+          this.googlePickerError = '';
+          if (this.pendingPickerOpen) {
+            this.pendingPickerOpen = false;
+            this.createPicker();
+          }
+        } else if (response?.error) {
+          this.googlePickerError = 'import.google.oauthDenied';
+          this.pendingPickerOpen = false;
+        }
+      }
+    });
+    this.tryEnablePicker();
+  }
+
+  private tryEnablePicker(): void {
+    if (this.pickerApiLoaded && this.pickerTokenClient) {
+      this.googlePickerReady = true;
+      if (this.googlePickerError === 'import.google.pickerNotReady' || this.googlePickerError === 'import.google.missingConfig') {
+        this.googlePickerError = '';
+      }
+    }
+  }
+
+  openDrivePicker(): void {
+    if (this.googlePickerError === 'import.google.missingConfig') {
+      return;
+    }
+    if (!this.googlePickerReady || !this.pickerTokenClient) {
+      this.googlePickerError = this.googlePickerError || 'import.google.pickerNotReady';
+      return;
+    }
+    if (!this.oauthToken) {
+      this.pendingPickerOpen = true;
+      this.pickerTokenClient.requestAccessToken({ prompt: 'consent' });
+      return;
+    }
+    this.createPicker();
+  }
+
+  private createPicker(): void {
+    if (typeof google === 'undefined' || !google.picker || !this.oauthToken) {
+      this.googlePickerError = 'import.google.pickerNotReady';
+      return;
+    }
+    const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
+      .setMimeTypes(this.googleMimeTypes)
+      .setSelectFolderEnabled(false);
+    const picker = new google.picker.PickerBuilder()
+      .enableFeature(google.picker.Feature.NAV_HIDDEN)
+      .enableFeature(google.picker.Feature.MULTISELECT_DISABLED)
+      .setDeveloperKey(this.googleApiKey)
+      .setOAuthToken(this.oauthToken)
+      .addView(view)
+      .setCallback((data: any) => this.handlePickerSelection(data))
+      .build();
+    picker.setVisible(true);
+  }
+
+  private handlePickerSelection(data: any): void {
+    if (!data) {
+      return;
+    }
+    const action = data[google.picker.Response.ACTION];
+    if (action === google.picker.Action.CANCEL) {
+      return;
+    }
+    if (action !== google.picker.Action.PICKED) {
+      return;
+    }
+    const doc = data[google.picker.Response.DOCUMENTS]?.[0];
+    if (!doc) {
+      return;
+    }
+    const id = doc[google.picker.Document.ID];
+    const name = doc[google.picker.Document.NAME];
+    const url =
+      doc[google.picker.Document.URL] ||
+      `https://docs.google.com/spreadsheets/d/${id}`;
+    this.selectedSpreadsheet = { id, name, url };
+    this.googleSheetUrl = url;
+    this.googlePickerError = '';
+    this.googleError = '';
+    this.availableSheets = [];
+    this.googleSheetName = '';
+    this.fetchSheetMetadata(id);
+  }
+
+  private fetchSheetMetadata(spreadsheetId: string): void {
+    this.googleFileLoading = true;
+    this.http.get<GoogleSheetMetadata[]>(`/api/import/google/spreadsheets/${spreadsheetId}/sheets`).subscribe({
+      next: (sheets) => {
+        this.googleFileLoading = false;
+        this.availableSheets = sheets ?? [];
+        if (this.availableSheets.length === 0) {
+          this.googleError = 'import.google.emptySpreadsheet';
+          return;
+        }
+        this.googleSheetName = this.availableSheets[0].title;
+        this.googleError = '';
+      },
+      error: (err) => {
+        this.googleFileLoading = false;
+        const backendMessage = err?.error?.message || err?.error?.detail;
+        const normalized = this.normalizeGoogleError(backendMessage);
+        this.googleError = normalized;
+        const detail = this.asErrorDetail(normalized);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail
+        });
+      }
+    });
+  }
+
+  onSheetSelected(sheetTitle: string): void {
+    this.googleSheetName = sheetTitle;
+    this.clearGoogleError();
+  }
+
+  get googleSheetOptions(): Array<{ label: string; value: string }> {
+    return this.availableSheets.map(sheet => ({
+      label: sheet.title,
+      value: sheet.title
+    }));
   }
 
   isTableConfigured(domain: DomainKey): boolean {
@@ -520,7 +771,7 @@ export class ImportTemplatePageComponent implements OnInit {
   }
 
   canSubmitGoogleImport(): boolean {
-    return !!this.googleDomain && !!this.googleSheetUrl.trim() && !this.googleLoading;
+    return !!this.googleDomain && !!this.selectedSpreadsheet && !!this.googleSheetName && !this.googleLoading;
   }
 
   submitGoogleImport(activateCallback?: (step: number) => void): void {
@@ -528,39 +779,106 @@ export class ImportTemplatePageComponent implements OnInit {
       this.googleError = 'import.google.domainRequired';
       return;
     }
-    if (!this.googleSheetUrl.trim()) {
+    if (!this.selectedSpreadsheet) {
+      this.googleError = 'import.google.fileRequired';
+      return;
+    }
+    if (!this.googleSheetName) {
       this.googleError = 'import.google.sheetRequired';
       return;
     }
 
+    const requestBody = {
+      domain: this.googleDomain,
+      spreadsheetId: this.selectedSpreadsheet.id,
+      sheetUrl: this.selectedSpreadsheet.url,
+      tabName: this.googleSheetName
+    };
+
     this.googleLoading = true;
     this.googleError = '';
     const targetDomain = this.googleDomain;
-    setTimeout(() => {
-      this.googleLoading = false;
-      if (!targetDomain) {
-        return;
+
+    this.http.post<GoogleSheetConnectResponse>('/api/import/google/connect', requestBody).subscribe({
+      next: (response) => {
+        this.googleLoading = false;
+        if (!response?.configured) {
+          this.googleError = 'import.google.connectError';
+          this.messageService.add({
+            severity: 'warn',
+            summary: this.translate.instant('import.error'),
+            detail: this.translate.instant('import.google.connectError')
+          });
+          return;
+        }
+        if (!targetDomain) {
+          return;
+        }
+        if (!this.configuredTables.includes(targetDomain)) {
+          this.configuredTables = [...this.configuredTables, targetDomain];
+        }
+        this.configuredSources = { ...this.configuredSources, [targetDomain]: 'google' };
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('import.success'),
+          detail: this.translate.instant('import.google.successDetail')
+        });
+        this.fetchConfiguredTables();
+        this.resetGoogleSelection();
+        this.googleDomain = '';
+        this.googleStep = 0;
+        activateCallback?.(0);
+        this.activeTabIndex = 2;
+      },
+      error: (err) => {
+        this.googleLoading = false;
+        const backendMessage = err?.error?.message || err?.error?.detail;
+        const normalized = this.normalizeGoogleError(backendMessage);
+        this.googleError = normalized;
+        const detail = this.asErrorDetail(normalized);
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail
+        });
       }
-      if (!this.configuredTables.includes(targetDomain)) {
-        this.configuredTables = [...this.configuredTables, targetDomain];
-      }
-      this.configuredSources = { ...this.configuredSources, [targetDomain]: 'google' };
-      this.messageService.add({
-        severity: 'success',
-        summary: this.translate.instant('import.success'),
-        detail: this.translate.instant('import.google.successDetail')
-      });
-      this.googleDomain = '';
-      this.googleSheetUrl = '';
-      this.googleSheetName = '';
-      this.googleStep = 0;
-      activateCallback?.(0);
-      this.activeTabIndex = 2;
-    }, 600);
+    });
   }
 
   clearGoogleError(): void {
     this.googleError = '';
+    if (this.googlePickerError !== 'import.google.missingConfig') {
+      this.googlePickerError = '';
+    }
+  }
+
+  private resetGoogleSelection(): void {
+    this.selectedSpreadsheet = null;
+    this.availableSheets = [];
+    this.googleSheetUrl = '';
+    this.googleSheetName = '';
+    this.googleFileLoading = false;
+    if (this.googlePickerError !== 'import.google.missingConfig') {
+      this.googlePickerError = '';
+    }
+  }
+
+  private normalizeGoogleError(message?: string): string {
+    if (!message) {
+      return 'import.google.connectError';
+    }
+    const lowered = message.toLowerCase();
+    if (lowered.includes('service account credentials') || lowered.includes('service-account')) {
+      return 'import.google.credentialsMissing';
+    }
+    return message;
+  }
+
+  private asErrorDetail(message: string): string {
+    if (message.startsWith('import.')) {
+      return this.translate.instant(message);
+    }
+    return message;
   }
 
   private getConfigurationSource(domain: DomainKey): ConfigurationSource {

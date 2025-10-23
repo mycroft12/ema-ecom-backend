@@ -1,8 +1,8 @@
 package com.mycroft.ema.ecom.domains.imports.web;
 
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
-import com.mycroft.ema.ecom.domains.imports.service.ExcelTemplateService;
-import com.mycroft.ema.ecom.auth.service.PermissionService;
+import com.mycroft.ema.ecom.domains.imports.service.DomainImportService;
+import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.ClassPathResource;
@@ -26,15 +26,16 @@ import java.util.Locale;
 @Tag(name = "Import Configure", description = "Upload a completed template to configure a domain schema and create backing table")
 public class ImportConfigureController {
 
-  private final ExcelTemplateService templateService;
+  private final DomainImportService domainImportService;
   private final JdbcTemplate jdbcTemplate;
-  private final PermissionService permissionService;
+  private final GoogleImportConfigRepository googleImportConfigRepository;
 
-  public ImportConfigureController(ExcelTemplateService templateService, JdbcTemplate jdbcTemplate,
-                                   PermissionService permissionService) {
-    this.templateService = templateService;
+  public ImportConfigureController(DomainImportService domainImportService,
+                                   JdbcTemplate jdbcTemplate,
+                                   GoogleImportConfigRepository googleImportConfigRepository) {
+    this.domainImportService = domainImportService;
     this.jdbcTemplate = jdbcTemplate;
-    this.permissionService = permissionService;
+    this.googleImportConfigRepository = googleImportConfigRepository;
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -56,65 +57,8 @@ public class ImportConfigureController {
       throw new IllegalArgumentException("Unsupported file format. Please upload an Excel (.xlsx/.xls) or CSV (.csv) file");
     }
 
-    String table = switch ((domain == null ? "" : domain.trim().toLowerCase())){
-      case "product", "products" -> "product_config";
-      case "employee", "employees" -> "employee_config";
-      case "delivery", "deliveries" -> "delivery_config";
-      default -> throw new IllegalArgumentException("Unsupported domain: " + domain);
-    };
-
-    TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
-
-    // Execute the generated DDL (CREATE TABLE IF NOT EXISTS ...)
-    try (java.sql.Connection conn = jdbcTemplate.getDataSource().getConnection()) {
-      // Use a separate connection with auto-commit to ensure DDL is committed
-      conn.setAutoCommit(true);
-      try (java.sql.Statement stmt = conn.createStatement()) {
-        stmt.execute(analysis.getCreateTableSql());
-      }
-    } catch (DataAccessException ex) {
-      throw new RuntimeException("Failed to create/update table for domain '" + domain + "': " + ex.getMessage(), ex);
-    } catch (java.sql.SQLException ex) {
-      throw new RuntimeException("Database connection error: " + ex.getMessage(), ex);
-    }
-
-    templateService.populateData(file, analysis);
-
-    createColumnPermissions(domain, analysis);
-
+    TemplateAnalysisResponse analysis = domainImportService.configureFromFile(domain, file);
     return analysis;
-  }
-
-  private void createColumnPermissions(String domain, TemplateAnalysisResponse analysis) {
-    String prefix = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
-    if (prefix.isEmpty()) {
-      return;
-    }
-    createActionPermissions(prefix);
-    if (analysis.getColumns() == null) {
-      return;
-    }
-    analysis.getColumns().forEach(column -> {
-      String permissionName = prefix + ":access:" + column.getName();
-      var permission = permissionService.ensure(permissionName);
-      assignPermissionToAdmin(permission.getId());
-    });
-  }
-
-  private void createActionPermissions(String prefix) {
-    List<String> actions = List.of("add", "update", "delete");
-    actions.forEach(action -> {
-      String permissionName = prefix + ":action:" + action;
-      var permission = permissionService.ensure(permissionName);
-      assignPermissionToAdmin(permission.getId());
-    });
-  }
-
-  private void assignPermissionToAdmin(java.util.UUID permissionId) {
-    jdbcTemplate.update(
-        "INSERT INTO roles_permissions(role_id, permission_id) " +
-            "SELECT r.id, ? FROM roles r WHERE r.name = 'ADMIN' " +
-            "ON CONFLICT DO NOTHING", permissionId);
   }
 
   @GetMapping(value = "/template-example")
@@ -149,7 +93,7 @@ public class ImportConfigureController {
   }
 
   // --- Admin utilities: list and drop configured domain tables ---
-  public record DomainTableInfo(String domain, String tableName, long rowCount) {}
+  public record DomainTableInfo(String domain, String tableName, long rowCount, String source) {}
 
   private String tableForDomain(String domain){
     return switch ((domain == null ? "" : domain.trim().toLowerCase())){
@@ -167,13 +111,19 @@ public class ImportConfigureController {
     List<DomainTableInfo> out = new ArrayList<>();
     String[] domains = new String[]{"product","employee","delivery"};
     for (String d : domains){
-      String table = tableForDomain(d);
+      String table = domainImportService.tableForDomain(d);
       Boolean exists = jdbcTemplate.queryForObject(
           "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
           Boolean.class, table);
       if (Boolean.TRUE.equals(exists)){
         Long count = jdbcTemplate.queryForObject("select count(*) from " + table, Long.class);
-        out.add(new DomainTableInfo(d, table, count == null ? 0L : count));
+        String source = googleImportConfigRepository.findByDomain(d)
+            .map(config -> {
+              String value = config.getSource();
+              return value == null || value.isBlank() ? "dynamic" : value.toLowerCase(Locale.ROOT);
+            })
+            .orElse("dynamic");
+        out.add(new DomainTableInfo(d, table, count == null ? 0L : count, source));
       }
     }
     return out;
@@ -184,7 +134,7 @@ public class ImportConfigureController {
   @Transactional
   @Operation(summary = "Delete a domain table", description = "Drops the specified component table and all its data.")
   public ResponseEntity<Void> dropTable(@RequestParam("domain") String domain){
-    String table = tableForDomain(domain);
+    String table = domainImportService.tableForDomain(domain);
     try (java.sql.Connection conn = jdbcTemplate.getDataSource().getConnection()) {
       // Use a separate connection with auto-commit to ensure DDL is committed
       conn.setAutoCommit(true);

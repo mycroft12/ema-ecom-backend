@@ -44,3 +44,10 @@ app:
     bucket: ema-ecom
     # Optional public base URL (e.g., served via Nginx)
     public-base-url: http://localhost:9000/ema-ecom
+
+google:
+  sheets:
+    credentials-path: classpath:google/service-account.json
+    application-name: EMA E-Commerce Importer
+    default-read-range: A:ZZ
+    webhook-secret: ${GOOGLE_SHEETS_WEBHOOK_SECRET:change-me}
