@@ -145,42 +145,44 @@ type ConfigurationSource = 'dynamic' | 'google';
       <p-tabPanel [header]="'import.tabs.google' | translate">
         <p-card>
           <p class="mb-4">{{ 'import.google.intro' | translate }}</p>
-          <p-stepper
-            class="google-stepper"
-            [linear]="true"
-            [(value)]="googleStep"
-            (valueChange)="onGoogleStepChange($event)"
-          >
+          <p-stepper class="google-stepper" [linear]="true" [(value)]="googleStep"
+            (valueChange)="onGoogleStepChange($event)" >
             <p-step-list>
               <p-step [value]="0">{{ 'import.google.step1Title' | translate }}</p-step>
               <p-step [value]="1">{{ 'import.google.step2Title' | translate }}</p-step>
             </p-step-list>
             <p-step-panels>
               <p-step-panel [value]="0">
-                <ng-template #content let-activateCallback="activateCallback">
+                <ng-template pTemplate="content" let-activateCallback="activateCallback">
                   <p class="mb-3">{{ 'import.google.step1Description' | translate }}</p>
-                  <div class="grid p-fluid">
-                    <div class="col-12 md:col-6">
-                      <label for="googleDomain" class="block mb-2">{{ 'import.google.componentLabel' | translate }}</label>
-                      <p-dropdown
-                        id="googleDomain"
-                        [(ngModel)]="googleDomain"
-                        [options]="componentOptions"
-                        optionValue="value"
-                        [placeholder]="('import.domainPlaceholder' | translate)"
-                        (onChange)="clearGoogleError()"
-                      >
-                        <ng-template pTemplate="selectedItem" let-selected>
-                          <div>{{ selected?.key | translate }}</div>
-                        </ng-template>
-                        <ng-template pTemplate="item" let-option>
-                          <div class="flex align-items-center justify-content-between">
-                            <span>{{ option.key | translate }}</span>
-                          </div>
-                        </ng-template>
-                      </p-dropdown>
-                    </div>
-                  </div>
+                  <label for="googleDomain" class="block mb-2">{{ 'import.domainLabel' | translate }}</label>
+                  <p-dropdown
+                    id="googleDomain"
+                    class="w-full md:w-6"
+                    [(ngModel)]="googleDomain"
+                    [options]="googleDomainOptions"
+                    optionValue="value"
+                    [placeholder]="('import.domainPlaceholder' | translate)"
+                    [showClear]="true"
+                    (onChange)="clearGoogleError()"
+                  >
+                    <ng-template pTemplate="selectedItem" let-selected>
+                      <div *ngIf="selected" class="flex align-items-center justify-content-between">
+                        <span>{{ selected.key | translate }}</span>
+                        <span *ngIf="selected.configured" class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round">
+                          {{ 'import.configured' | translate }}
+                        </span>
+                      </div>
+                    </ng-template>
+                    <ng-template pTemplate="item" let-option>
+                      <div class="flex align-items-center justify-content-between" [class.text-400]="option.configured">
+                        <span>{{ option.key | translate }}</span>
+                        <span *ngIf="option.configured" class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round">
+                          {{ 'import.configured' | translate }}
+                        </span>
+                      </div>
+                    </ng-template>
+                  </p-dropdown>
                   <div class="step-actions">
                     <button
                       pButton
@@ -195,7 +197,7 @@ type ConfigurationSource = 'dynamic' | 'google';
                 </ng-template>
               </p-step-panel>
               <p-step-panel [value]="1">
-                <ng-template #content let-activateCallback="activateCallback">
+                <ng-template pTemplate="content" let-activateCallback="activateCallback">
                   <p class="mb-3">{{ 'import.google.step2Description' | translate }}</p>
                   <div class="grid p-fluid">
                     <div class="col-12 md:col-8">
@@ -400,6 +402,13 @@ export class ImportTemplatePageComponent implements OnInit {
     return this.componentOptions.map(option => ({
       ...option,
       disabled: this.isTableConfigured(option.value)
+    }));
+  }
+
+  get googleDomainOptions() {
+    return this.componentOptions.map(option => ({
+      ...option,
+      configured: this.isTableConfigured(option.value)
     }));
   }
 
