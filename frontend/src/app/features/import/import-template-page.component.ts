@@ -98,12 +98,14 @@ interface GoogleIntegrationConfig {
         }
 
         .google-config-link {
-          color: var(--primary-color);
+          color: #2563eb;
           text-decoration: none;
+          font-weight: 600;
         }
 
         .google-config-link:hover {
           text-decoration: underline;
+          color: #1d4ed8;
         }
 
         .google-config-badge {
@@ -123,6 +125,10 @@ interface GoogleIntegrationConfig {
         :host(:dir(rtl)) .google-config-steps {
           padding-inline-start: 0;
           padding-inline-end: 1.5rem;
+        }
+
+        .google-config-description {
+          margin-bottom: 0.25rem;
         }
       }`
   ],
@@ -399,7 +405,7 @@ interface GoogleIntegrationConfig {
       [style]="{ width: '30rem' }"
       [header]="'import.google.configDialogTitle' | translate"
     >
-      <p class="mb-3 text-600" [innerHTML]="'import.google.configDialogDescription' | translate"></p>
+      <p class="text-600 google-config-description" [innerHTML]="'import.google.configDialogDescription' | translate"></p>
       <div class="p-fluid formgrid grid">
         <div class="field col-12">
           <label for="googleClientId" class="block mb-2">{{ 'import.google.clientIdLabel' | translate }}</label>
