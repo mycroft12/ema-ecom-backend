@@ -14,11 +14,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,21 +33,55 @@ public class GoogleSheetsClient {
 
   private final GoogleSheetsProperties properties;
   private final ResourceLoader resourceLoader;
-  private Sheets sheetsService;
+  private final GoogleServiceAccountCredentialService credentialService;
 
-  public GoogleSheetsClient(GoogleSheetsProperties properties, ResourceLoader resourceLoader) {
+  private volatile Sheets cachedSheets;
+  private volatile String cachedFingerprint;
+
+  public GoogleSheetsClient(GoogleSheetsProperties properties,
+                            ResourceLoader resourceLoader,
+                            GoogleServiceAccountCredentialService credentialService) {
     this.properties = properties;
     this.resourceLoader = resourceLoader;
+    this.credentialService = credentialService;
   }
 
   public synchronized Sheets sheets() {
-    if (this.sheetsService == null) {
-      this.sheetsService = createSheetsService();
+    Optional<GoogleServiceAccountCredentialService.StoredServiceAccount> stored = credentialService.load();
+    if (stored.isPresent()) {
+      GoogleServiceAccountCredentialService.StoredServiceAccount account = stored.get();
+      String fingerprint = fingerprint(account);
+      if (cachedSheets == null || cachedFingerprint == null || !cachedFingerprint.equals(fingerprint)) {
+        cachedSheets = createSheetsServiceFromBytes(account.jsonBytes());
+        cachedFingerprint = fingerprint;
+      }
+      return cachedSheets;
     }
-    return this.sheetsService;
+    if (cachedSheets == null) {
+      cachedSheets = createSheetsServiceFromClasspath();
+      cachedFingerprint = "classpath";
+    }
+    return cachedSheets;
   }
 
-  private Sheets createSheetsService() {
+  public synchronized void invalidateCache() {
+    this.cachedSheets = null;
+    this.cachedFingerprint = null;
+  }
+
+  private Sheets createSheetsServiceFromBytes(byte[] jsonBytes) {
+    try (InputStream is = new ByteArrayInputStream(jsonBytes)) {
+      GoogleCredentials credentials = GoogleCredentials.fromStream(is)
+          .createScoped(List.of("https://www.googleapis.com/auth/spreadsheets"));
+      return new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, new HttpCredentialsAdapter(credentials))
+          .setApplicationName(properties.applicationName())
+          .build();
+    } catch (GeneralSecurityException | IOException ex) {
+      throw new IllegalStateException("Failed to initialize Google Sheets service from uploaded credentials", ex);
+    }
+  }
+
+  private Sheets createSheetsServiceFromClasspath() {
     try {
       Resource resource = resourceLoader.getResource(properties.credentialsPath());
       if (!resource.exists()) {
@@ -52,7 +89,7 @@ public class GoogleSheetsClient {
       }
       try (InputStream credentialsStream = resource.getInputStream()) {
         GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream)
-            .createScoped(List.of("https://www.googleapis.com/auth/spreadsheets.readonly"));
+            .createScoped(List.of("https://www.googleapis.com/auth/spreadsheets"));
         return new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, new HttpCredentialsAdapter(credentials))
             .setApplicationName(properties.applicationName())
             .build();
@@ -60,6 +97,10 @@ public class GoogleSheetsClient {
     } catch (GeneralSecurityException | IOException ex) {
       throw new IllegalStateException("Failed to initialize Google Sheets service", ex);
     }
+  }
+
+  private String fingerprint(GoogleServiceAccountCredentialService.StoredServiceAccount account) {
+    return account.clientEmail() + ":" + Optional.ofNullable(account.updatedAt()).map(Instant::toEpochMilli).orElse(0L);
   }
 
   public List<List<Object>> readSheet(String spreadsheetId, String range) {

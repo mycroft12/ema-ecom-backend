@@ -41,6 +41,8 @@ app:
       username: admin
       password: Admin123@
   frontend-base-url: http://localhost:4200
+  security:
+    master-key: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
 
 logging:
   level:

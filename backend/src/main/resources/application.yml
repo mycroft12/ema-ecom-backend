@@ -44,6 +44,9 @@ app:
     bucket: ema-ecom
     # Optional public base URL (e.g., served via Nginx)
     public-base-url: http://localhost:9000/ema-ecom
+  security:
+    # Base64-encoded 32-byte key used to encrypt Google service account credentials
+    master-key: ${APP_MASTER_KEY:}
 
 google:
   sheets:
