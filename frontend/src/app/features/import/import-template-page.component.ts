@@ -494,6 +494,7 @@ export class ImportTemplatePageComponent implements OnInit {
   googleTestTypes: string[] = [];
   googleTestRows = 0;
   googleTestLoading = false;
+  googleTestValidated = false;
   canManageGoogleIntegration = false;
   showInstructionsDialog = false;
   showApiInstructionsDialog = false;
@@ -710,6 +711,7 @@ export class ImportTemplatePageComponent implements OnInit {
               this.fileUpload.clear();
             }
             this.domain = '';
+            this.activeTabIndex = 2;
           },
           error: (err) => { 
             this.error = err?.error?.message || 'import.error'; 
@@ -753,7 +755,11 @@ export class ImportTemplatePageComponent implements OnInit {
   }
 
   canSubmitGoogleImport(): boolean {
-    return !!this.googleDomain && !!this.googleSheetUrl.trim() && !!this.googleServiceAccount?.configured && !this.googleLoading;
+    return !!this.googleDomain
+      && !!this.googleSheetUrl.trim()
+      && !!this.googleServiceAccount?.configured
+      && this.googleTestValidated
+      && !this.googleLoading;
   }
 
   submitGoogleImport(activateCallback?: (step: number) => void): void {
@@ -814,6 +820,7 @@ export class ImportTemplatePageComponent implements OnInit {
         this.googleTestHeaders = [];
         this.googleTestTypes = [];
         this.googleTestRows = 0;
+        this.googleTestValidated = false;
         this.googleStep = 0;
         activateCallback?.(0);
         this.activeTabIndex = 2;
@@ -838,6 +845,7 @@ export class ImportTemplatePageComponent implements OnInit {
     const spreadsheetId = this.extractSpreadsheetId(this.googleSheetUrl);
     this.googleTestLoading = true;
     this.googleErrorMessage = '';
+    this.googleTestValidated = false;
     this.http.post<GoogleSheetTestResponseDto>('/api/integrations/google/sheets/test', {
       spreadsheetId,
       tabName: this.googleSheetName.trim() ? this.googleSheetName.trim() : null
@@ -847,6 +855,7 @@ export class ImportTemplatePageComponent implements OnInit {
         this.googleTestHeaders = response.headers ?? [];
         this.googleTestTypes = response.typeRow ?? [];
         this.googleTestRows = response.dataRowCount ?? 0;
+        this.googleTestValidated = true;
       },
       error: (err) => {
         this.googleTestLoading = false;
@@ -854,6 +863,7 @@ export class ImportTemplatePageComponent implements OnInit {
         this.googleTestTypes = [];
         this.googleTestRows = 0;
         this.googleErrorMessage = err?.error?.message || this.translate.instant('import.google.testConnectionError');
+        this.googleTestValidated = false;
       }
     });
   }
@@ -866,6 +876,10 @@ export class ImportTemplatePageComponent implements OnInit {
 
   clearGoogleError(): void {
     this.googleErrorMessage = '';
+    this.googleTestValidated = false;
+    this.googleTestRows = 0;
+    this.googleTestHeaders = [];
+    this.googleTestTypes = [];
   }
 
   isTableConfigured(domain: DomainKey): boolean {

@@ -6,20 +6,22 @@ import { AuthService } from './core/auth.service';
 import { MenubarModule } from 'primeng/menubar';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService, LangCode } from './core/language.service';
-import {LanguageSwitcherComponent} from "./shared/language-switcher.component";
+import { LanguageSwitcherComponent } from './shared/language-switcher.component';
+import { AvatarModule } from 'primeng/avatar';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NgIf, FormsModule, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent],
+  imports: [RouterOutlet, RouterLink, NgIf, FormsModule, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent, AvatarModule, OverlayPanelModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
   selectedLang: LangCode;
-  constructor(public auth: AuthService, private router: Router, public lang: LanguageService) {
+  constructor(public auth: AuthService, private router: Router, public lang: LanguageService, private translateService: TranslateService) {
     this.selectedLang = this.lang.current();
   }
   get isLoginPage(): boolean { return this.router.url.startsWith('/login'); }

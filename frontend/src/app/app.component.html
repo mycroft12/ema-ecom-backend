@@ -13,8 +13,24 @@
         <a *ngIf="!isLoginPage" routerLink="/login" pButton [label]="('app.login' | translate)" icon="pi pi-user" class="p-button-text"></a>
       </ng-container>
       <ng-template #userTpl>
-        <span class="mr-2">{{auth.username()}}</span>
-        <button pButton (click)="logout()" [label]="('app.logout' | translate)" icon="pi pi-sign-out" class="p-button-text"></button>
+        <button
+          pButton
+          type="button"
+          class="p-button-text flex align-items-center gap-2"
+          (click)="userOverlay.toggle($event)"
+          aria-haspopup="true"
+          [ariaLabel]="auth.username()"
+        >
+          <p-avatar icon="pi pi-user" shape="circle" size="normal" styleClass="user-avatar"></p-avatar>
+          <span class="hidden sm:inline">{{ auth.username() }}</span>
+          <i class="pi pi-angle-down" aria-hidden="true"></i>
+        </button>
+        <p-overlayPanel #userOverlay [dismissable]="true" styleClass="user-menu-panel">
+          <button type="button" class="user-menu-item" (click)="logout()">
+            <i class="pi pi-sign-out mr-2"></i>
+            {{ 'app.logout' | translate }}
+          </button>
+        </p-overlayPanel>
       </ng-template>
     </div>
   </ng-template>

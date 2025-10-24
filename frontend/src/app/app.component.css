@@ -1,1 +1,28 @@
 /* basic layout styles are in global styles.css */
+
+.user-avatar .pi {
+  font-size: 1rem;
+}
+
+:host ::ng-deep .user-menu-panel {
+  padding: 0;
+  border-radius: 0.5rem;
+  min-width: 9rem;
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  color: #000;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}

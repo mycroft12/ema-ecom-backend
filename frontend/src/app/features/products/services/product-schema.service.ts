@@ -27,29 +27,7 @@ export class ProductSchemaService {
   loadSchema(): void {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
-
-    // First check if the product_config table exists by querying the tables endpoint
-    this.http.get<any[]>(`${this.apiBase}/api/import/configure/tables`).pipe(
-      tap(tables => {
-        // Check if product_config is in the list of tables
-        const productConfigExists = tables.some(table => table.tableName === 'product_config');
-
-        if (productConfigExists) {
-          // If the table exists, proceed with loading the schema
-          this.loadSchemaFromProductsEndpoint();
-        } else {
-          // If the table doesn't exist, set schema to null and stop loading
-          this.schemaSignal.set(null);
-          this.loadingSignal.set(false);
-        }
-      }),
-      catchError(err => {
-        // If there's an error checking tables, assume not configured
-        this.schemaSignal.set(null);
-        this.loadingSignal.set(false);
-        return of(null);
-      })
-    ).subscribe();
+    this.loadSchemaFromProductsEndpoint();
   }
 
   /**
@@ -151,7 +129,12 @@ export class ProductSchemaService {
   private filterColumnsByPermission(columns: ColumnDefinition[]): ColumnDefinition[] {
     const perms = new Set(this.auth.permissions() ?? []);
     const prefix = 'product:access:';
+    const hasWildcard = Array.from(perms).some(p => p.startsWith('product:*'));
     const relevant = Array.from(perms).filter(p => p.startsWith(prefix));
+    if (hasWildcard) {
+      // If user has wild-card product permissions, expose all columns
+      return columns;
+    }
     if (relevant.length === 0) {
       return [];
     }
