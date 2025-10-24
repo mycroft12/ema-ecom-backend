@@ -15,8 +15,6 @@
   "menu": {
     "home": "الرئيسية",
     "products": "المنتجات",
-    "employees": "الموظفون",
-    "delivery": "التوصيل",
     "roles": "الأدوار",
     "import": "الإعدادات"
   },
@@ -110,8 +108,6 @@
     "domainLabel": "المكوّن",
     "domainPlaceholder": "اختر المكوّن",
     "domainProduct": "المنتجات",
-    "domainEmployee": "الموظفون",
-    "domainDelivery": "التوصيل",
     "fileLabel": "ملف النموذج",
     "chooseLabel": "اختر النموذج",
     "uploadLabel": "تحليل وتهيئة",

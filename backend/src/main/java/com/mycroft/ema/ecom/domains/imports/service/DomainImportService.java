@@ -49,8 +49,6 @@ public class DomainImportService {
   public String tableForDomain(String domain){
     return switch ((domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT))){
       case "product", "products" -> "product_config";
-      case "employee", "employees" -> "employee_config";
-      case "delivery", "deliveries" -> "delivery_config";
       default -> throw new IllegalArgumentException("Unsupported domain: " + domain);
     };
   }

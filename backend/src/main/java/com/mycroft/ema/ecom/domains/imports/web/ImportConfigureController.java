@@ -41,7 +41,7 @@ public class ImportConfigureController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasAuthority('import:configure')")
   @Transactional
-  @Operation(summary = "Configure domain from template", description = "Upload a filled Excel template (.xlsx/.xls/.csv) and specify domain=product|employee|delivery. The service will infer columns and create/update the corresponding table.")
+  @Operation(summary = "Configure domain from template", description = "Upload a filled Excel template (.xlsx/.xls/.csv) and specify domain=product. The service will infer columns and create/update the corresponding table.")
   public TemplateAnalysisResponse configure(@RequestParam("domain") String domain,
                                            @RequestPart("file") MultipartFile file){
     // Validate file is not empty
@@ -63,13 +63,11 @@ public class ImportConfigureController {
 
   @GetMapping(value = "/template-example")
   @PreAuthorize("hasAuthority('import:template')")
-  @Operation(summary = "Download template example", description = "Download a CSV example template for product, employee or delivery.")
+  @Operation(summary = "Download template example", description = "Download a CSV example template for product.")
   public ResponseEntity<Resource> templateExample(@RequestParam("domain") String domain,
                                                   @RequestParam(value = "format", required = false, defaultValue = "csv") String format) {
     String base = switch ((domain == null ? "" : domain.trim().toLowerCase())) {
       case "product", "products" -> "product";
-      case "employee", "employees" -> "employee";
-      case "delivery", "deliveries" -> "delivery";
       default -> throw new IllegalArgumentException("Unsupported domain: " + domain);
     };
     String ext = "xlsx".equalsIgnoreCase(format) ? "xlsx" : "csv";
@@ -98,8 +96,6 @@ public class ImportConfigureController {
   private String tableForDomain(String domain){
     return switch ((domain == null ? "" : domain.trim().toLowerCase())){
       case "product", "products" -> "product_config";
-      case "employee", "employees" -> "employee_config";
-      case "delivery", "deliveries" -> "delivery_config";
       default -> throw new IllegalArgumentException("Unsupported domain: " + domain);
     };
   }
@@ -109,7 +105,7 @@ public class ImportConfigureController {
   @Operation(summary = "List configured domain tables", description = "Returns existing component tables with row counts.")
   public List<DomainTableInfo> listTables(){
     List<DomainTableInfo> out = new ArrayList<>();
-    String[] domains = new String[]{"product","employee","delivery"};
+    String[] domains = new String[]{"product"};
     for (String d : domains){
       String table = domainImportService.tableForDomain(d);
       Boolean exists = jdbcTemplate.queryForObject(

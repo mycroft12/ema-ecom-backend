@@ -15,8 +15,6 @@
   "menu": {
     "home": "Home",
     "products": "Products",
-    "employees": "Employees",
-    "delivery": "Delivery",
     "roles": "Roles",
     "import": "Configuration"
   },
@@ -110,8 +108,6 @@
     "domainLabel": "Component",
     "domainPlaceholder": "Select component",
     "domainProduct": "Products",
-    "domainEmployee": "Employees",
-    "domainDelivery": "Delivery",
     "fileLabel": "Template File",
     "chooseLabel": "Choose Template",
     "uploadLabel": "Analyze & Configure",

@@ -17,7 +17,7 @@ import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../core/auth.service';
 
-type DomainKey = 'product' | 'employee' | 'delivery' | '';
+type DomainKey = 'product' | '';
 type ConfigurationSource = 'dynamic' | 'google';
 
 interface GoogleSheetConnectResponse {
@@ -499,9 +499,7 @@ export class ImportTemplatePageComponent implements OnInit {
   showApiInstructionsDialog = false;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
-    { key: 'import.domainProduct', value: 'product' },
-    { key: 'import.domainEmployee', value: 'employee' },
-    { key: 'import.domainDelivery', value: 'delivery' }
+    { key: 'import.domainProduct', value: 'product' }
   ];
 
   ngOnInit(): void {
@@ -516,11 +514,16 @@ export class ImportTemplatePageComponent implements OnInit {
   fetchConfiguredTables(): void {
     this.http.get<ConfiguredTableResponse[]>('/api/import/configure/tables').subscribe({
       next: (tables) => {
-        const domains = tables.map(t => t.domain as DomainKey);
+        const domains = tables
+          .map(table => this.normalizeDomain(table.domain))
+          .filter((domain): domain is DomainKey => !!domain);
         this.configuredTables = domains;
         const nextSources: Record<string, ConfigurationSource> = {};
         tables.forEach(table => {
-          const domain = table.domain as DomainKey;
+          const domain = this.normalizeDomain(table.domain);
+          if (!domain) {
+            return;
+          }
           const source = (table as { source?: ConfigurationSource }).source;
           nextSources[domain] = source === 'google' ? 'google' : 'dynamic';
         });
@@ -905,6 +908,17 @@ export class ImportTemplatePageComponent implements OnInit {
 
   getConfigurationSourceKey(domain: DomainKey): string {
     return `import.configuredSource.${this.configuredSources[domain] ?? 'dynamic'}`;
+  }
+
+  private normalizeDomain(domain: string | DomainKey | null | undefined): DomainKey | null {
+    const value = (domain ?? '').toString().trim().toLowerCase();
+    switch (value) {
+      case 'product':
+      case 'products':
+        return 'product';
+      default:
+        return null;
+    }
   }
 
   private download(blob: Blob, filename: string){

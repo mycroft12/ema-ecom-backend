@@ -15,8 +15,6 @@
   "menu": {
     "home": "Accueil",
     "products": "Produits",
-    "employees": "Employés",
-    "delivery": "Livraison",
     "roles": "Rôles",
     "import": "Configuration"
   },
@@ -110,8 +108,6 @@
     "domainLabel": "Composant",
     "domainPlaceholder": "Sélectionnez un composant",
     "domainProduct": "Produits",
-    "domainEmployee": "Employés",
-    "domainDelivery": "Livraison",
     "fileLabel": "Fichier modèle",
     "chooseLabel": "Choisir le modèle",
     "uploadLabel": "Analyser et configurer",

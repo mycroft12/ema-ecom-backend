@@ -21,7 +21,7 @@ public class FileUploadController {
   }
 
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasAnyAuthority('product:create','product:update','employee:create','employee:update')")
+  @PreAuthorize("hasAnyAuthority('product:create','product:update')")
   @Operation(summary = "Upload image/file", description = "Uploads a file to MinIO and returns a public URL. Store this URL in your dynamic column (e.g., photo)")
   public MinioFileStorageService.UploadResponse upload(@RequestParam("file") MultipartFile file,
                                                        @RequestParam(value = "domain", required = false) String domain,

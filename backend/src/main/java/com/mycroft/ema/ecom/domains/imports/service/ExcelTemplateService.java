@@ -534,14 +534,6 @@ public class ExcelTemplateService {
         headers = List.of("id", "reference","title","description","price","stock","photo","is_active","release_date");
         types = List.of("uuid","text","text","text","numeric(19,2)","bigint","minio:image","boolean","timestamp");
       }
-      case "employee" -> {
-        headers = List.of("id", "first_name","last_name","email","phone","photo","hire_date","salary","is_manager");
-        types = List.of("uuid","text","text","text","text","minio:image","timestamp","numeric(19,2)","boolean");
-      }
-      case "delivery" -> {
-        headers = List.of("id", "provider_name","service_type","contact_name","email","phone","coverage_area","base_rate","is_active");
-        types = List.of("uuid","text","text","text","text","text","text","numeric(19,2)","boolean");
-      }
       default -> {
         headers = List.of("id", "external_id","name","description","quantity","unit_price","active","created_at");
         types = List.of("uuid","text","text","text","bigint","numeric(19,2)","boolean","timestamp");
