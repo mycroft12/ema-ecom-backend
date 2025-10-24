@@ -211,6 +211,13 @@ interface GoogleSheetTestResponseDto {
                 [label]="'import.google.howTo' | translate"
                 (click)="showInstructionsDialog = true"
               ></button>
+              <button
+                pButton
+                type="button"
+                class="p-button-text"
+                [label]="'import.google.howToApis' | translate"
+                (click)="showApiInstructionsDialog = true"
+              ></button>
               <div class="flex gap-2 flex-wrap" *ngIf="canManageGoogleIntegration; else googleServiceAccountViewOnly">
                 <button
                   pButton
@@ -429,6 +436,28 @@ interface GoogleSheetTestResponseDto {
         <button pButton type="button" class="p-button-text" [label]="'common.close' | translate" (click)="showInstructionsDialog = false"></button>
       </ng-template>
     </p-dialog>
+    <p-dialog
+      [(visible)]="showApiInstructionsDialog"
+      [modal]="true"
+      [closable]="true"
+      [style]="{ width: '30rem' }"
+      [breakpoints]="{'960px': '75vw', '640px': '95vw'}"
+      [header]="'import.google.howToApisTitle' | translate"
+    >
+      <ol class="pl-3">
+        <li [innerHTML]="'import.google.howToApisStep1' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep2' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep3' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep4' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep5' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep6' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep7' | translate"></li>
+        <li [innerHTML]="'import.google.howToApisStep8' | translate"></li>
+      </ol>
+      <ng-template pTemplate="footer">
+        <button pButton type="button" class="p-button-text" [label]="'common.close' | translate" (click)="showApiInstructionsDialog = false"></button>
+      </ng-template>
+    </p-dialog>
   `
 })
 export class ImportTemplatePageComponent implements OnInit {
@@ -467,6 +496,7 @@ export class ImportTemplatePageComponent implements OnInit {
   googleTestLoading = false;
   canManageGoogleIntegration = false;
   showInstructionsDialog = false;
+  showApiInstructionsDialog = false;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
     { key: 'import.domainProduct', value: 'product' },
