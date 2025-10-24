@@ -95,6 +95,11 @@ interface GoogleSheetTestResponseDto {
         .google-help-link:hover {
           text-decoration: underline;
         }
+
+        .google-sheet-url {
+          min-height: 3rem;
+          width: 100%;
+        }
       }`
   ],
   template: `
@@ -296,6 +301,7 @@ interface GoogleSheetTestResponseDto {
                       <label for="googleSheetUrl" class="block mb-2">{{ 'import.google.sheetUrlLabel' | translate }}</label>
                       <input
                         id="googleSheetUrl"
+                        class="google-sheet-url"
                         pInputText
                         type="text"
                         [(ngModel)]="googleSheetUrl"
