@@ -705,6 +705,7 @@ export class ImportTemplatePageComponent implements OnInit {
               this.configuredTables = [...this.configuredTables, selectedDomain];
             }
             this.configuredSources = { ...this.configuredSources, [selectedDomain]: 'dynamic' };
+            this.refreshSessionTokens();
             if (this.fileUpload) {
               this.fileUpload.clear();
             }
@@ -800,6 +801,7 @@ export class ImportTemplatePageComponent implements OnInit {
           this.configuredTables = [...this.configuredTables, targetDomain];
         }
         this.configuredSources = { ...this.configuredSources, [targetDomain]: 'google' };
+        this.refreshSessionTokens();
         this.messageService.add({
           severity: 'success',
           summary: this.translate.instant('import.success'),
@@ -908,6 +910,18 @@ export class ImportTemplatePageComponent implements OnInit {
 
   getConfigurationSourceKey(domain: DomainKey): string {
     return `import.configuredSource.${this.configuredSources[domain] ?? 'dynamic'}`;
+  }
+
+  private refreshSessionTokens(): void {
+    const refresh$ = this.auth.refreshAccessToken();
+    refresh$.subscribe({
+      next: (response) => {
+        this.auth.saveLoginResponse(response);
+      },
+      error: () => {
+        // Ignore refresh failures silently; UI will rely on existing permissions if refresh fails
+      }
+    });
   }
 
   private normalizeDomain(domain: string | DomainKey | null | undefined): DomainKey | null {

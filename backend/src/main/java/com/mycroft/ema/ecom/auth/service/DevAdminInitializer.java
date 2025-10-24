@@ -121,7 +121,7 @@ public class DevAdminInitializer implements CommandLineRunner {
             });
             User u = new User();
             u.setUsername(adminUsername);
-            u.setEmail(null);
+            u.setEmail("contact@admin.com");
             u.setPassword(encoder.encode(adminPassword));
             u.setEnabled(true);
             u.setRoles(Set.of(adminRole));
