@@ -146,7 +146,7 @@
       "step2Description": "أدخل تفاصيل Google Sheet التي ستُستخدم لتهيئة المكوّن.",
       "sheetUrlLabel": "رابط Google Sheet",
       "sheetUrlPlaceholder": "https://docs.google.com/spreadsheets/...",
-      "sheetTabLabel": "اسم الورقة (اختياري)",
+      "sheetTabLabel": "اسم الورقة",
       "sheetTabPlaceholder": "Sheet1",
       "next": "التالي",
       "back": "السابق",

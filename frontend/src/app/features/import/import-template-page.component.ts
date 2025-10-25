@@ -100,6 +100,11 @@ interface GoogleSheetTestResponseDto {
           min-height: 3rem;
           width: 100%;
         }
+
+        .required-star {
+          color: #dc2626;
+          margin-left: 0.25rem;
+        }
       }`
   ],
   template: `
@@ -317,7 +322,10 @@ interface GoogleSheetTestResponseDto {
                       />
                     </div>
                     <div class="col-12 md:col-4">
-                      <label for="googleSheetName" class="block mb-2">{{ 'import.google.sheetTabLabel' | translate }}</label>
+                      <label for="googleSheetName" class="block mb-2">
+                        {{ 'import.google.sheetTabLabel' | translate }}
+                        <span class="required-star">*</span>
+                      </label>
                       <input
                         id="googleSheetName"
                         pInputText
@@ -757,6 +765,7 @@ export class ImportTemplatePageComponent implements OnInit {
   canSubmitGoogleImport(): boolean {
     return !!this.googleDomain
       && !!this.googleSheetUrl.trim()
+      && !!this.googleSheetName.trim()
       && !!this.googleServiceAccount?.configured
       && this.googleTestValidated
       && !this.googleLoading;

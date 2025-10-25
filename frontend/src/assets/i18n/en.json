@@ -146,7 +146,7 @@
       "step2Description": "Provide the Google Sheet details that will be used to configure the component.",
       "sheetUrlLabel": "Google Sheet URL",
       "sheetUrlPlaceholder": "https://docs.google.com/spreadsheets/...",
-      "sheetTabLabel": "Worksheet name (optional)",
+      "sheetTabLabel": "Worksheet name",
       "sheetTabPlaceholder": "Sheet1",
       "next": "Next",
       "back": "Back",

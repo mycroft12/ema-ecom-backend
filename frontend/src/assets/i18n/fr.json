@@ -146,7 +146,7 @@
       "step2Description": "Indiquez les informations de la feuille Google Sheets qui sera utilisée pour configurer le composant.",
       "sheetUrlLabel": "URL Google Sheets",
       "sheetUrlPlaceholder": "https://docs.google.com/spreadsheets/...",
-      "sheetTabLabel": "Nom de l'onglet (optionnel)",
+      "sheetTabLabel": "Nom de l'onglet",
       "sheetTabPlaceholder": "Feuille1",
       "next": "Suivant",
       "back": "Retour",
