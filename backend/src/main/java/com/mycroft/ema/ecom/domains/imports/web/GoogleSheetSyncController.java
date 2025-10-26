@@ -27,6 +27,7 @@ public class GoogleSheetSyncController {
                                 @RequestBody GoogleSheetSyncRequest request) {
     if (secret == null || secret.isBlank() || !secret.equals(properties.webhookSecret())) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid webhook secret"));
+
     }
     try {
       syncService.syncRow(request);

@@ -16,6 +16,7 @@ import { NavService } from '../core/navigation/nav.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../core/auth.service';
 import { LanguageSwitcherComponent } from '../shared/language-switcher.component';
+import { ProductBadgeService } from '../features/products/services/product-badge.service';
 
 @Component({
   selector: 'app-layout',
@@ -47,7 +48,17 @@ import { LanguageSwitcherComponent } from '../shared/language-switcher.component
         <ng-template pTemplate="end">
           <div class="flex align-items-center gap-2">
             <app-language-switcher></app-language-switcher>
-            <button pButton type="button" icon="pi pi-bell" class="p-button-text" aria-label="Notifications"></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-bell"
+              class="p-button-text p-overlay-badge"
+              aria-label="Notifications"
+              pBadge
+              [value]="badgeCount()"
+              [pBadgeHidden]="badgeCount() === 0"
+              badgeSeverity="danger">
+            </button>
             <button pButton type="button" icon="pi pi-moon" class="p-button-text" (click)="toggleTheme()" [ariaLabel]="themeLabel()"></button>
             <button pButton type="button" class="p-button-text flex align-items-center gap-2" (click)="profileMenu.toggle($event)" aria-haspopup="true" [ariaLabel]="auth.username()">
               <p-avatar icon="pi pi-user" shape="circle" size="large" aria-label="User"></p-avatar>
@@ -103,6 +114,9 @@ export class AppLayoutComponent {
   private route = inject(ActivatedRoute);
   sidebarOpen = false;
   profileItems = [] as any[];
+  private readonly productBadge = inject(ProductBadgeService);
+  private readonly badgeSignal = this.productBadge.asSignal();
+
   constructor(public lang: LanguageService, public nav: NavService, public auth: AuthService, private translate: TranslateService){
     this.buildProfileItems();
     // Rebuild menu items when language changes for dynamic translation
@@ -139,4 +153,8 @@ export class AppLayoutComponent {
   menuModel = () => this.menuItemsSignal();
 
   breadcrumbs = () => this.nav.breadcrumbsFromRoute(this.router.routerState.snapshot.root);
+
+  badgeCount(): number {
+    return this.badgeSignal();
+  }
 }
