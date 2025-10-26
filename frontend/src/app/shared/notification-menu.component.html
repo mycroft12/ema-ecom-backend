@@ -1,0 +1,71 @@
+<div class="notification-wrapper">
+  <button
+    pButton
+    type="button"
+    icon="pi pi-bell"
+    class="p-button-text notification-button"
+    aria-label="Notifications"
+    (click)="toggle($event, notificationPanel)"
+  ></button>
+  <span *ngIf="badgeCount() > 0" class="notification-counter">{{ badgeCount() }}</span>
+
+  <p-overlayPanel #notificationPanel [dismissable]="true" styleClass="notification-panel" [showCloseIcon]="false">
+    <div class="notification-dropdown">
+      <div class="notification-dropdown__header">
+        <div class="title">{{ 'notifications.title' | translate }}</div>
+        <button
+          pButton
+          type="button"
+          class="p-button-link"
+          (click)="markAllAsRead($event)"
+        >
+          {{ 'notifications.markAll' | translate }}
+        </button>
+      </div>
+
+      <ng-container *ngIf="notifications().length; else emptyState">
+        <div class="notification-scroll" (scroll)="onScroll($event)">
+          <div
+            class="notification-item"
+            *ngFor="let entry of notifications(); trackBy: trackById; let odd = odd"
+            [class.unread]="!entry.read"
+            [class.odd]="odd"
+            (click)="open(entry, notificationPanel)"
+          >
+            <div class="notification-icon" [class.insert]="isInsert(entry)">
+              <i class="pi" [ngClass]="isInsert(entry) ? 'pi-plus' : 'pi-box'"></i>
+            </div>
+            <div class="notification-body">
+              <div class="notification-title">{{ titleFor(entry) }}</div>
+              <div class="notification-description">{{ descriptionFor(entry) }}</div>
+              <div class="notification-meta">
+                <span class="timestamp">{{ entry.event.timestamp | date:'short' }}</span>
+                <span *ngIf="!entry.read" class="unread-dot" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+          <div class="notification-loader" *ngIf="loading()">
+            <div class="avatar shimmer"></div>
+            <div class="text">
+              <div class="line shimmer"></div>
+              <div class="line short shimmer"></div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #emptyState>
+        <div class="notification-empty" *ngIf="!loading()">
+          <i class="pi pi-inbox"></i>
+          <span>{{ 'notifications.empty' | translate }}</span>
+        </div>
+        <div class="notification-loader" *ngIf="loading()">
+          <div class="avatar shimmer"></div>
+          <div class="text">
+            <div class="line shimmer"></div>
+            <div class="line short shimmer"></div>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </p-overlayPanel>
+</div>

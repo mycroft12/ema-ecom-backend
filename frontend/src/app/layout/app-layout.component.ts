@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet, ActivatedRoute, NavigationEnd, RouterLinkActive } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
@@ -10,20 +10,18 @@ import { DividerModule } from 'primeng/divider';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
 import { BadgeModule } from 'primeng/badge';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { OverlayPanel } from 'primeng/overlaypanel';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../core/language.service';
 import { NavService } from '../core/navigation/nav.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../core/auth.service';
 import { LanguageSwitcherComponent } from '../shared/language-switcher.component';
-import { ProductBadgeService, NotificationEntry } from '../features/products/services/product-badge.service';
+import { NotificationMenuComponent } from '../shared/notification-menu.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, BadgeModule, OverlayPanelModule, FormsModule, TranslateModule, LanguageSwitcherComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, BadgeModule, FormsModule, TranslateModule, LanguageSwitcherComponent, NotificationMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -33,35 +31,6 @@ import { ProductBadgeService, NotificationEntry } from '../features/products/ser
       display: inline-flex;
       align-items: center;
       justify-content: center;
-    }
-    .notification-panel {
-      width: 320px;
-      max-height: 420px;
-      overflow-y: auto;
-    }
-    .notification-item {
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    .notification-item.unread {
-      background-color: var(--surface-hover);
-    }
-    .notification-item:hover {
-      background-color: var(--surface-hover);
-    }
-    .notification-title {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-    .notification-description {
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
-    }
-    .notification-empty {
-      padding: 1rem;
-      text-align: center;
     }
     `
   ],
@@ -79,40 +48,7 @@ import { ProductBadgeService, NotificationEntry } from '../features/products/ser
         <ng-template pTemplate="end">
           <div class="flex align-items-center gap-2">
             <app-language-switcher></app-language-switcher>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-bell"
-              class="p-button-text p-overlay-badge"
-              aria-label="Notifications"
-              pBadge
-              [value]="badgeCount()"
-              [pBadgeHidden]="badgeCount() === 0"
-              badgeSeverity="danger"
-              (click)="toggleNotifications($event, notificationPanel)">
-            </button>
-            <p-overlayPanel #notificationPanel [dismissable]="true" styleClass="notification-panel">
-              <div class="notification-header flex justify-content-between align-items-center mb-2">
-                <span class="font-medium">{{ 'notifications.title' | translate }}</span>
-                <button pButton type="button" class="p-button-text p-button-sm" (click)="markAllNotificationsAsRead($event)">
-                  {{ 'notifications.markAll' | translate }}
-                </button>
-              </div>
-              <div *ngIf="notifications().length; else noNotifications" class="notification-list">
-                <div
-                  *ngFor="let entry of notifications()"
-                  class="notification-item"
-                  [class.unread]="!entry.read"
-                  (click)="openNotification(entry, notificationPanel)">
-                  <div class="notification-title">{{ getNotificationTitle(entry) }}</div>
-                  <div class="notification-description">{{ getNotificationDescription(entry) }}</div>
-                  <small class="notification-timestamp">{{ entry.event.timestamp | date:'short' }}</small>
-                </div>
-              </div>
-              <ng-template #noNotifications>
-                <div class="notification-empty text-600">{{ 'notifications.empty' | translate }}</div>
-              </ng-template>
-            </p-overlayPanel>
+            <app-notification-menu></app-notification-menu>
             <button pButton type="button" icon="pi pi-moon" class="p-button-text" (click)="toggleTheme()" [ariaLabel]="themeLabel()"></button>
             <button pButton type="button" class="p-button-text flex align-items-center gap-2" (click)="profileMenu.toggle($event)" aria-haspopup="true" [ariaLabel]="auth.username()">
               <p-avatar icon="pi pi-user" shape="circle" size="large" aria-label="User"></p-avatar>
@@ -168,9 +104,6 @@ export class AppLayoutComponent {
   private route = inject(ActivatedRoute);
   sidebarOpen = false;
   profileItems = [] as any[];
-  private readonly productBadge = inject(ProductBadgeService);
-  private readonly notificationsSignal = this.productBadge.notifications();
-  private readonly badgeSignal = this.productBadge.asSignal();
 
   constructor(public lang: LanguageService, public nav: NavService, public auth: AuthService, private translate: TranslateService){
     this.buildProfileItems();
@@ -209,48 +142,4 @@ export class AppLayoutComponent {
 
   breadcrumbs = () => this.nav.breadcrumbsFromRoute(this.router.routerState.snapshot.root);
 
-  badgeCount(): number {
-    return this.badgeSignal();
-  }
-
-  notifications(): NotificationEntry[] {
-    return this.notificationsSignal();
-  }
-
-  toggleNotifications(event: Event, panel: OverlayPanel): void {
-    panel.toggle(event);
-  }
-
-  markAllNotificationsAsRead(event: Event): void {
-    event.stopPropagation();
-    this.productBadge.markAllAsRead();
-  }
-
-  openNotification(entry: NotificationEntry, panel: OverlayPanel): void {
-    if (!entry.read) {
-      this.productBadge.markAsRead(entry.id);
-    }
-    panel.hide();
-    this.router.navigate(['/products']);
-  }
-
-  getNotificationTitle(entry: NotificationEntry): string {
-    const domainKey = entry.event.domain ?? 'product';
-    const action = (entry.event.action || 'UPDATE').toLowerCase();
-    const key = action === 'insert' ? 'insertTitle' : 'updateTitle';
-    return this.translate.instant(`notifications.${domainKey}.${key}`);
-  }
-
-  getNotificationDescription(entry: NotificationEntry): string {
-    const domainKey = entry.event.domain ?? 'product';
-    if ((entry.event.action || '').toUpperCase() === 'INSERT') {
-      return this.translate.instant(`notifications.${domainKey}.insertDescription`);
-    }
-    const column = entry.event.changedColumns && entry.event.changedColumns[0];
-    const row = entry.event.rowNumber ?? '—';
-    if (column) {
-      return this.translate.instant(`notifications.${domainKey}.updateDescription`, { column, row });
-    }
-    return this.translate.instant(`notifications.${domainKey}.updateDescriptionFallback`, { row });
-  }
 }

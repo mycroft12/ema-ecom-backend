@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycroft.ema.ecom.domains.notifications.domain.NotificationLog;
 import com.mycroft.ema.ecom.domains.notifications.repo.NotificationLogRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,9 +28,11 @@ public class NotificationLogService {
     return repository.save(log);
   }
 
-  public List<NotificationLog> latest(int limit) {
-    return repository.findAll(org.springframework.data.domain.PageRequest.of(0, limit,
-        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))).getContent();
+  public List<NotificationLog> latest(int page, int size) {
+    int safePage = Math.max(page, 0);
+    int safeSize = Math.max(1, Math.min(size, 100));
+    PageRequest request = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+    return repository.findAll(request).getContent();
   }
 
   public void markAsRead(UUID id) {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { NotificationEntryDto } from '../models/notification.model';
@@ -10,8 +10,11 @@ export class NotificationApiService {
 
   constructor(private http: HttpClient) {}
 
-  fetchLatest(limit = 20): Observable<NotificationEntryDto[]> {
-    return this.http.get<NotificationEntryDto[]>(this.baseUrl, { params: { limit } as any });
+  fetch(page = 0, size = 5): Observable<NotificationEntryDto[]> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
+    return this.http.get<NotificationEntryDto[]>(this.baseUrl, { params });
   }
 
   markAsRead(id: string): Observable<void> {
