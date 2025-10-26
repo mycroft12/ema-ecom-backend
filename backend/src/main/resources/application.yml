@@ -53,4 +53,8 @@ google:
     credentials-path: classpath:google/service-account.json
     application-name: EMA E-Commerce Importer
     default-read-range: A:ZZ
-    webhook-secret: ${GOOGLE_SHEETS_WEBHOOK_SECRET:change-me}
+    webhook-secret: ${GOOGLE_SHEETS_WEBHOOK_SECRET:super-long-random-token}
+
+logging:
+  level:
+    com.mycroft.ema.ecom.domains.imports.service.GoogleSheetSyncService: DEBUG

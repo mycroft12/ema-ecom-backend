@@ -279,14 +279,18 @@ public class ExcelTemplateService {
           List<String> providedTypes = new ArrayList<>();
           if (looksLikeTypes) {
             for (int c = 0; c < headers.size(); c++) {
+              String csvHeader = headers.get(c);
+              String csvNorm = normalize(csvHeader);
               String v = (typesRow.size() > c) ? Optional.ofNullable(typesRow.get(c)).orElse("").trim() : "";
+              if ("id".equals(csvNorm)) {
+                v = "uuid"; // always treat id column as UUID marker
+              }
               if (v.isBlank()) { 
                 looksLikeTypes = false; 
                 break; 
               }
               if (!isSupportedTypeMarker(v)) { 
-                String headerName = headers.get(c);
-                warnings.add(getUnsupportedTypeErrorMessage(v, headerName, c));
+                warnings.add(getUnsupportedTypeErrorMessage(v, csvHeader, c));
                 looksLikeTypes = false; 
                 break; 
               }
@@ -298,6 +302,9 @@ public class ExcelTemplateService {
             for (int i = 0; i < headers.size(); i++) {
               String headerName = headers.get(i);
               String norm = normalize(headerName);
+              if ("id".equals(norm)) {
+                continue;
+              }
               String marker = providedTypes.get(i);
               String logical = logicalTypeFor(marker);
               String sql = sqlTypeFor(logical);
@@ -331,6 +338,9 @@ public class ExcelTemplateService {
 
           for (String h : headers) {
             String norm = normalize(h);
+            if ("id".equals(norm)) {
+              continue;
+            }
             String inferredType = inferred.getOrDefault(h, "UNKNOWN");
             if ("UNKNOWN".equals(inferredType)) {
               inferredType = "STRING";
@@ -384,15 +394,19 @@ public class ExcelTemplateService {
             List<String> providedTypes = new ArrayList<>();
             for (int c = 0; c < headers.size(); c++) {
               Cell cell = typesRow.getCell(c);
+              String excelHeader = headers.get(c);
+              String excelNorm = normalize(excelHeader);
               String v = cell == null ? null : cell.toString().trim();
+              if ("id".equals(excelNorm)) {
+                v = "uuid";
+              }
               if (v == null || v.isBlank()) { 
                 looksLikeTypes2 = false; 
                 break; 
               }
               providedTypes.add(v);
               if (!isSupportedTypeMarker(v)) {
-                String headerName = headers.get(c);
-                warnings.add(getUnsupportedTypeErrorMessage(v, headerName, c));
+                warnings.add(getUnsupportedTypeErrorMessage(v, excelHeader, c));
                 looksLikeTypes2 = false; // if any not supported, fall back to inference
                 break;
               }
@@ -401,10 +415,12 @@ public class ExcelTemplateService {
               for (int i = 0; i < headers.size(); i++) {
                 String headerName = headers.get(i);
                 String norm = normalize(headerName);
+                if ("id".equals(norm)) {
+                  continue;
+                }
                 String marker = providedTypes.get(i);
                 String logical = logicalTypeFor(marker);
                 String sql = sqlTypeFor(logical);
-                // By default, allow nullability for initial schema; can be refined later
                 columns.add(new ColumnInfo(headerName, norm, logical, sql, true, null));
               }
               String normalizedTable = normalize(tableName);
@@ -444,6 +460,9 @@ public class ExcelTemplateService {
 
           for (String h : headers) {
             String norm = normalize(h);
+            if ("id".equals(norm)) {
+              continue;
+            }
             String inferredType = inferred.getOrDefault(h, "UNKNOWN");
             if ("UNKNOWN".equals(inferredType)) {
               inferredType = "STRING"; // fallback
@@ -499,24 +518,53 @@ public class ExcelTemplateService {
         || "text/csv".equalsIgnoreCase(contentType)
         || "application/csv".equalsIgnoreCase(contentType);
 
-    List<Object[]> batch = new ArrayList<>();
+    List<Object[]> rawBatch = new ArrayList<>();
     if (isCsv) {
-      collectCsvRows(file, columns, analysis.isTypeRowProvided(), batch, warnings);
+      collectCsvRows(file, columns, analysis.isTypeRowProvided(), rawBatch, warnings);
     } else {
-      collectExcelRows(file, columns, analysis.isTypeRowProvided(), batch, warnings);
+      collectExcelRows(file, columns, analysis.isTypeRowProvided(), rawBatch, warnings);
     }
 
-    if (batch.isEmpty()) {
+    if (rawBatch.isEmpty()) {
       return;
     }
 
-    String columnList = columns.stream()
+    List<Integer> insertIndexes = new ArrayList<>();
+    List<ColumnInfo> insertColumns = new ArrayList<>();
+    for (int i = 0; i < columns.size(); i++) {
+      ColumnInfo column = columns.get(i);
+      if ("id".equalsIgnoreCase(column.getName())) {
+        continue; // always server-generated
+      }
+      insertIndexes.add(i);
+      insertColumns.add(column);
+    }
+
+    if (insertColumns.isEmpty()) {
+      warnings.add("No columns available to import after excluding auto-generated id column.");
+      return;
+    }
+
+    List<Object[]> batch = new ArrayList<>(rawBatch.size());
+    for (Object[] row : rawBatch) {
+      Object[] filtered = new Object[insertIndexes.size()];
+      for (int i = 0; i < insertIndexes.size(); i++) {
+        filtered[i] = row[insertIndexes.get(i)];
+      }
+      batch.add(filtered);
+    }
+
+    String columnList = insertColumns.stream()
         .map(ColumnInfo::getName)
         .collect(Collectors.joining(", "));
-    String placeholders = columns.stream()
+    String placeholders = insertColumns.stream()
         .map(c -> "?")
         .collect(Collectors.joining(", "));
     String sql = "INSERT INTO " + table + " (" + columnList + ") VALUES (" + placeholders + ")";
+
+    if (columns.stream().anyMatch(c -> "id".equalsIgnoreCase(c.getName()))) {
+      warnings.add("Column 'id' is ignored during import; identifiers are generated by the server.");
+    }
 
     try {
       jdbcTemplate.batchUpdate(sql, batch);
@@ -684,19 +732,15 @@ public class ExcelTemplateService {
   private String buildCreateTable(String table, List<ColumnInfo> cols){
     StringBuilder sb = new StringBuilder();
     sb.append("CREATE TABLE IF NOT EXISTS ").append(table).append(" (\n");
-    // add id if not present
-    boolean hasId = cols.stream().anyMatch(c -> c.getName().equals("id"));
-    if(!hasId){
-      sb.append("  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n");
-    }
-    for(int i=0;i<cols.size();i++){
-      ColumnInfo c = cols.get(i);
-      sb.append("  ").append(c.getName()).append(" ").append(c.getSqlType());
+    sb.append("  id UUID PRIMARY KEY DEFAULT gen_random_uuid()");
+    List<ColumnInfo> others = cols.stream()
+        .filter(c -> !"id".equalsIgnoreCase(c.getName()))
+        .toList();
+    for (ColumnInfo c : others) {
+      sb.append(",\n  ").append(c.getName()).append(" ").append(c.getSqlType());
       if(!c.isNullable()) sb.append(" NOT NULL");
-      if(i < cols.size()-1) sb.append(",");
-      sb.append("\n");
     }
-    sb.append(");");
+    sb.append("\n);");
     return sb.toString();
   }
 

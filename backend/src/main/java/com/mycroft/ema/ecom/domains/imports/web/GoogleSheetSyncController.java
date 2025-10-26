@@ -23,7 +23,7 @@ public class GoogleSheetSyncController {
   }
 
   @PostMapping("/sync")
-  public ResponseEntity<?> sync(@RequestHeader(name = "X-Google-Sheets-Secret", required = false) String secret,
+  public ResponseEntity<?> sync(@RequestHeader(name = "X-Webhook-Secret", required = false) String secret,
                                 @RequestBody GoogleSheetSyncRequest request) {
     if (secret == null || secret.isBlank() || !secret.equals(properties.webhookSecret())) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid webhook secret"));

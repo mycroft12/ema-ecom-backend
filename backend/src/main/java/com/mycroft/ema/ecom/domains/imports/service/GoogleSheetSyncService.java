@@ -3,18 +3,26 @@ package com.mycroft.ema.ecom.domains.imports.service;
 import com.mycroft.ema.ecom.domains.imports.domain.GoogleImportConfig;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetSyncRequest;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.*;
-
+@Slf4j
 @Service
 public class GoogleSheetSyncService {
 
-  private static final Logger log = LoggerFactory.getLogger(GoogleSheetSyncService.class);
 
   private final GoogleImportConfigRepository configRepository;
   private final DomainImportService domainImportService;
@@ -49,11 +57,13 @@ public class GoogleSheetSyncService {
     String table = domainImportService.tableForDomain(domain);
     Map<String, Object> sanitizedRow = sanitizeRow(request.row());
     Set<String> allowedColumns = allowedColumnsForTable(table);
+    Map<String, String> columnTypes = columnTypesForTable(table);
     if (allowedColumns.isEmpty()) {
       throw new IllegalStateException("Unable to resolve columns for table '" + table + "'");
     }
 
     sanitizedRow.keySet().removeIf(col -> !allowedColumns.contains(col));
+    coerceColumnValues(sanitizedRow, columnTypes);
     if (!allowedColumns.contains("id")) {
       throw new IllegalStateException("Table '" + table + "' must contain an 'id' column for sync operations.");
     }
@@ -150,6 +160,47 @@ public class GoogleSheetSyncService {
     return new HashSet<>(columns);
   }
 
+  private Map<String, String> columnTypesForTable(String table) {
+    List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+        "select column_name, data_type from information_schema.columns where table_schema = current_schema() and table_name = ?",
+        table
+    );
+    Map<String, String> types = new HashMap<>();
+    for (Map<String, Object> row : rows) {
+      Object name = row.get("column_name");
+      Object type = row.get("data_type");
+      if (name != null && type != null) {
+        types.put(name.toString().toLowerCase(Locale.ROOT), type.toString().toLowerCase(Locale.ROOT));
+      }
+    }
+    return types;
+  }
+
+  private void coerceColumnValues(Map<String, Object> row, Map<String, String> columnTypes) {
+    if (row == null || columnTypes.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : row.entrySet()) {
+      String column = entry.getKey();
+      Object value = entry.getValue();
+      if (value == null) continue;
+      String type = columnTypes.get(column);
+      if (type == null) continue;
+      switch (type) {
+        case "uuid" -> entry.setValue(convertToUuid(value));
+        case "boolean" -> entry.setValue(convertToBoolean(value));
+        case "smallint", "integer", "bigint" -> entry.setValue(convertToLong(value));
+        case "numeric", "decimal", "double precision", "real" -> entry.setValue(convertToBigDecimal(value));
+        case "timestamp without time zone", "timestamp with time zone", "timestamp" ->
+            entry.setValue(convertToTimestamp(value));
+        case "date" -> entry.setValue(convertToDate(value));
+        default -> {
+          // leave as-is for text/timestamp/date/etc.
+        }
+      }
+    }
+  }
+
   private void upsertRow(String table, Map<String, Object> row) {
     LinkedHashMap<String, Object> ordered = new LinkedHashMap<>();
     ordered.put("id", row.get("id"));
@@ -158,6 +209,19 @@ public class GoogleSheetSyncService {
         ordered.put(k, v);
       }
     });
+
+    UUID id = (UUID) ordered.get("id");
+    Long existing = jdbcTemplate.queryForObject(
+        "select count(*) from " + table + " where id = ?",
+        Long.class,
+        id
+    );
+    long count = existing == null ? 0L : existing;
+    if (count == 0L) {
+      log.debug("No existing row found with id {} in {}", id, table);
+    } else {
+      log.debug("Found {} row(s) with id {} in {}", count, id, table);
+    }
 
     List<String> columns = new ArrayList<>(ordered.keySet());
     String insertColumns = String.join(", ", columns);
@@ -176,10 +240,110 @@ public class GoogleSheetSyncService {
     String upsertSql = "INSERT INTO " + table + " (" + insertColumns + ") VALUES (" + insertPlaceholders + ") "
         + "ON CONFLICT (id) DO UPDATE SET " + String.join(", ", updates);
 
-    jdbcTemplate.update(upsertSql, ordered.values().toArray());
+    try {
+      jdbcTemplate.update(upsertSql, ordered.values().toArray());
+    } catch (Exception ex) {
+      log.error("Failed to upsert row {} in {}: {}", id, table, ex.getMessage(), ex);
+      throw ex;
+    }
+
+    try {
+      Map<String, Object> refreshed = jdbcTemplate.queryForMap(
+          "select product_name from " + table + " where id = ?",
+          id
+      );
+      log.debug("Row after upsert for id {}: {}", id, refreshed);
+    } catch (Exception ex) {
+      log.warn("Unable to fetch row {} after upsert in {}: {}", id, table, ex.getMessage());
+    }
   }
 
   private void deleteRow(String table, UUID rowId) {
     jdbcTemplate.update("DELETE FROM " + table + " WHERE id = ?", rowId);
+  }
+
+  private UUID convertToUuid(Object value) {
+    if (value instanceof UUID uuid) {
+      return uuid;
+    }
+    return UUID.fromString(value.toString().trim());
+  }
+
+  private Boolean convertToBoolean(Object value) {
+    if (value instanceof Boolean b) {
+      return b;
+    }
+    String s = value.toString().trim().toLowerCase(Locale.ROOT);
+    if ("true".equals(s) || "1".equals(s)) return Boolean.TRUE;
+    if ("false".equals(s) || "0".equals(s)) return Boolean.FALSE;
+    throw new IllegalArgumentException("Cannot convert value '" + value + "' to boolean");
+  }
+
+  private Long convertToLong(Object value) {
+    if (value instanceof Number num) {
+      return num.longValue();
+    }
+    String s = value.toString().trim();
+    if (s.isEmpty()) return null;
+    return Long.parseLong(s);
+  }
+
+  private BigDecimal convertToBigDecimal(Object value) {
+    if (value instanceof BigDecimal bd) {
+      return bd;
+    }
+    if (value instanceof Number num) {
+      return new BigDecimal(num.toString());
+    }
+    String s = value.toString().trim();
+    if (s.isEmpty()) return null;
+    return new BigDecimal(s);
+  }
+
+  private Timestamp convertToTimestamp(Object value) {
+    if (value instanceof Timestamp ts) {
+      return ts;
+    }
+    if (value instanceof LocalDateTime ldt) {
+      return Timestamp.valueOf(ldt);
+    }
+    if (value instanceof Instant instant) {
+      return Timestamp.from(instant);
+    }
+    String s = value.toString().trim();
+    if (s.isEmpty()) return null;
+    try {
+      return Timestamp.from(Instant.parse(s));
+    } catch (DateTimeParseException ignored) { }
+    try {
+      return Timestamp.valueOf(LocalDateTime.parse(s));
+    } catch (DateTimeParseException ignored) { }
+    try {
+      LocalDate date = LocalDate.parse(s);
+      return Timestamp.valueOf(date.atStartOfDay());
+    } catch (DateTimeParseException ignored) { }
+    throw new IllegalArgumentException("Cannot convert value '" + value + "' to timestamp");
+  }
+
+  private Date convertToDate(Object value) {
+    if (value instanceof Date date) {
+      return date;
+    }
+    if (value instanceof LocalDate localDate) {
+      return Date.valueOf(localDate);
+    }
+    if (value instanceof Instant instant) {
+      return Date.valueOf(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalDate());
+    }
+    String s = value.toString().trim();
+    if (s.isEmpty()) return null;
+    try {
+      return Date.valueOf(LocalDate.parse(s));
+    } catch (DateTimeParseException ignored) { }
+    try {
+      Instant instant = Instant.parse(s);
+      return Date.valueOf(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalDate());
+    } catch (DateTimeParseException ignored) { }
+    throw new IllegalArgumentException("Cannot convert value '" + value + "' to date");
   }
 }
