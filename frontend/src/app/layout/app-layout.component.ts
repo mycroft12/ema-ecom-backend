@@ -9,6 +9,7 @@ import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { DividerModule } from 'primeng/divider';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
+import { BadgeModule } from 'primeng/badge';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../core/language.service';
 import { NavService } from '../core/navigation/nav.service';
@@ -19,8 +20,19 @@ import { LanguageSwitcherComponent } from '../shared/language-switcher.component
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, FormsModule, TranslateModule, LanguageSwitcherComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, DrawerModule, PanelMenuModule, BreadcrumbModule, DividerModule, AvatarModule, MenuModule, BadgeModule, FormsModule, TranslateModule, LanguageSwitcherComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [
+    `
+    .badge-pill {
+      min-width: 1.5rem;
+      height: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    `
+  ],
   template: `
     <div class="min-h-screen flex flex-column">
       <!-- Topbar -->
@@ -60,6 +72,7 @@ import { LanguageSwitcherComponent } from '../shared/language-switcher.component
                   class="nav-link flex align-items-center gap-2 p-2 border-round cursor-pointer no-underline text-color transition-colors transition-duration-150">
                   <i [class]="item.icon" *ngIf="item.icon" aria-hidden="true"></i>
                   <span>{{ item.label }}</span>
+                  <span *ngIf="item['badge']" class="ml-auto p-badge p-component badge-pill">{{ item['badge'] }}</span>
                 </a>
               </li>
             </ul>
@@ -122,7 +135,8 @@ export class AppLayoutComponent {
     ];
   }
 
-  menuModel = () => this.nav.menuItems();
+  menuItemsSignal = this.nav.menuItems();
+  menuModel = () => this.menuItemsSignal();
 
   breadcrumbs = () => this.nav.breadcrumbsFromRoute(this.router.routerState.snapshot.root);
 }

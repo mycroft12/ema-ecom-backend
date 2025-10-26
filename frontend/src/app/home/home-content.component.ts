@@ -33,7 +33,7 @@ export class HomeContentComponent implements OnInit, OnDestroy {
   constructor(private nav: NavService, private translate: TranslateService) {}
 
   private buildTiles() {
-    const items = this.nav.menuItems();
+    const items = this.nav.menuItems()();
     return items
       .filter((i) => (i as any).routerLink && (i as any).routerLink !== '/home')
       .map((i) => ({

@@ -4,8 +4,6 @@ import com.mycroft.ema.ecom.domains.imports.domain.GoogleImportConfig;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetSyncRequest;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +25,16 @@ public class GoogleSheetSyncService {
   private final GoogleImportConfigRepository configRepository;
   private final DomainImportService domainImportService;
   private final JdbcTemplate jdbcTemplate;
+  private final ProductUpsertBroadcaster upsertBroadcaster;
 
   public GoogleSheetSyncService(GoogleImportConfigRepository configRepository,
                                 DomainImportService domainImportService,
-                                JdbcTemplate jdbcTemplate) {
+                                JdbcTemplate jdbcTemplate,
+                                ProductUpsertBroadcaster upsertBroadcaster) {
     this.configRepository = configRepository;
     this.domainImportService = domainImportService;
     this.jdbcTemplate = jdbcTemplate;
+    this.upsertBroadcaster = upsertBroadcaster;
   }
 
   @Transactional
@@ -81,7 +82,10 @@ public class GoogleSheetSyncService {
       deleteRow(table, rowId);
       log.debug("Deleted row {} from {}", rowId, table);
     } else {
-      upsertRow(table, sanitizedRow);
+    upsertRow(table, sanitizedRow);
+    ProductUpsertEvent event = new ProductUpsertEvent(domain, rowId, Instant.now());
+    log.debug("Broadcasting upsert event: {}", event);
+    upsertBroadcaster.broadcast(event);
       log.debug("Upserted row {} into {}", rowId, table);
     }
 

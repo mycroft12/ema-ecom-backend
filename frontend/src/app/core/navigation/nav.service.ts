@@ -1,13 +1,26 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Signal, computed, signal } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { NavItem } from './nav.model';
 import { AuthService } from '../auth.service';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ProductBadgeService } from '../../features/products/services/product-badge.service';
 
 @Injectable({ providedIn: 'root' })
 export class NavService {
-  constructor(private auth: AuthService, private translate: TranslateService, private router: Router) {}
+  private readonly menuItemsComputed: Signal<MenuItem[]>;
+  private readonly rebuildTick = signal(0);
+
+  constructor(private auth: AuthService, private translate: TranslateService, private router: Router,
+              private productBadge: ProductBadgeService) {
+    const badgeSignal = this.productBadge.asSignal();
+    this.menuItemsComputed = computed(() => {
+      this.rebuildTick();
+      const badgeCount = badgeSignal();
+      return this.buildMenuItems(badgeCount);
+    });
+    this.translate.onLangChange.subscribe(() => this.rebuildTick.update((value) => value + 1));
+  }
 
   private allItems(): NavItem[] {
     return [
@@ -35,9 +48,9 @@ export class NavService {
     return this.auth.hasAny(req);
   }
 
-  private toMenuItem(item: NavItem): MenuItem | null {
+  private toMenuItem(item: NavItem, badgeCount: number): MenuItem | null {
     if (!this.allowed(item)) return null;
-    const children = (item.children || []).map((c) => this.toMenuItem(c)).filter(Boolean) as MenuItem[];
+    const children = (item.children || []).map((c) => this.toMenuItem(c, badgeCount)).filter(Boolean) as MenuItem[];
     const menuItem: MenuItem = {
       label: this.translate.instant(item.labelKey),
       icon: item.icon,
@@ -50,12 +63,19 @@ export class NavService {
       },
       items: children.length ? children : undefined
     };
+    if (item.route === '/products' && badgeCount > 0) {
+        menuItem.badge = String(badgeCount);
+    }
     return menuItem;
   }
 
   // Expose a MenuItem[] for PanelMenu with translated labels
-  menuItems(): MenuItem[] {
-    return this.allItems().map((i) => this.toMenuItem(i)).filter(Boolean) as MenuItem[];
+  menuItems(): Signal<MenuItem[]> {
+    return this.menuItemsComputed;
+  }
+
+  private buildMenuItems(badgeCount: number): MenuItem[] {
+    return this.allItems().map((i) => this.toMenuItem(i, badgeCount)).filter(Boolean) as MenuItem[];
   }
 
   // Build breadcrumb model from route data recursively with translated labels

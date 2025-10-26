@@ -11,6 +11,7 @@ import { LanguageService, LangCode } from './core/language.service';
 import { LanguageSwitcherComponent } from './shared/language-switcher.component';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { ProductUpsertListenerService } from './features/products/services/product-upsert-listener.service';
 
 @Component({
   selector: 'app-root',
@@ -21,8 +22,10 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 })
 export class AppComponent {
   selectedLang: LangCode;
-  constructor(public auth: AuthService, private router: Router, public lang: LanguageService, private translateService: TranslateService) {
+  constructor(public auth: AuthService, private router: Router, public lang: LanguageService, private translateService: TranslateService,
+              upsertListener: ProductUpsertListenerService) {
     this.selectedLang = this.lang.current();
+    upsertListener.start();
   }
   get isLoginPage(): boolean { return this.router.url.startsWith('/login'); }
   logout(){ this.auth.logout(); }

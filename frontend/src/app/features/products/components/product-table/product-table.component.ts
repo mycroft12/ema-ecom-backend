@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -24,6 +24,7 @@ import { TableLazyLoadEvent } from '../../models/filter.model';
 import { AuthService } from '../../../../core/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ProductBadgeService, ProductUpsertEvent } from '../../services/product-badge.service';
 
 @Component({
   selector: 'app-product-table',
@@ -59,6 +60,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private readonly confirmationService = inject(ConfirmationService);
   readonly translate = inject(TranslateService);
   private readonly auth = inject(AuthService);
+  private readonly productBadge = inject(ProductBadgeService);
 
   ColumnType = ColumnType; // expose enum to template
 
@@ -76,6 +78,13 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   dialogStyle = { width: 'clamp(550px, 70vw, 1040px)' };
 
   private readonly destroy$ = new Subject<void>();
+  private lastLazyLoadEvent: TableLazyLoadEvent | null = null;
+  private readonly realtimeEffectRef = effect(() => {
+    const realtimeEvent = this.productBadge.upsertEvents()();
+    if (realtimeEvent) {
+      this.handleRealtimeUpdate(realtimeEvent);
+    }
+  });
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -137,6 +146,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.realtimeEffectRef.destroy();
   }
 
   onLazyLoad(event: TableLazyLoadEvent) {
@@ -146,6 +156,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   }
 
   private loadData(event: TableLazyLoadEvent) {
+    this.lastLazyLoadEvent = { ...event };
     this.loading = true;
     this.updateGlobalFilterFields();
     if (event.globalFilter !== undefined) {
@@ -197,11 +208,20 @@ export class ProductTableComponent implements OnInit, OnDestroy {
           }
         }
         this.loading = false;
+        this.productBadge.reset();
       },
       error: () => {
         this.loading = false;
       }
     });
+  }
+
+  private handleRealtimeUpdate(event: ProductUpsertEvent): void {
+    if (!this.lastLazyLoadEvent) {
+      return;
+    }
+    console.debug('[ProductTable] Realtime upsert detected', event);
+    this.loadData({ ...this.lastLazyLoadEvent });
   }
 
   onSort(event: { field: string; order: number }): void {

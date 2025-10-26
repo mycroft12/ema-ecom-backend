@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
       <div class="col-12 md:col-3 lg:col-2 mb-3">
         <nav class="nav-menu">
           <ul class="nav-list">
-            <li *ngFor="let item of menu" class="nav-item">
+            <li *ngFor="let item of menu()" class="nav-item">
               <a 
                 [routerLink]="item.routerLink" 
                 routerLinkActive="nav-link-active"
