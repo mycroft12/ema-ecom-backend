@@ -108,6 +108,13 @@ export class AuthService {
   }
 
   logout(messageKey?: string){
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      this.http.post(`${environment.apiBase}/api/auth/logout`, { refreshToken }).subscribe({
+        next: () => {},
+        error: () => {}
+      });
+    }
     if (messageKey) {
       try { localStorage.setItem(this.logoutMessageKey, messageKey); } catch { /* ignore */ }
     } else {

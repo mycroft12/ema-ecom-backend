@@ -443,6 +443,10 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
   }
 
   confirmDeleteUser(user: User): void {
+    if (this.isProtectedUser(user)) {
+      this.showWarn(this.translate.instant('rolesPage.users.errors.deleteAdmin'));
+      return;
+    }
     this.confirm.confirm({
       header: this.translate.instant('rolesPage.users.confirmDelete.header'),
       message: this.translate.instant('rolesPage.users.confirmDelete.message', { name: user.username }),
@@ -451,15 +455,34 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
       acceptButtonStyleClass: 'p-button-danger',
       rejectButtonStyleClass: 'p-button-text',
       icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.service.deleteUser(user.id).subscribe({
-          next: () => {
-            this.showSuccess(this.translate.instant('rolesPage.users.toastDeleted'));
-            this.loadUsers();
-          },
-          error: () => this.showError(this.translate.instant('rolesPage.users.errors.delete')),
-        });
+      accept: () => this.executeUserDelete(user),
+    });
+  }
+
+  private executeUserDelete(user: User): void {
+    if (this.isProtectedUser(user)) {
+      this.showWarn(this.translate.instant('rolesPage.users.errors.deleteAdmin'));
+      return;
+    }
+    this.service.deleteUser(user.id).subscribe({
+      next: () => {
+        this.showSuccess(this.translate.instant('rolesPage.users.toastDeleted'));
+        this.loadUsers();
       },
+      error: (err) => {
+        const code = err?.error?.message ?? err?.error ?? err?.message;
+        const key = code === 'user.roles.assigned'
+          ? 'rolesPage.users.errors.deleteAssigned'
+          : code === 'user.admin.protected'
+            ? 'rolesPage.users.errors.deleteAdmin'
+            : 'rolesPage.users.errors.delete';
+        const msg = this.translate.instant(key);
+        if (key === 'rolesPage.users.errors.deleteAdmin') {
+          this.showWarn(msg);
+        } else {
+          this.showError(msg);
+        }
+      }
     });
   }
 
@@ -582,6 +605,11 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
   isProtectedRole(role: Role | null | undefined): boolean {
     const name = role?.name?.trim().toUpperCase();
     return name === 'ADMIN';
+  }
+
+  isProtectedUser(user: User | null | undefined): boolean {
+    const username = user?.username?.trim().toUpperCase();
+    return username === 'ADMIN';
   }
 
   getRolePermissionsDisplay(role: Role): Permission[] {

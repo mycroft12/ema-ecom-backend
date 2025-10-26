@@ -11,12 +11,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  if (!auth.hasConsistentRefreshToken()) {
+  const token = auth.getToken();
+  const isApiRequest = req.url.startsWith('/api/') || req.url.includes('/api/');
+
+  if (isApiRequest && token && !auth.hasConsistentRefreshToken()) {
     auth.logout('auth.errors.reconnect');
     return throwError(() => new Error('Missing refresh token'));
   }
-
-  const token = auth.getToken();
   const lang =
     (typeof localStorage !== 'undefined' && localStorage.getItem('ema_lang')) ||
     (typeof document !== 'undefined' && document.documentElement.getAttribute('lang')) ||

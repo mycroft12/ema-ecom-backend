@@ -45,9 +45,12 @@
     "errors": {
       "invalid": "Invalid credentials",
       "unexpected": "Unexpected error occurred",
-    "serverUnreachable": "Server unreachable",
-    "disabled": "Your account is not activated yet.",
-    "reconnect": "Something went wrong. Try to reconnect."
+      "serverUnreachable": "Server unreachable",
+      "disabled": "Your account is not activated yet.",
+      "reconnect": "Something went wrong. Try to reconnect."
+    },
+    "session": {
+      "active": "This account is already in use. Please sign out from other devices before logging in."
     }
   },
   "products": {
@@ -351,7 +354,9 @@
         "create": "Failed to create user",
         "update": "Failed to update user",
         "delete": "Failed to delete user",
-        "roles": "Failed to update user roles"
+        "roles": "Failed to update user roles",
+        "deleteAssigned": "This user is linked to other data and cannot be deleted.",
+        "deleteAdmin": "The ADMIN account cannot be deleted."
       },
       "tooltips": {
         "attachRoles": "Attach or detach roles"

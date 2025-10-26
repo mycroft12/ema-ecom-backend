@@ -6,6 +6,7 @@ import com.mycroft.ema.ecom.auth.repo.RoleRepository;
 import com.mycroft.ema.ecom.auth.repo.UserRepository;
 import com.mycroft.ema.ecom.auth.service.UserService;
 import com.mycroft.ema.ecom.common.error.NotFoundException;
+import com.mycroft.ema.ecom.common.error.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +67,13 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public void delete(UUID id){ users.deleteById(id); }
+  public void delete(UUID id){
+    var existing = users.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+    if (existing.getUsername() != null && existing.getUsername().equalsIgnoreCase("admin")) {
+      throw new BadRequestException("user.admin.protected");
+    }
+    users.delete(existing);
+  }
 
   @Override
   public User enable(UUID id){ var u = get(id); u.setEnabled(true); return users.save(u); }

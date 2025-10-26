@@ -7,6 +7,7 @@ import com.mycroft.ema.ecom.auth.repo.RefreshTokenRepository;
 import com.mycroft.ema.ecom.auth.repo.UserRepository;
 import com.mycroft.ema.ecom.auth.service.AuthService;
 import com.mycroft.ema.ecom.auth.service.JwtService;
+import com.mycroft.ema.ecom.common.error.BadRequestException;
 import com.mycroft.ema.ecom.common.error.NotFoundException;
 import com.mycroft.ema.ecom.common.mail.MailService;
 import jakarta.transaction.Transactional;
@@ -55,6 +56,9 @@ public class AuthServiceImpl implements AuthService {
     if (!user.isEnabled()) {
       throw new org.springframework.security.authentication.DisabledException("account_disabled");
     }
+    if (refreshTokens.existsByUserAndRevokedFalseAndExpiresAtAfter(user, Instant.now())) {
+      throw new BadRequestException("auth.session.active");
+    }
     var access = jwt.generateAccessToken(user);
     var refresh = new RefreshToken();
     refresh.setToken(UUID.randomUUID().toString());
@@ -76,8 +80,11 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public void logout(String refreshToken){ refreshTokens.findByToken(refreshToken)
-          .ifPresent(rt -> { rt.setRevoked(true); refreshTokens.save(rt); });
+  public void logout(String refreshToken){
+    if (refreshToken == null || refreshToken.isBlank()) {
+      return;
+    }
+    refreshTokens.deleteByToken(refreshToken);
   }
 
   @Override

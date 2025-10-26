@@ -225,6 +225,7 @@
                   (click)="openUserDialog(user)"
                 ></button>
                 <button
+                  *ngIf="!isProtectedUser(user)"
                   pButton
                   type="button"
                   icon="pi pi-trash"

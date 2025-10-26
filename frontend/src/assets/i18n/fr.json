@@ -45,9 +45,12 @@
     "errors": {
       "invalid": "Identifiants invalides",
       "unexpected": "Une erreur inattendue s'est produite",
-    "serverUnreachable": "Serveur injoignable",
-    "disabled": "Votre compte n'est pas encore activé.",
-    "reconnect": "Une erreur est survenue. Essayez de vous reconnecter."
+      "serverUnreachable": "Serveur injoignable",
+      "disabled": "Votre compte n'est pas encore activé.",
+      "reconnect": "Une erreur est survenue. Essayez de vous reconnecter."
+    },
+    "session": {
+      "active": "Ce compte est déjà utilisé ailleurs. Déconnectez-vous des autres appareils avant de vous connecter."
     }
   },
   "products": {
@@ -349,7 +352,9 @@
         "create": "Échec de la création de l'utilisateur",
         "update": "Échec de la mise à jour de l'utilisateur",
         "delete": "Échec de la suppression de l'utilisateur",
-        "roles": "Échec de la mise à jour des rôles de l'utilisateur"
+        "roles": "Échec de la mise à jour des rôles de l'utilisateur",
+        "deleteAssigned": "Cet utilisateur est lié à d'autres données et ne peut pas être supprimé.",
+        "deleteAdmin": "Le compte ADMIN ne peut pas être supprimé."
       },
       "tooltips": {
         "attachRoles": "Associer ou dissocier des rôles"
