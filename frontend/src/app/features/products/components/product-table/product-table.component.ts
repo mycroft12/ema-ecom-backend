@@ -97,8 +97,13 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   activityMax = 100;
   activityRange: [number, number] = [0, 100];
 
-  private readonly actionPrefix = 'product:action:';
-  private permissionsState = { add: false, edit: false, delete: false };
+  private readonly productPermissionKeys = {
+    create: 'product:create',
+    update: 'product:update',
+    delete: 'product:delete',
+    export: 'product:action:export:excel'
+  } as const;
+  private permissionsState = { add: false, edit: false, delete: false, export: false };
 
   displayDialog = false;
   dialogMode: 'create' | 'edit' = 'create';
@@ -110,6 +115,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   get canAdd(): boolean { return this.permissionsState.add; }
   get canEdit(): boolean { return this.permissionsState.edit; }
   get canDelete(): boolean { return this.permissionsState.delete; }
+  get canExport(): boolean { return this.permissionsState.export; }
   get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
   get dialogHeader(): string {
     return this.dialogMode === 'create'
@@ -231,9 +237,10 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private refreshActionPermissions(): void {
     const permissions = new Set(this.auth.permissions() ?? []);
     this.permissionsState = {
-      add: permissions.has(this.actionPermission('add')),
-      edit: permissions.has(this.actionPermission('update')),
-      delete: permissions.has(this.actionPermission('delete'))
+      add: permissions.has(this.productPermissionKeys.create),
+      edit: permissions.has(this.productPermissionKeys.update),
+      delete: permissions.has(this.productPermissionKeys.delete),
+      export: permissions.has(this.productPermissionKeys.export)
     };
   }
 
@@ -241,10 +248,6 @@ export class ProductTableComponent implements OnInit, OnDestroy {
     const value = (event.target as HTMLInputElement)?.value ?? '';
     this.searchValue = value;
     table.filterGlobal(value, 'contains');
-  }
-
-  private actionPermission(action: 'add' | 'update' | 'delete'): string {
-    return `${this.actionPrefix}${action}`;
   }
 
   openCreateDialog(): void {
@@ -256,6 +259,10 @@ export class ProductTableComponent implements OnInit, OnDestroy {
     this.formModel = this.buildInitialFormModel();
     this.formSubmitted = false;
     this.displayDialog = true;
+  }
+
+  onExportExcel(): void {
+    this.dataService.exportToExcel();
   }
 
   openEditDialog(productId: string): void {

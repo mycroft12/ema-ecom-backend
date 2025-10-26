@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 interface LoginRequest { username: string; password: string; }
 interface LoginResponse { accessToken: string; refreshToken: string; }
@@ -13,8 +14,12 @@ interface JwtPayload { sub: string; roles?: string[]; permissions?: string[]; na
 export class AuthService {
   private tokenKey = 'ema_token';
   private refreshTokenKey = 'ema_refresh_token';
+  private logoutMessageKey = 'ema_logout_message';
+  private refreshTokenSnapshot: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router, private zone: NgZone) {
+    this.refreshTokenSnapshot = this.peekRefreshToken();
+  }
 
   login(username: string, password: string){
     return this.http.post<LoginResponse>(`${environment.apiBase}/api/auth/login`, { username, password });
@@ -32,8 +37,33 @@ export class AuthService {
   saveToken(token: string){ localStorage.setItem(this.tokenKey, token); }
   getToken(): string | null { return localStorage.getItem(this.tokenKey); }
 
-  saveRefreshToken(token: string){ localStorage.setItem(this.refreshTokenKey, token); }
-  getRefreshToken(): string | null { return localStorage.getItem(this.refreshTokenKey); }
+  saveRefreshToken(token: string){
+    localStorage.setItem(this.refreshTokenKey, token);
+    this.refreshTokenSnapshot = token;
+  }
+  private peekRefreshToken(): string | null {
+    try {
+      return localStorage.getItem(this.refreshTokenKey);
+    } catch {
+      return null;
+    }
+  }
+  getRefreshToken(): string | null {
+    const value = this.peekRefreshToken();
+    this.refreshTokenSnapshot = value;
+    return value;
+  }
+  hasConsistentRefreshToken(): boolean {
+    const stored = this.peekRefreshToken();
+    if (!stored) {
+      return false;
+    }
+    if (this.refreshTokenSnapshot && this.refreshTokenSnapshot !== stored) {
+      return false;
+    }
+    this.refreshTokenSnapshot = stored;
+    return true;
+  }
 
   refreshAccessToken() {
     const refreshToken = this.getRefreshToken();
@@ -77,10 +107,21 @@ export class AuthService {
     );
   }
 
-  logout(){ 
+  logout(messageKey?: string){
+    if (messageKey) {
+      try { localStorage.setItem(this.logoutMessageKey, messageKey); } catch { /* ignore */ }
+    } else {
+      try { localStorage.removeItem(this.logoutMessageKey); } catch { /* ignore */ }
+    }
     localStorage.removeItem(this.tokenKey); 
     localStorage.removeItem(this.refreshTokenKey);
-    window.location.href = '/login'; 
+    this.refreshTokenSnapshot = null;
+    const navigate = () => this.router.navigateByUrl('/login').catch(() => { window.location.href = '/login'; });
+    if (this.zone) {
+      this.zone.run(() => navigate());
+    } else {
+      navigate();
+    }
   }
   isAuthenticated(): boolean { 
     const t = this.getToken(); 
@@ -117,6 +158,19 @@ export class AuthService {
     } catch(e) { 
       return []; 
     } 
+  }
+
+  consumeLogoutMessage(): string | null {
+    let messageKey: string | null = null;
+    try {
+      messageKey = localStorage.getItem(this.logoutMessageKey);
+      if (messageKey) {
+        localStorage.removeItem(this.logoutMessageKey);
+      }
+    } catch {
+      messageKey = null;
+    }
+    return messageKey;
   }
 
   hasAny(perms: string[]): boolean { 

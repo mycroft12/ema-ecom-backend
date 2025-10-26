@@ -95,6 +95,7 @@ public class DevAdminInitializer implements CommandLineRunner {
         String[] basePerms = new String[]{
             "user:read","user:create","user:update","user:delete",
             "product:read","product:create","product:update","product:delete",
+            "product:action:export:excel",
             "import:template","import:configure"
         };
         for (String p : basePerms){

@@ -289,6 +289,10 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
   }
 
   confirmDeleteRole(role: Role): void {
+    if (this.isProtectedRole(role)) {
+      this.showWarn(this.translate.instant('rolesPage.roles.errors.deleteAdmin'));
+      return;
+    }
     this.confirm.confirm({
       header: this.translate.instant('rolesPage.roles.confirmDelete.header'),
       message: this.translate.instant('rolesPage.roles.confirmDelete.message', { name: role.name }),
@@ -327,8 +331,15 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
         }
         const key = code === 'role.assigned'
           ? 'rolesPage.roles.errors.deleteAssigned'
-          : 'rolesPage.roles.errors.delete';
-        this.showError(this.translate.instant(key));
+          : code === 'role.admin.protected'
+            ? 'rolesPage.roles.errors.deleteAdmin'
+            : 'rolesPage.roles.errors.delete';
+        const msg = this.translate.instant(key);
+        if (key === 'rolesPage.roles.errors.deleteAdmin') {
+          this.showWarn(msg);
+        } else {
+          this.showError(msg);
+        }
       },
     });
   }
@@ -555,9 +566,22 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
     });
   }
 
+  private showWarn(detail: string): void {
+    this.messages.add({
+      severity: 'warn',
+      summary: this.translate.instant('rolesPage.common.toastWarn'),
+      detail
+    });
+  }
+
   getRolePermissionTooltip(role: Role): string | null {
     const perms = role.permissions ?? [];
     return perms.map(p => p.name).join(', ');
+  }
+
+  isProtectedRole(role: Role | null | undefined): boolean {
+    const name = role?.name?.trim().toUpperCase();
+    return name === 'ADMIN';
   }
 
   getRolePermissionsDisplay(role: Role): Permission[] {

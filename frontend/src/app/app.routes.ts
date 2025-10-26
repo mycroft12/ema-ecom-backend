@@ -17,7 +17,7 @@ export const routes: Routes = [
     component: HomeComponent, // shell with sidenav + content outlet
     children: [
       { path: 'home', component: HomeContentComponent },
-      { path: 'products', component: ProductsPageComponent, canActivate: [permissionGuard], data: { permissions: ['product:read'] } },
+      { path: 'products', component: ProductsPageComponent, canActivate: [permissionGuard], data: { permissions: ['product:read','product:create','product:update','product:delete'] } },
       { path: 'roles', component: RolesPageComponent, canActivate: [permissionGuard], data: { permissions: ['role:read'] } },
       { path: 'import', component: ImportTemplatePageComponent, canActivate: [permissionGuard], data: { permissions: ['import:configure'] } },
     ]

@@ -48,6 +48,10 @@ public class RoleServiceImpl implements RoleService {
 
   @Override
   public void delete(UUID id, boolean force){
+    var existing = roles.findById(id).orElseThrow(() -> new NotFoundException("Role not found"));
+    if (existing.getName() != null && existing.getName().equalsIgnoreCase("ADMIN")) {
+      throw new BadRequestException("role.admin.protected");
+    }
     try {
       if (force) {
         jdbc.update("delete from users_roles where role_id = ?", id);

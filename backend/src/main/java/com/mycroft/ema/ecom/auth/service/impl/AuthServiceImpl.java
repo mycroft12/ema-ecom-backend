@@ -67,6 +67,7 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public TokenPair refresh(String refreshToken){
+    jwt.assertRefreshTokenExists(refreshToken);
     var rt = refreshTokens.findByToken(refreshToken).orElseThrow(()->new IllegalArgumentException("Invalid refresh token"));
     if(!rt.isActive()) throw new IllegalArgumentException("Refresh token expired/revoked");
     var user = rt.getUser();

@@ -25,7 +25,7 @@ export class NavService {
   private allItems(): NavItem[] {
     return [
       { labelKey: 'menu.home', icon: 'pi pi-home', route: '/home' },
-      { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: ['product:read'] },
+      { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: PRODUCT_FEATURE_PERMISSIONS },
       { labelKey: 'menu.roles', icon: 'pi pi-id-card', route: '/roles', permissions: ['role:read'] },
       { labelKey: 'menu.import', icon: 'pi pi-spin pi-cog', route: '/import', permissions: ['import:configure'] },
     ];
@@ -95,3 +95,4 @@ export class NavService {
     return out;
   }
 }
+const PRODUCT_FEATURE_PERMISSIONS = ['product:read','product:create','product:update','product:delete'];

@@ -11,6 +11,7 @@ INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:read') ON 
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:create') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:update') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:delete') ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:action:export:excel') ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'employee:read') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'employee:create') ON CONFLICT (name) DO NOTHING;

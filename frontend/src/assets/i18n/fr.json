@@ -45,8 +45,9 @@
     "errors": {
       "invalid": "Identifiants invalides",
       "unexpected": "Une erreur inattendue s'est produite",
-      "serverUnreachable": "Serveur injoignable",
-      "disabled": "Votre compte n'est pas encore activé."
+    "serverUnreachable": "Serveur injoignable",
+    "disabled": "Votre compte n'est pas encore activé.",
+    "reconnect": "Une erreur est survenue. Essayez de vous reconnecter."
     }
   },
   "products": {
@@ -77,6 +78,7 @@
     "selectOneOption": "Sélectionner",
     "newProduct": "Nouveau produit",
     "editProduct": "Modifier le produit",
+    "exportExcel": "Exporter Excel",
     "actions": "Actions",
     "downloadExamples": "Télécharger des exemples de modèles",
     "downloadExplain": "Téléchargez un modèle pour voir le format attendu. Le modèle inclut :",
@@ -292,7 +294,8 @@
         "update": "Échec de la mise à jour du rôle",
         "delete": "Échec de la suppression du rôle",
         "permissions": "Échec de la mise à jour des permissions du rôle",
-        "deleteAssigned": "Ce rôle est assigné. Utilisez la suppression brutforce pour le retirer."
+        "deleteAssigned": "Ce rôle est assigné. Utilisez la suppression brutforce pour le retirer.",
+        "deleteAdmin": "Le rôle ADMIN ne peut pas être supprimé."
       },
       "tooltips": {
         "attachPermissions": "Associer ou dissocier des permissions"
@@ -365,6 +368,7 @@
       "more": "+{{count}} de plus",
       "toastSuccess": "Succès",
       "toastError": "Erreur",
+      "toastWarn": "Information",
       "forceDelete": "Suppression brutforce",
       "searchPlaceholder": "Rechercher..."
     },

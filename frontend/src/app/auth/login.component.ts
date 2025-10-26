@@ -58,6 +58,11 @@ export class LoginComponent implements OnInit {
 
 
    ngOnInit(){
+    const logoutMessageKey = this.auth.consumeLogoutMessage();
+    if (logoutMessageKey) {
+      const translated = this.translate.instant(logoutMessageKey);
+      this.error = translated && translated !== logoutMessageKey ? translated : logoutMessageKey;
+    }
     if (this.auth.isAuthenticated()) {
       this.router.navigateByUrl('/home');
     }

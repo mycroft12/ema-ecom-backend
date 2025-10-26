@@ -11,6 +11,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  if (!auth.hasConsistentRefreshToken()) {
+    auth.logout('auth.errors.reconnect');
+    return throwError(() => new Error('Missing refresh token'));
+  }
+
   const token = auth.getToken();
   const lang =
     (typeof localStorage !== 'undefined' && localStorage.getItem('ema_lang')) ||
@@ -25,7 +30,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // Check if error is 401 Unauthorized
       if (error.status === 401) {
         // Try to refresh the token
-        return auth.refreshAccessToken().pipe(
+        let refresh$;
+        try {
+          refresh$ = auth.refreshAccessToken();
+        } catch (refreshInitError) {
+          auth.logout('auth.errors.reconnect');
+          return throwError(() => refreshInitError);
+        }
+
+        return refresh$.pipe(
           switchMap(response => {
             // Save the new tokens
             auth.saveLoginResponse(response);
@@ -40,7 +53,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(refreshError => {
             // If refresh fails, log out the user
-            auth.logout();
+            auth.logout('auth.errors.reconnect');
             return throwError(() => refreshError);
           })
         );

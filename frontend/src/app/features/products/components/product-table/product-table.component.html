@@ -50,7 +50,14 @@
                                 (onChange)="onColumnToggleChange($event.value)"
                         ></p-multiselect>
                     </div>
-                    <div class="flex items-center ml-auto">
+                    <div class="flex items-center gap-2 ml-auto">
+                        <p-button
+                                *ngIf="canExport"
+                                [label]="'products.exportExcel' | translate"
+                                icon="pi pi-file-excel"
+                                severity="success"
+                                (click)="onExportExcel()"
+                        ></p-button>
                         <p-iconfield iconPosition="left" class="search-field">
                             <p-inputicon>
                                 <i class="pi pi-search"></i>

@@ -1,6 +1,7 @@
-import { Injectable, Signal, computed, signal } from '@angular/core';
+import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { NotificationApiService } from './notification-api.service';
 import { NotificationEntryDto } from '../models/notification.model';
+import { AuthService } from '../../../core/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class ProductBadgeService {
@@ -33,8 +34,12 @@ export class ProductBadgeService {
     return this.unreadCountSignal();
   }
 
+  private readonly auth = inject(AuthService);
+
   constructor(private api: NotificationApiService) {
-    this.refreshFromServer();
+    if (this.auth.isAuthenticated()) {
+      this.refreshFromServer();
+    }
   }
 
   notifyUpsert(event: ProductUpsertEvent): void {
@@ -68,10 +73,15 @@ export class ProductBadgeService {
 
   markAllAsRead(): void {
     this.notificationsSignal.update((items) => items.map((entry) => entry.read ? entry : { ...entry, read: true }));
-    this.api.markAllAsRead().subscribe({ error: () => this.refreshFromServer() });
+    if (this.auth.isAuthenticated()) {
+      this.api.markAllAsRead().subscribe({ error: () => this.refreshFromServer() });
+    }
   }
 
   private refreshFromServer(): void {
+    if (!this.auth.isAuthenticated()) {
+      return;
+    }
     this.loadPage(0, false);
   }
 

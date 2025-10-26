@@ -15,8 +15,6 @@ export class ProductUpsertListenerService implements OnDestroy {
     }
     const token = this.auth.getToken();
     if (!token) {
-      console.log('[ProductUpsertListener] No token available; retrying in 5s');
-      this.scheduleRetry();
       return;
     }
     const url = `/api/products/upserts/stream?token=${encodeURIComponent(token)}`;

@@ -130,6 +130,7 @@
                   (click)="openRoleDialog(role)"
                 ></button>
                 <button
+                  *ngIf="!isProtectedRole(role)"
                   pButton
                   type="button"
                   icon="pi pi-trash"

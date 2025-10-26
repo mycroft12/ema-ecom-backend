@@ -45,8 +45,9 @@
     "errors": {
       "invalid": "بيانات اعتماد غير صحيحة",
       "unexpected": "حدث خطأ غير متوقع",
-      "serverUnreachable": "الخادم غير متاح",
-      "disabled": "حسابك غير مفعل بعد."
+    "serverUnreachable": "الخادم غير متاح",
+    "disabled": "حسابك غير مفعل بعد.",
+    "reconnect": "حدث خطأ ما، حاول تسجيل الدخول مجددًا."
     }
   },
   "products": {
@@ -77,6 +78,7 @@
     "selectOneOption": "اختر واحدًا",
     "newProduct": "منتج جديد",
     "editProduct": "تعديل المنتج",
+    "exportExcel": "تصدير إلى Excel",
     "actions": "إجراءات",
     "downloadExamples": "تنزيل أمثلة النماذج",
     "downloadExplain": "قم بتنزيل نموذج للاطلاع على الصيغة المتوقعة. يتضمن النموذج:",
@@ -292,7 +294,8 @@
         "update": "فشل في تحديث الدور",
         "delete": "فشل في حذف الدور",
         "permissions": "فشل في تحديث أذونات الدور",
-        "deleteAssigned": "هذا الدور مرتبط. استخدم الحذف Brutforce لإزالته."
+        "deleteAssigned": "هذا الدور مرتبط. استخدم الحذف Brutforce لإزالته.",
+        "deleteAdmin": "لا يمكن حذف دور ADMIN."
       },
       "tooltips": {
         "attachPermissions": "ربط أو فصل الأذونات"
@@ -365,6 +368,7 @@
       "more": "+{{count}} إضافية",
       "toastSuccess": "نجاح",
       "toastError": "خطأ",
+      "toastWarn": "تنبيه",
       "forceDelete": "حذف Brutforce",
       "searchPlaceholder": "بحث..."
     },

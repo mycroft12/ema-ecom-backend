@@ -45,8 +45,9 @@
     "errors": {
       "invalid": "Invalid credentials",
       "unexpected": "Unexpected error occurred",
-      "serverUnreachable": "Server unreachable",
-      "disabled": "Your account is not activated yet."
+    "serverUnreachable": "Server unreachable",
+    "disabled": "Your account is not activated yet.",
+    "reconnect": "Something went wrong. Try to reconnect."
     }
   },
   "products": {
@@ -77,6 +78,7 @@
     "selectOneOption": "Select one",
     "newProduct": "New Product",
     "editProduct": "Edit Product",
+    "exportExcel": "Export Excel",
     "actions": "Actions",
     "downloadExamples": "Download Template Examples",
     "downloadExplain": "Download a template to see the expected format. The template includes:",
@@ -293,7 +295,8 @@
         "update": "Failed to update role",
         "delete": "Failed to delete role",
         "permissions": "Failed to update role permissions",
-        "deleteAssigned": "This role is assigned. Use Brutforce delete to remove it."
+        "deleteAssigned": "This role is assigned. Use Brutforce delete to remove it.",
+        "deleteAdmin": "The ADMIN role cannot be deleted."
       },
       "tooltips": {
         "attachPermissions": "Attach or detach permissions"
@@ -367,6 +370,7 @@
       "more": "+{{count}} more",
       "toastSuccess": "Success",
       "toastError": "Error",
+      "toastWarn": "Notice",
       "forceDelete": "Brutforce delete",
       "searchPlaceholder": "Search..."
     },
