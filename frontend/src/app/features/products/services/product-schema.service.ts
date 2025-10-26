@@ -2,14 +2,16 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ProductSchema, SchemaConfigurationRequest, TemplateValidationResult, ColumnDefinition } from '../models/product-schema.model';
+import { ProductSchema, SchemaConfigurationRequest, TemplateValidationResult, ColumnDefinition, ColumnType } from '../models/product-schema.model';
 import { AuthService } from '../../../core/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class ProductSchemaService {
   private readonly http = inject(HttpClient);
   private readonly apiBase = environment.apiBase;
   private readonly auth = inject(AuthService);
+  private readonly translate = inject(TranslateService);
 
   private readonly schemaSignal = signal<ProductSchema | null>(null);
   private readonly loadingSignal = signal<boolean>(false);
@@ -40,7 +42,7 @@ export class ProductSchemaService {
     }).pipe(
         tap(resp => {
           const columns = resp?.columns ?? [];
-          const filteredColumns = this.filterColumnsByPermission(columns);
+          const filteredColumns = this.filterColumnsByPermission(columns).map(col => this.normalizeColumnDefinition(col));
           this.schemaSignal.set({
             id: 0,
             tableName: 'product_config',
@@ -54,7 +56,21 @@ export class ProductSchemaService {
           this.loadingSignal.set(false);
         }),
         catchError(err => {
+          const status = Number((err && (err.status ?? err['status'])) ?? 0);
+          const rawMessage = (err && (err.error?.message || err.message || '')) as string;
+          const normalizedMessage = (rawMessage || '').toLowerCase();
+
+          const notConfigured = status === 404 || normalizedMessage.includes('not configure');
+
           this.schemaSignal.set(null);
+
+          if (notConfigured) {
+            this.errorSignal.set(null);
+          } else if (status === 0) {
+            this.errorSignal.set(this.translate.instant('products.errors.backend'));
+          } else {
+            this.errorSignal.set(rawMessage || this.translate.instant('products.errors.backend'));
+          }
           this.loadingSignal.set(false);
           return of(null);
         })
@@ -145,5 +161,37 @@ export class ProductSchemaService {
       const required = prefix + col.name;
       return perms.has(required);
     });
+  }
+
+  private normalizeColumnDefinition(column: ColumnDefinition): ColumnDefinition {
+    const type = this.normalizeType(column?.type);
+    return { ...column, type } as ColumnDefinition;
+  }
+
+  private normalizeType(type: ColumnDefinition['type']): ColumnType {
+    const normalized = (type ?? '').toString().trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+    switch (normalized) {
+      case 'INTEGER':
+        return ColumnType.INTEGER;
+      case 'DECIMAL':
+        return ColumnType.DECIMAL;
+      case 'DATE':
+        return ColumnType.DATE;
+      case 'BOOLEAN':
+        return ColumnType.BOOLEAN;
+      case 'MINIO_IMAGE':
+      case 'MINIO__IMAGE':
+      case 'MINIO_IMAGE_':
+      case 'MINIO_IMAGE__':
+      case 'MINIO_IMAGE___':
+        return ColumnType.MINIO_IMAGE;
+      case 'MINIO_FILE':
+      case 'MINIO__FILE':
+      case 'MINIO_FILE_':
+        return ColumnType.MINIO_FILE;
+      case 'TEXT':
+      default:
+        return ColumnType.TEXT;
+    }
   }
 }

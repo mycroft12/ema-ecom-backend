@@ -43,9 +43,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public Page<ProductViewDto> search(String q, MultiValueMap<String, String> filters, Pageable pageable) {
-    if (!tableExists()) {
-      return new PageImpl<>(Collections.emptyList(), pageable, 0);
-    }
+    ensureConfigured();
     Map<String, ColumnMeta> columnLookup = columnMetadata();
     List<String> searchableColumns = columnLookup.values().stream()
         .map(ColumnMeta::name)
@@ -109,6 +107,7 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public ProductViewDto create(ProductCreateDto dto){
+    ensureConfigured();
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
     Map<String, ColumnMeta> columnLookup = columnMetadata();
     List<String> cols = new ArrayList<>();
@@ -141,6 +140,7 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public ProductViewDto update(UUID id, ProductUpdateDto dto){
+    ensureConfigured();
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
     if(attrs.isEmpty()){
       return get(id);
@@ -175,6 +175,7 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public void delete(UUID id){
+    ensureConfigured();
     int updated = jdbc.update("delete from " + quotedTable + " where id = ?", id);
     if (updated == 0) {
       throw new NotFoundException("Product not found");
@@ -183,6 +184,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public ProductViewDto get(UUID id){
+    ensureConfigured();
     try {
       Map<String, Object> row = jdbc.queryForMap("select * from " + quotedTable + " where id = ?", id);
       Map<String, Object> attrs = new LinkedHashMap<>(row);
@@ -201,9 +203,15 @@ public class ProductServiceImpl implements ProductService {
     return count != null && count > 0;
   }
 
+  private void ensureConfigured() {
+    if (!tableExists()) {
+      throw new NotFoundException("Products component is not configured");
+    }
+  }
+
   @Override
   public List<ResponseDto.ColumnDto> listColumns() {
-    if (!tableExists()) return List.of(); // unconfigured state
+    ensureConfigured();
 
     List<Map<String,Object>> rows = jdbc.queryForList("""
       select column_name, data_type, ordinal_position 

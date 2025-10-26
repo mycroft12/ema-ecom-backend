@@ -106,7 +106,8 @@
       "loadOne": "Impossible de charger les détails du produit",
       "create": "Échec de la création du produit",
       "update": "Échec de la mise à jour du produit",
-      "delete": "Échec de la suppression du produit"
+      "delete": "Échec de la suppression du produit",
+      "backend": "Une erreur est survenue. Veuillez contacter l'administrateur."
     }
   },
   "import": {

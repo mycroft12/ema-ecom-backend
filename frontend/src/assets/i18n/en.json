@@ -106,7 +106,8 @@
       "loadOne": "Failed to load product details",
       "create": "Failed to create product",
       "update": "Failed to update product",
-      "delete": "Failed to delete product"
+      "delete": "Failed to delete product",
+      "backend": "Something went wrong. Please contact the administrator."
     }
   },
   "import": {
