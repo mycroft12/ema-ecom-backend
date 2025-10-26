@@ -1,6 +1,6 @@
 import { Component, Signal } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { NgIf, NgFor, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/auth.service';
 import { MenubarModule } from 'primeng/menubar';
@@ -18,7 +18,7 @@ import { ProductBadgeService, NotificationEntry } from './features/products/serv
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NgIf, FormsModule, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent, AvatarModule, OverlayPanelModule, BadgeModule],
+  imports: [RouterOutlet, RouterLink, NgIf, NgFor, DatePipe, FormsModule, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent, AvatarModule, OverlayPanelModule, BadgeModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
