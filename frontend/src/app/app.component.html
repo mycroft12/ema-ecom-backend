@@ -9,6 +9,56 @@
   <ng-template pTemplate="end">
     <div class="flex align-items-center gap-2">
         <app-language-switcher></app-language-switcher>
+      <ng-container *ngIf="auth.isAuthenticated()">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-bell"
+          class="p-button-text p-overlay-badge notification-button"
+          aria-label="Notifications"
+          pBadge
+          [value]="badgeCount()"
+          [pBadgeHidden]="badgeCount() === 0"
+          badgeSeverity="danger"
+          (click)="toggleNotifications($event, notificationPanel)"
+        ></button>
+        <p-overlayPanel #notificationPanel [dismissable]="true" styleClass="notification-panel">
+          <div class="notification-header flex justify-content-between align-items-center mb-2">
+            <span class="font-medium">{{ 'notifications.title' | translate }}</span>
+            <button
+              pButton
+              type="button"
+              class="p-button-text p-button-sm"
+              (click)="markAllNotificationsAsRead($event)"
+            >
+              {{ 'notifications.markAll' | translate }}
+            </button>
+          </div>
+          <div *ngIf="notifications().length; else noNotifications" class="notification-list">
+            <div
+              *ngFor="let entry of notifications(); trackBy: trackNotification"
+              class="notification-item"
+              [class.unread]="!entry.read"
+              (click)="openNotification(entry, notificationPanel)"
+            >
+              <div class="notification-icon" [class.insert]="isInsert(entry)">
+                <i class="pi pi-box"></i>
+              </div>
+              <div class="notification-body">
+                <div class="notification-title">{{ getNotificationTitle(entry) }}</div>
+                <div class="notification-description">{{ getNotificationDescription(entry) }}</div>
+                <div class="notification-meta">
+                  <span class="timestamp">{{ entry.event.timestamp | date:'short' }}</span>
+                  <span *ngIf="!entry.read" class="unread-dot" aria-hidden="true"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noNotifications>
+            <div class="notification-empty text-600">{{ 'notifications.empty' | translate }}</div>
+          </ng-template>
+        </p-overlayPanel>
+      </ng-container>
       <ng-container *ngIf="!auth.isAuthenticated(); else userTpl">
         <a *ngIf="!isLoginPage" routerLink="/login" pButton [label]="('app.login' | translate)" icon="pi pi-user" class="p-button-text"></a>
       </ng-container>

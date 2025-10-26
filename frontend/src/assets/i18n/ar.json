@@ -18,6 +18,18 @@
     "roles": "الأدوار",
     "import": "الإعدادات"
   },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "markAll": "تحديد الكل كمقروء",
+    "product": {
+      "insertTitle": "المنتجات → إضافة",
+      "insertDescription": "تمت إضافة صف جديد.",
+      "updateTitle": "المنتجات → تحديث",
+      "updateDescription": "تم تحديث العمود {{column}} (الصف {{row}}).",
+      "updateDescriptionFallback": "تم تحديث الصف {{row}}."
+    }
+  },
   "auth": {
     "loginTitle": "تسجيل الدخول",
     "username": "اسم المستخدم",

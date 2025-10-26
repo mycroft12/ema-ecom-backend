@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 import { PanelMenuModule } from 'primeng/panelmenu';
+import { BadgeModule } from 'primeng/badge';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NavService } from '../core/navigation/nav.service';
 import { Subscription } from 'rxjs';
@@ -9,7 +10,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, PanelMenuModule, TranslateModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, PanelMenuModule, TranslateModule, BadgeModule],
   template: `
     <div class="grid">
       <!-- Sidenav -->
@@ -23,7 +24,12 @@ import { Subscription } from 'rxjs';
                 [routerLinkActiveOptions]="{exact: item.routerLink === '/home'}"
                 class="nav-link flex align-items-center gap-2 p-2 border-round cursor-pointer no-underline text-color transition-colors transition-duration-150">
                 <i [class]="item.icon" *ngIf="item.icon" aria-hidden="true"></i>
-                <span>{{ item.label }}</span>
+                <span class="flex align-items-center gap-2">
+                  <span>{{ item.label }}</span>
+                  <span *ngIf="item['badge']" class="p-badge p-component p-badge-danger badge-pill">
+                    {{ item['badge'] }}
+                  </span>
+                </span>
               </a>
             </li>
           </ul>

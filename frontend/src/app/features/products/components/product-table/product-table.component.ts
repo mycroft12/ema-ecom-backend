@@ -208,7 +208,6 @@ export class ProductTableComponent implements OnInit, OnDestroy {
           }
         }
         this.loading = false;
-        this.productBadge.reset();
       },
       error: () => {
         this.loading = false;

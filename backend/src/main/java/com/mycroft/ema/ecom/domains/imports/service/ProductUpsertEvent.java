@@ -1,5 +1,15 @@
 package com.mycroft.ema.ecom.domains.imports.service;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
-public record ProductUpsertEvent(String domain, java.util.UUID rowId, Instant timestamp) {}
+public record ProductUpsertEvent(
+    String domain,
+    UUID rowId,
+    Instant timestamp,
+    String action,
+    Long rowNumber,
+    List<String> changedColumns,
+    UUID notificationId
+) {}

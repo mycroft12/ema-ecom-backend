@@ -18,6 +18,18 @@
     "roles": "Rôles",
     "import": "Configuration"
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "markAll": "Tout marquer comme lu",
+    "product": {
+      "insertTitle": "Produits → INSERT",
+      "insertDescription": "Une nouvelle ligne a été ajoutée.",
+      "updateTitle": "Produits → UPDATE",
+      "updateDescription": "La colonne {{column}} (ligne {{row}}) a été mise à jour.",
+      "updateDescriptionFallback": "La ligne {{row}} a été mise à jour."
+    }
+  },
   "auth": {
     "loginTitle": "Se connecter",
     "username": "Nom d'utilisateur",

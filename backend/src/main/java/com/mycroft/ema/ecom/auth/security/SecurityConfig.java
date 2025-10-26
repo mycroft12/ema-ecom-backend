@@ -38,6 +38,8 @@ public class SecurityConfig {
         .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/swagger","/swagger-ui","/actuator/health").permitAll()
         .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/refresh","/api/auth/forgot-password","/api/import/google/sync").permitAll()
         .requestMatchers(HttpMethod.GET, "/api/products/upserts/stream").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/notifications").authenticated()
+        .requestMatchers(HttpMethod.POST, "/api/notifications/**").authenticated()
         .anyRequest().authenticated());
     http.addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
     return http.build();

@@ -4,6 +4,7 @@ import com.mycroft.ema.ecom.domains.imports.domain.GoogleImportConfig;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetSyncRequest;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +27,18 @@ public class GoogleSheetSyncService {
   private final DomainImportService domainImportService;
   private final JdbcTemplate jdbcTemplate;
   private final ProductUpsertBroadcaster upsertBroadcaster;
+  private final com.mycroft.ema.ecom.domains.notifications.service.NotificationLogService notificationLogService;
 
   public GoogleSheetSyncService(GoogleImportConfigRepository configRepository,
                                 DomainImportService domainImportService,
                                 JdbcTemplate jdbcTemplate,
-                                ProductUpsertBroadcaster upsertBroadcaster) {
+                                ProductUpsertBroadcaster upsertBroadcaster,
+                                com.mycroft.ema.ecom.domains.notifications.service.NotificationLogService notificationLogService) {
     this.configRepository = configRepository;
     this.domainImportService = domainImportService;
     this.jdbcTemplate = jdbcTemplate;
     this.upsertBroadcaster = upsertBroadcaster;
+    this.notificationLogService = notificationLogService;
   }
 
   @Transactional
@@ -82,10 +86,32 @@ public class GoogleSheetSyncService {
       deleteRow(table, rowId);
       log.debug("Deleted row {} from {}", rowId, table);
     } else {
-    upsertRow(table, sanitizedRow);
-    ProductUpsertEvent event = new ProductUpsertEvent(domain, rowId, Instant.now());
-    log.debug("Broadcasting upsert event: {}", event);
-    upsertBroadcaster.broadcast(event);
+      Map<String, Object> previousRow = fetchRow(table, rowId);
+      upsertRow(table, sanitizedRow);
+      Map<String, Object> currentRow = fetchRow(table, rowId);
+      if (currentRow == null) {
+        log.warn("Unable to fetch row {} after upsert in {}", rowId, table);
+        return;
+      }
+      log.debug("Row after upsert for id {}: {}", rowId, currentRow);
+
+      boolean existed = previousRow != null;
+      List<String> changedColumns = existed ? detectChangedColumns(previousRow, currentRow, sanitizedRow.keySet()) : List.of();
+      String resolvedAction = existed ? "UPDATE" : "INSERT";
+
+      var logEntry = notificationLogService.record(domain, resolvedAction, rowId, request.rowNumber(), changedColumns);
+
+      ProductUpsertEvent event = new ProductUpsertEvent(
+          domain,
+          rowId,
+          Instant.now(),
+          resolvedAction,
+          request.rowNumber(),
+          changedColumns,
+          logEntry.getId()
+      );
+      log.debug("Broadcasting upsert event: {}", event);
+      upsertBroadcaster.broadcast(event);
       log.debug("Upserted row {} into {}", rowId, table);
     }
 
@@ -180,92 +206,6 @@ public class GoogleSheetSyncService {
     return types;
   }
 
-  private void coerceColumnValues(Map<String, Object> row, Map<String, String> columnTypes) {
-    if (row == null || columnTypes.isEmpty()) {
-      return;
-    }
-    for (Map.Entry<String, Object> entry : row.entrySet()) {
-      String column = entry.getKey();
-      Object value = entry.getValue();
-      if (value == null) continue;
-      String type = columnTypes.get(column);
-      if (type == null) continue;
-      switch (type) {
-        case "uuid" -> entry.setValue(convertToUuid(value));
-        case "boolean" -> entry.setValue(convertToBoolean(value));
-        case "smallint", "integer", "bigint" -> entry.setValue(convertToLong(value));
-        case "numeric", "decimal", "double precision", "real" -> entry.setValue(convertToBigDecimal(value));
-        case "timestamp without time zone", "timestamp with time zone", "timestamp" ->
-            entry.setValue(convertToTimestamp(value));
-        case "date" -> entry.setValue(convertToDate(value));
-        default -> {
-          // leave as-is for text/timestamp/date/etc.
-        }
-      }
-    }
-  }
-
-  private void upsertRow(String table, Map<String, Object> row) {
-    LinkedHashMap<String, Object> ordered = new LinkedHashMap<>();
-    ordered.put("id", row.get("id"));
-    row.forEach((k, v) -> {
-      if (!"id".equals(k)) {
-        ordered.put(k, v);
-      }
-    });
-
-    UUID id = (UUID) ordered.get("id");
-    Long existing = jdbcTemplate.queryForObject(
-        "select count(*) from " + table + " where id = ?",
-        Long.class,
-        id
-    );
-    long count = existing == null ? 0L : existing;
-    if (count == 0L) {
-      log.debug("No existing row found with id {} in {}", id, table);
-    } else {
-      log.debug("Found {} row(s) with id {} in {}", count, id, table);
-    }
-
-    List<String> columns = new ArrayList<>(ordered.keySet());
-    String insertColumns = String.join(", ", columns);
-    String insertPlaceholders = String.join(", ", Collections.nCopies(columns.size(), "?"));
-
-    List<String> updates = new ArrayList<>();
-    for (String column : columns) {
-      if (!"id".equals(column)) {
-        updates.add(column + " = EXCLUDED." + column);
-      }
-    }
-    if (updates.isEmpty()) {
-      throw new IllegalArgumentException("Sync payload must include at least one column besides 'id'.");
-    }
-
-    String upsertSql = "INSERT INTO " + table + " (" + insertColumns + ") VALUES (" + insertPlaceholders + ") "
-        + "ON CONFLICT (id) DO UPDATE SET " + String.join(", ", updates);
-
-    try {
-      jdbcTemplate.update(upsertSql, ordered.values().toArray());
-    } catch (Exception ex) {
-      log.error("Failed to upsert row {} in {}: {}", id, table, ex.getMessage(), ex);
-      throw ex;
-    }
-
-    try {
-      Map<String, Object> refreshed = jdbcTemplate.queryForMap(
-          "select product_name from " + table + " where id = ?",
-          id
-      );
-      log.debug("Row after upsert for id {}: {}", id, refreshed);
-    } catch (Exception ex) {
-      log.warn("Unable to fetch row {} after upsert in {}: {}", id, table, ex.getMessage());
-    }
-  }
-
-  private void deleteRow(String table, UUID rowId) {
-    jdbcTemplate.update("DELETE FROM " + table + " WHERE id = ?", rowId);
-  }
-
   private UUID convertToUuid(Object value) {
     if (value instanceof UUID uuid) {
       return uuid;
@@ -350,4 +290,112 @@ public class GoogleSheetSyncService {
     } catch (DateTimeParseException ignored) { }
     throw new IllegalArgumentException("Cannot convert value '" + value + "' to date");
   }
+
+  private void coerceColumnValues(Map<String, Object> row, Map<String, String> columnTypes) {
+    if (row == null || columnTypes.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : row.entrySet()) {
+      String column = entry.getKey();
+      Object value = entry.getValue();
+      if (value == null) continue;
+      String type = columnTypes.get(column);
+      if (type == null) continue;
+      switch (type) {
+        case "uuid" -> entry.setValue(convertToUuid(value));
+        case "boolean" -> entry.setValue(convertToBoolean(value));
+        case "smallint", "integer", "bigint" -> entry.setValue(convertToLong(value));
+        case "numeric", "decimal", "double precision", "real" -> entry.setValue(convertToBigDecimal(value));
+        case "timestamp without time zone", "timestamp with time zone", "timestamp" ->
+            entry.setValue(convertToTimestamp(value));
+        case "date" -> entry.setValue(convertToDate(value));
+        default -> {
+          // leave as-is for text/timestamp/date/etc.
+        }
+      }
+    }
+  }
+
+  private void upsertRow(String table, Map<String, Object> row) {
+    LinkedHashMap<String, Object> ordered = new LinkedHashMap<>();
+    ordered.put("id", row.get("id"));
+    row.forEach((k, v) -> {
+      if (!"id".equals(k)) {
+        ordered.put(k, v);
+      }
+    });
+
+    UUID id = (UUID) ordered.get("id");
+
+    List<String> columns = new ArrayList<>(ordered.keySet());
+    String insertColumns = String.join(", ", columns);
+    String insertPlaceholders = String.join(", ", Collections.nCopies(columns.size(), "?"));
+
+    List<String> updates = new ArrayList<>();
+    for (String column : columns) {
+      if (!"id".equals(column)) {
+        updates.add(column + " = EXCLUDED." + column);
+      }
+    }
+    if (updates.isEmpty()) {
+      throw new IllegalArgumentException("Sync payload must include at least one column besides 'id'.");
+    }
+
+    String upsertSql = "INSERT INTO " + table + " (" + insertColumns + ") VALUES (" + insertPlaceholders + ") "
+        + "ON CONFLICT (id) DO UPDATE SET " + String.join(", ", updates);
+
+    try {
+      jdbcTemplate.update(upsertSql, ordered.values().toArray());
+    } catch (Exception ex) {
+      log.error("Failed to upsert row {} in {}: {}", id, table, ex.getMessage(), ex);
+      throw ex;
+    }
+  }
+
+  private void deleteRow(String table, UUID rowId) {
+    jdbcTemplate.update("DELETE FROM " + table + " WHERE id = ?", rowId);
+  }
+
+  private Map<String, Object> fetchRow(String table, UUID id) {
+    try {
+      return jdbcTemplate.queryForMap("select * from " + table + " where id = ?", id);
+    } catch (EmptyResultDataAccessException ex) {
+      return null;
+    }
+  }
+
+  private List<String> detectChangedColumns(Map<String, Object> previousRow,
+                                            Map<String, Object> currentRow,
+                                            Set<String> keysToCheck) {
+    if (previousRow == null || currentRow == null || keysToCheck == null) {
+      return List.of();
+    }
+    List<String> changed = new ArrayList<>();
+    for (String key : keysToCheck) {
+      if ("id".equalsIgnoreCase(key)) {
+        continue;
+      }
+      Object previous = previousRow.get(key);
+      Object current = currentRow.get(key);
+      if (!Objects.equals(normalizeForComparison(previous), normalizeForComparison(current))) {
+        changed.add(key);
+      }
+    }
+    return changed;
+  }
+
+  private Object normalizeForComparison(Object value) {
+    if (value == null) return null;
+    if (value instanceof Timestamp ts) {
+      return ts.toInstant();
+    }
+    if (value instanceof Date date) {
+      return date.toLocalDate();
+    }
+    if (value instanceof BigDecimal bd) {
+      return bd.stripTrailingZeros();
+    }
+    return value;
+  }
+
 }
