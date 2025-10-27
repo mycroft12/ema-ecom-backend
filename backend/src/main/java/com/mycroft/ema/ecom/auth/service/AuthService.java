@@ -7,10 +7,4 @@ public interface AuthService {
   TokenPair login(LoginRequest req);
   TokenPair refresh(String refreshToken);
   void logout(String refreshToken);
-
-  /**
-   * Initiate a forgot password flow for the given identifier (username or email).
-   * Implementations should not reveal whether the user exists.
-   */
-  void forgotPassword(String identifier);
 }

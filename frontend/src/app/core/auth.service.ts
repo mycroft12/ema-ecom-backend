@@ -30,10 +30,6 @@ export class AuthService {
     this.saveRefreshToken(response.refreshToken);
   }
 
-  forgotPassword(identifier: string){
-    return this.http.post<void>(`${environment.apiBase}/api/auth/forgot-password`, { identifier });
-  }
-
   saveToken(token: string){ localStorage.setItem(this.tokenKey, token); }
   getToken(): string | null { return localStorage.getItem(this.tokenKey); }
 

@@ -6,12 +6,10 @@ import { ProductsPageComponent } from './features/products/products-page.compone
 import { RolesPageComponent } from './features/roles/roles-page.component';
 import { ImportTemplatePageComponent } from './features/import/import-template-page.component';
 import { permissionGuard } from './core/permission.guard';
-import { ForgotPasswordComponent } from './auth/forgot-password.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
   {
     path: '',
     component: HomeComponent, // shell with sidenav + content outlet

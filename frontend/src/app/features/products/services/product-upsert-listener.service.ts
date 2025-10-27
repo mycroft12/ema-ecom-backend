@@ -1,13 +1,17 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { ProductBadgeService, ProductUpsertEvent } from './product-badge.service';
 import { AuthService } from '../../../core/auth.service';
+import { ProductSchemaService } from './product-schema.service';
 
 @Injectable({ providedIn: 'root' })
 export class ProductUpsertListenerService implements OnDestroy {
   private eventSource?: EventSource;
   private retryHandle?: ReturnType<typeof setTimeout>;
 
-  constructor(private badge: ProductBadgeService, private zone: NgZone, private auth: AuthService) {}
+  constructor(private badge: ProductBadgeService,
+              private zone: NgZone,
+              private auth: AuthService,
+              private schemaService: ProductSchemaService) {}
 
   start(): void {
     if (this.eventSource) {
@@ -17,7 +21,8 @@ export class ProductUpsertListenerService implements OnDestroy {
     if (!token) {
       return;
     }
-    const url = `/api/products/upserts/stream?token=${encodeURIComponent(token)}`;
+    const domain = this.schemaService.schema()?.domain ?? 'product';
+    const url = `/api/products/upserts/stream?domain=${encodeURIComponent(domain)}&token=${encodeURIComponent(token)}`;
     console.log('[ProductUpsertListener] Connecting to', url);
     this.eventSource = new EventSource(url);
     this.eventSource.addEventListener('upsert', (event) => {

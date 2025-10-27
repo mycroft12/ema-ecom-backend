@@ -36,7 +36,6 @@
     "password": "Mot de passe",
     "signIn": "Se connecter",
     "signingIn": "Connexion...",
-    "forgot": "Mot de passe oublié ?",
     "needAccount": "Besoin d'un compte ? Contactez votre administrateur.",
     "placeholder": {
       "username": "Entrez votre nom d'utilisateur",

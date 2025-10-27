@@ -1,6 +1,5 @@
 package com.mycroft.ema.ecom.auth.web;
 
-import com.mycroft.ema.ecom.auth.dto.ForgotPasswordRequest;
 import com.mycroft.ema.ecom.auth.dto.RefreshRequest;
 import com.mycroft.ema.ecom.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Auth", description = "Authentication APIs: login, refresh, logout, password reset")
+@Tag(name = "Auth", description = "Authentication APIs: login, refresh, logout")
 public class AuthController {
 
   private final AuthService auth;
@@ -35,13 +34,6 @@ public class AuthController {
   @Operation(summary = "Logout", description = "Revoke the provided refresh token")
   public ResponseEntity<Void> logout(@RequestBody RefreshRequest req){
     auth.logout(req.refreshToken());
-    return ResponseEntity.noContent().build();
-  }
-
-  @PostMapping("/forgot-password")
-  @Operation(summary = "Forgot password", description = "Initiate password reset flow. Always returns 204 to avoid user enumeration.")
-  public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequest req){
-    auth.forgotPassword(req.identifier());
     return ResponseEntity.noContent().build();
   }
 }
