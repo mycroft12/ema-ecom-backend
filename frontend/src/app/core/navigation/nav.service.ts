@@ -14,11 +14,12 @@ export class NavService {
   constructor(private auth: AuthService, private translate: TranslateService, private router: Router,
               private productBadge: ProductBadgeService) {
     const badgeSignal = this.productBadge.asSignal();
+    const permissionsSignal = this.auth.permissionsSignal();
     this.menuItemsComputed = computed(() => {
       this.rebuildTick();
-      // read permissions signal to trigger recompute when auth claims change
-      this.auth.permissions();
       const badgeCount = badgeSignal();
+      const permissions = permissionsSignal();
+      void permissions; // establish dependency
       return this.buildMenuItems(badgeCount);
     });
     this.translate.onLangChange.subscribe(() => this.rebuildTick.update((value) => value + 1));

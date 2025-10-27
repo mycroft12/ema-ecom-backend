@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, Signal, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
@@ -16,9 +16,11 @@ export class AuthService {
   private refreshTokenKey = 'ema_refresh_token';
   private logoutMessageKey = 'ema_logout_message';
   private refreshTokenSnapshot: string | null = null;
+  private readonly permissionsSig = signal<string[]>([]);
 
   constructor(private http: HttpClient, private router: Router, private zone: NgZone) {
     this.refreshTokenSnapshot = this.peekRefreshToken();
+    this.updatePermissionsFromToken(this.peekToken());
   }
 
   login(username: string, password: string){
@@ -30,8 +32,19 @@ export class AuthService {
     this.saveRefreshToken(response.refreshToken);
   }
 
-  saveToken(token: string){ localStorage.setItem(this.tokenKey, token); }
-  getToken(): string | null { return localStorage.getItem(this.tokenKey); }
+  saveToken(token: string){
+    localStorage.setItem(this.tokenKey, token);
+    this.updatePermissionsFromToken(token);
+  }
+  getToken(): string | null { return this.peekToken(); }
+
+  private peekToken(): string | null {
+    try {
+      return localStorage.getItem(this.tokenKey);
+    } catch {
+      return null;
+    }
+  }
 
   saveRefreshToken(token: string){
     localStorage.setItem(this.refreshTokenKey, token);
@@ -119,6 +132,7 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey); 
     localStorage.removeItem(this.refreshTokenKey);
     this.refreshTokenSnapshot = null;
+    this.permissionsSig.set([]);
     const navigate = () => this.router.navigateByUrl('/login').catch(() => { window.location.href = '/login'; });
     if (this.zone) {
       this.zone.run(() => navigate());
@@ -151,16 +165,11 @@ export class AuthService {
     } 
   }
   permissions(): string[] { 
-    const t = this.getToken(); 
-    if(!t) {
-      return []; 
-    } 
-    try { 
-      const d = jwtDecode<JwtPayload>(t); 
-      return d.permissions || []; 
-    } catch(e) { 
-      return []; 
-    } 
+    return this.permissionsSig();
+  }
+
+  permissionsSignal(): Signal<string[]> {
+    return this.permissionsSig.asReadonly();
   }
 
   consumeLogoutMessage(): string | null {
@@ -177,8 +186,22 @@ export class AuthService {
   }
 
   hasAny(perms: string[]): boolean { 
-    const p = this.permissions(); 
+    const p = this.permissionsSig(); 
     const result = perms.some(x => p.includes(x));
     return result; 
+  }
+
+  private updatePermissionsFromToken(token: string | null): void {
+    if (!token) {
+      this.permissionsSig.set([]);
+      return;
+    }
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const perms = decoded.permissions ? Array.from(new Set(decoded.permissions)) : [];
+      this.permissionsSig.set(perms);
+    } catch {
+      this.permissionsSig.set([]);
+    }
   }
 }
