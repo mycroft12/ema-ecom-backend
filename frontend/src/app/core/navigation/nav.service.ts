@@ -16,6 +16,8 @@ export class NavService {
     const badgeSignal = this.productBadge.asSignal();
     this.menuItemsComputed = computed(() => {
       this.rebuildTick();
+      // read permissions signal to trigger recompute when auth claims change
+      this.auth.permissions();
       const badgeCount = badgeSignal();
       return this.buildMenuItems(badgeCount);
     });
