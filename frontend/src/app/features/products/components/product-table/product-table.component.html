@@ -79,77 +79,85 @@
                 <tr>
                     @for (column of schemaService.visibleColumns(); track column.name) {
                         @if (!isColumnHidden(column.name)) {
-                            <th
-                                    [pSortableColumn]="column.name"
-                                    [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'"
-                            >
-                                <div class="header-cell">
-                                    <span class="header-title">{{ column.displayName }}</span>
-                                    <p-sortIcon [field]="column.name"></p-sortIcon>
-                                    <!-- default filter type from column type -->
-                                    <p-columnFilter
-                                            styleClass="header-filter"
-                                            [type]="getFilterType(column)"
-                                            [field]="column.name"
-                                            display="menu"
-                                            [matchMode]="getMatchMode(column)"
-                                            [showMatchModes]="getShowMatchModes(column)"
-                                    >
-                                    <!-- Special-case filter UIs (keep example’s UX) -->
-                                    <!-- Representative: multi-select IN filter -->
-                                    <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isRepresentative(column)">
-                                        <p-multiselect
-                                                [(ngModel)]="repFilterModel"
-                                                [options]="representativeOptions"
-                                                optionLabel="name"
-                                                [placeholder]="'products.anyOption' | translate"
-                                                (onChange)="filter($event.value)"
-                                                style="min-width: 14rem"
-                                                [panelStyle]="{ minWidth: '16rem' }"
+                            @if (column.type === ColumnType.MINIO_IMAGE) {
+                                <th [style.min-width]="'10rem'">
+                                    <div class="header-cell">
+                                        <span class="header-title">{{ column.displayName }}</span>
+                                    </div>
+                                </th>
+                            } @else {
+                                <th
+                                        [pSortableColumn]="column.name"
+                                        [style.min-width]="column.type === ColumnType.TEXT ? '15rem' : '10rem'"
+                                >
+                                    <div class="header-cell">
+                                        <span class="header-title">{{ column.displayName }}</span>
+                                        <p-sortIcon [field]="column.name"></p-sortIcon>
+                                        <!-- default filter type from column type -->
+                                        <p-columnFilter
+                                                styleClass="header-filter"
+                                                [type]="getFilterType(column)"
+                                                [field]="column.name"
+                                                display="menu"
+                                                [matchMode]="getMatchMode(column)"
+                                                [showMatchModes]="getShowMatchModes(column)"
                                         >
-                                            <ng-template pTemplate="item" let-option>
-                                                <div class="flex items-center gap-2">
-                                                    <img [alt]="option.name" src="https://primefaces.org/cdn/primeng/images/demo/avatar/{{ option.image }}" style="width: 32px" />
-                                                    <span>{{ option.name }}</span>
-                                                </div>
-                                            </ng-template>
-                                        </p-multiselect>
-                                    </ng-template>
+                                        <!-- Special-case filter UIs (keep example’s UX) -->
+                                        <!-- Representative: multi-select IN filter -->
+                                        <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isRepresentative(column)">
+                                            <p-multiselect
+                                                    [(ngModel)]="repFilterModel"
+                                                    [options]="representativeOptions"
+                                                    optionLabel="name"
+                                                    [placeholder]="'products.anyOption' | translate"
+                                                    (onChange)="filter($event.value)"
+                                                    style="min-width: 14rem"
+                                                    [panelStyle]="{ minWidth: '16rem' }"
+                                            >
+                                                <ng-template pTemplate="item" let-option>
+                                                    <div class="flex items-center gap-2">
+                                                        <img [alt]="option.name" src="https://primefaces.org/cdn/primeng/images/demo/avatar/{{ option.image }}" style="width: 32px" />
+                                                        <span>{{ option.name }}</span>
+                                                    </div>
+                                                </ng-template>
+                                            </p-multiselect>
+                                        </ng-template>
 
-                                    <!-- Status: equals on select with Tag preview -->
-                                    <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isStatus(column)">
-                                        <p-select
-                                                [(ngModel)]="statusFilterModel"
-                                                [options]="statusOptions"
-                                                optionLabel="label"
-                                                optionValue="value"
-                                                (onChange)="filter($event.value)"
-                                                [placeholder]="'products.selectOneOption' | translate"
-                                                styleClass="w-full"
-                                        >
-                                            <ng-template pTemplate="item" let-option>
-                                                <p-tag [value]="option.value" [severity]="getSeverity(option.value)"></p-tag>
-                                            </ng-template>
-                                        </p-select>
-                                    </ng-template>
+                                        <!-- Status: equals on select with Tag preview -->
+                                        <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isStatus(column)">
+                                            <p-select
+                                                    [(ngModel)]="statusFilterModel"
+                                                    [options]="statusOptions"
+                                                    optionLabel="label"
+                                                    optionValue="value"
+                                                    (onChange)="filter($event.value)"
+                                                    [placeholder]="'products.selectOneOption' | translate"
+                                                    styleClass="w-full"
+                                            >
+                                                <ng-template pTemplate="item" let-option>
+                                                    <p-tag [value]="option.value" [severity]="getSeverity(option.value)"></p-tag>
+                                                </ng-template>
+                                            </p-select>
+                                        </ng-template>
 
-                                    <!-- Activity: numeric between via slider -->
-                                    <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isActivity(column)">
-                                        <p-slider
-                                                [(ngModel)]="activityRange"
-                                                [range]="true"
-                                                styleClass="m-4"
-                                                (onSlideEnd)="filter(activityRange)"
-                                                [min]="activityMin"
-                                                [max]="activityMax"
-                                        ></p-slider>
-                                        <div class="flex items-center px-2">
-                                            <span>{{ activityRange?.[0] ?? activityMin }} - {{ activityRange?.[1] ?? activityMax }}</span>
-                                        </div>
-                                    </ng-template>
-                                    </p-columnFilter>
-                                </div>
-                            </th>
+                                        <!-- Activity: numeric between via slider -->
+                                        <ng-template pTemplate="filter" let-value let-filter="filterCallback" *ngIf="isActivity(column)">
+                                            <p-slider
+                                                    [(ngModel)]="activityRange"
+                                                    [range]="true"
+                                                    styleClass="m-4"
+                                                    (onSlideEnd)="filter(activityRange)"
+                                                    [min]="activityMin"
+                                                    [max]="activityMax"
+                                            ></p-slider>
+                                            <div class="flex items-center px-2">
+                                                <span>{{ activityRange?.[0] ?? activityMin }} - {{ activityRange?.[1] ?? activityMax }}</span>
+                                            </div>
+                                        </ng-template>
+                                        </p-columnFilter>
+                                    </div>
+                                </th>
+                            }
                         }
                     }
                     @if (showActionColumn) {
