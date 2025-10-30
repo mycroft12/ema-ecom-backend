@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Pattern;
 @Slf4j
 @Service
 public class GoogleSheetSyncService {
@@ -28,6 +29,8 @@ public class GoogleSheetSyncService {
   private final JdbcTemplate jdbcTemplate;
   private final ProductUpsertBroadcaster upsertBroadcaster;
   private final com.mycroft.ema.ecom.domains.notifications.service.NotificationLogService notificationLogService;
+
+  private static final Pattern JSON_PATTERN = Pattern.compile("^\\s*\\{.+}\\s*$", Pattern.DOTALL);
 
   public GoogleSheetSyncService(GoogleImportConfigRepository configRepository,
                                 DomainImportService domainImportService,
@@ -68,6 +71,7 @@ public class GoogleSheetSyncService {
     }
 
     sanitizedRow.keySet().removeIf(col -> !allowedColumns.contains(col));
+    handleMinioPayloads(sanitizedRow);
     coerceColumnValues(sanitizedRow, columnTypes);
     if (!allowedColumns.contains("id")) {
       throw new IllegalStateException("Table '" + table + "' must contain an 'id' column for sync operations.");
@@ -314,6 +318,96 @@ public class GoogleSheetSyncService {
         }
       }
     }
+  }
+
+  private void handleMinioPayloads(Map<String, Object> row) {
+    if (row == null || row.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : row.entrySet()) {
+      Object raw = entry.getValue();
+      if (raw == null) {
+        continue;
+      }
+      MinioImagePayload payload = MinioImagePayload.from(raw);
+      if (payload == null) {
+        continue;
+      }
+      if (payload.clearRequested()) {
+        entry.setValue(null);
+        continue;
+      }
+      String serialized = payload.existingJson();
+      if (serialized != null) {
+        entry.setValue(serialized);
+        continue;
+      }
+      // Sheet-driven sync is not allowed to attach new media automatically; clear unexpected payloads.
+      entry.setValue(null);
+    }
+  }
+
+  private record MinioImagePayload(boolean clearRequested, String existingJson) {
+
+    static MinioImagePayload from(Object raw) {
+      if (raw == null) {
+        return null;
+      }
+      if (raw instanceof String str) {
+        return fromString(str);
+      }
+      if (raw instanceof Map<?,?> map) {
+        return fromMap(map);
+      }
+      return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static MinioImagePayload fromMap(Map<?, ?> map) {
+      if (map.isEmpty()) {
+        return null;
+      }
+      Object typeObj = map.get("type");
+      String type = typeObj == null ? null : typeObj.toString().trim().toUpperCase(Locale.ROOT);
+      boolean looksLikeMinio = type != null && type.contains("MINIO") && type.contains("IMAGE");
+      if (!looksLikeMinio) {
+        return null;
+      }
+
+      boolean clear = getBoolean(map.get("clear")) || getBoolean(map.get("remove"));
+      Object existing = map.get("existing") != null ? map.get("existing") : map.get("json");
+      String existingJson = existing instanceof String ? existing.toString() : null;
+      if (!clear && existingJson == null) {
+        return null;
+      }
+      return new MinioImagePayload(clear, existingJson);
+    }
+
+    private static MinioImagePayload fromString(String value) {
+      if (value == null) {
+        return null;
+      }
+      String trimmed = value.trim();
+      if (!JSON_PATTERN.matcher(trimmed).matches()) {
+        return null;
+      }
+      return new MinioImagePayload(false, trimmed);
+    }
+
+    private static boolean getBoolean(Object value) {
+      if (value instanceof Boolean b) {
+        return b;
+      }
+      if (value instanceof Number n) {
+        return n.intValue() != 0;
+      }
+      if (value != null) {
+        String s = value.toString().trim().toLowerCase(Locale.ROOT);
+        return s.equals("true") || s.equals("1") || s.equals("yes");
+      }
+      return false;
+    }
+
   }
 
   private void upsertRow(String table, Map<String, Object> row) {

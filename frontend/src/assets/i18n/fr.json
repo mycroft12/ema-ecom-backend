@@ -75,6 +75,9 @@
     "columnToggleSelectedItems": "{0} colonne(s) sélectionnée(s)",
     "pageReport": "Affichage de {first} à {last} sur {totalRecords} entrées",
     "noImage": "Aucune image",
+    "uploadImage": "Téléverser l'image",
+    "replaceImage": "Remplacer l'image",
+    "viewImage": "Afficher l'image en grand",
     "noResults": "Aucun produit trouvé",
     "anyOption": "Tous",
     "selectOneOption": "Sélectionner",
@@ -111,7 +114,10 @@
       "create": "Échec de la création du produit",
       "update": "Échec de la mise à jour du produit",
       "delete": "Échec de la suppression du produit",
-      "backend": "Une erreur est survenue. Veuillez contacter l'administrateur."
+      "backend": "Une erreur est survenue. Veuillez contacter l'administrateur.",
+      "maxImages": "Vous pouvez téléverser au maximum {{max}} image(s).",
+      "fileTooLarge": "L'image dépasse la limite de {{max}}.",
+      "unsupportedImageType": "Type d'image non pris en charge."
     }
   },
   "import": {

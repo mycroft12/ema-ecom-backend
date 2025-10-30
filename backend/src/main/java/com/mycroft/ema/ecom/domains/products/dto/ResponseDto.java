@@ -15,7 +15,9 @@ public class ResponseDto {
             String displayName,
             ColumnType type,
             boolean hidden,
-            int displayOrder
+            int displayOrder,
+            String semanticType,
+            java.util.Map<String, Object> metadata
     ) {}
 
     // Wrap page + (optional) schema

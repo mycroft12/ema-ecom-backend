@@ -24,6 +24,31 @@ export interface ColumnDefinition {
   defaultValue?: string;
   displayOrder: number;
   validationRules?: Record<string, any>;
+  semanticType?: string;
+  metadata?: Record<string, any>;
+  mediaConstraints?: MediaConstraints;
+}
+
+export interface MediaConstraints {
+  maxImages: number;
+  maxFileSizeBytes?: number;
+  allowedMimeTypes?: string[];
+}
+
+export interface MinioImageItem {
+  key: string;
+  url: string;
+  expiresAt?: string;
+  contentType?: string;
+  sizeBytes?: number;
+}
+
+export interface MinioImageValue {
+  type: 'MINIO_IMAGE';
+  items: MinioImageItem[];
+  maxImages?: number;
+  constraints?: MediaConstraints;
+  count?: number;
 }
 
 export interface ProductSchema {

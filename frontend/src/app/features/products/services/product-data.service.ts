@@ -6,6 +6,14 @@ import { Product, ProductPageResponse, RawProductDto } from '../models/product.m
 import { TableLazyLoadEvent } from '../models/filter.model';
 import { ProductSchemaService } from './product-schema.service';
 
+export interface MinioUploadResponse {
+  key: string;
+  url: string;
+  expiresAt?: string;
+  contentType?: string;
+  sizeBytes?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductDataService {
   private readonly http = inject(HttpClient);
@@ -74,6 +82,15 @@ export class ProductDataService {
     return this.http.put<RawProductDto>(`${this.apiUrl}/${id}`, { attributes }).pipe(
       map(dto => this.flattenProduct(dto))
     );
+  }
+
+  uploadProductImage(field: string, file: File): Observable<MinioUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    let params = new HttpParams()
+      .set('domain', 'product')
+      .set('field', field);
+    return this.http.post<MinioUploadResponse>(`${environment.apiBase}/api/files/upload`, formData, { params });
   }
 
   deleteProduct(id: string): Observable<void> {

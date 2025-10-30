@@ -1,5 +1,7 @@
 package com.mycroft.ema.ecom.domains.imports.service;
 
+import com.mycroft.ema.ecom.common.metadata.ColumnSemanticsService;
+import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import com.mycroft.ema.ecom.auth.service.PermissionService;
 import org.springframework.dao.DataAccessException;
@@ -19,12 +21,15 @@ public class DomainImportService {
   private final ExcelTemplateService templateService;
   private final JdbcTemplate jdbcTemplate;
   private final PermissionService permissionService;
+  private final ColumnSemanticsService columnSemanticsService;
 
   public DomainImportService(ExcelTemplateService templateService, JdbcTemplate jdbcTemplate,
-                             PermissionService permissionService) {
+                             PermissionService permissionService,
+                             ColumnSemanticsService columnSemanticsService) {
     this.templateService = templateService;
     this.jdbcTemplate = jdbcTemplate;
     this.permissionService = permissionService;
+    this.columnSemanticsService = columnSemanticsService;
   }
 
   public TemplateAnalysisResponse configureFromFile(String domain, MultipartFile file) {
@@ -42,8 +47,22 @@ public class DomainImportService {
     TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
     executeDdl(analysis.getCreateTableSql());
     templateService.populateData(file, analysis);
+    persistColumnSemantics(domain, analysis);
     createColumnPermissions(domain, analysis);
     return analysis;
+  }
+
+  private void persistColumnSemantics(String domain, TemplateAnalysisResponse analysis) {
+    if (analysis.getColumns() == null || analysis.getColumns().isEmpty()) {
+      return;
+    }
+    String table = analysis.getTableName();
+    for (ColumnInfo column : analysis.getColumns()) {
+      if (column.getSemanticType() == null || column.getSemanticType().isBlank()) {
+        continue;
+      }
+      columnSemanticsService.upsert(domain, table, column.getName(), column.getSemanticType(), column.getMetadata());
+    }
   }
 
   public String tableForDomain(String domain){

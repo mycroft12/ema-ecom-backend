@@ -75,6 +75,9 @@
     "columnToggleSelectedItems": "تم تحديد {0} فقرات",
     "pageReport": "عرض {first} إلى {last} من أصل {totalRecords}",
     "noImage": "لا توجد صورة",
+    "uploadImage": "تحميل الصورة",
+    "replaceImage": "استبدال الصورة",
+    "viewImage": "عرض الصورة بحجم أكبر",
     "noResults": "لا توجد منتجات",
     "anyOption": "أي",
     "selectOneOption": "اختر واحدًا",
@@ -111,7 +114,10 @@
       "create": "فشل إنشاء المنتج",
       "update": "فشل تحديث المنتج",
       "delete": "فشل حذف المنتج",
-      "backend": "حدث خطأ ما، يرجى التواصل مع المسؤول."
+      "backend": "حدث خطأ ما، يرجى التواصل مع المسؤول.",
+      "maxImages": "يمكنك تحميل {{max}} صورة كحد أقصى.",
+      "fileTooLarge": "تجاوز حجم الصورة الحد {{max}}.",
+      "unsupportedImageType": "نوع الصورة غير مدعوم."
     }
   },
   "import": {

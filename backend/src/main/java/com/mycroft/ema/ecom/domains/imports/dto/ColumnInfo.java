@@ -7,6 +7,8 @@ public class ColumnInfo {
   private String sqlType;      // VARCHAR(255), BIGINT, NUMERIC(...), TIMESTAMP, BOOLEAN
   private boolean nullable;
   private String sampleValue;
+  private String semanticType; // e.g. MINIO:IMAGE
+  private java.util.Map<String, Object> metadata;
 
   public ColumnInfo(){}
 
@@ -17,6 +19,13 @@ public class ColumnInfo {
     this.sqlType = sqlType;
     this.nullable = nullable;
     this.sampleValue = sampleValue;
+  }
+
+  public ColumnInfo(String excelName, String name, String inferredType, String sqlType, boolean nullable,
+                    String sampleValue, String semanticType, java.util.Map<String, Object> metadata) {
+    this(excelName, name, inferredType, sqlType, nullable, sampleValue);
+    this.semanticType = semanticType;
+    this.metadata = metadata;
   }
 
   public String getExcelName() { return excelName; }
@@ -31,4 +40,8 @@ public class ColumnInfo {
   public void setNullable(boolean nullable) { this.nullable = nullable; }
   public String getSampleValue() { return sampleValue; }
   public void setSampleValue(String sampleValue) { this.sampleValue = sampleValue; }
+  public String getSemanticType() { return semanticType; }
+  public void setSemanticType(String semanticType) { this.semanticType = semanticType; }
+  public java.util.Map<String, Object> getMetadata() { return metadata; }
+  public void setMetadata(java.util.Map<String, Object> metadata) { this.metadata = metadata; }
 }

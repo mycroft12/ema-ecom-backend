@@ -166,12 +166,39 @@
                             <td>
                             @switch (column.type) {
                                 @case (ColumnType.MINIO_IMAGE) {
-                                    @if (product[column.name]) {
-                                        <img [src]="product[column.name]" [alt]="column.displayName"
-                                             style="width: 50px; height: 50px; object-fit: cover;" />
-                                    } @else {
-                                        <span class="text-500">{{ 'products.noImage' | translate }}</span>
-                                    }
+                                    <div class="flex items-center gap-2">
+                                        @if (resolveImageSource(product[column.name]); as imageSrc) {
+                                            <p-image
+                                                    [src]="imageSrc"
+                                                    [alt]="column.displayName"
+                                                    [preview]="true"
+                                                    [imageStyle]="{ width: '80px', height: '80px', 'object-fit': 'cover', 'border-radius': '6px', cursor: 'pointer' }"
+                                                    [style]="{ 'border-radius': '6px', display: 'inline-flex' }"
+                                                    [title]="'products.viewImage' | translate">
+                                            </p-image>
+                                        }
+                                        @if (imageCount(column, product[column.name]) > 1) {
+                                            <span class="text-xs text-surface-500">{{ imageCount(column, product[column.name]) }}/{{ maxImages(column) }}</span>
+                                        }
+                                        @if (canEdit) {
+                                            @if (imageCount(column, product[column.name]) === 0) {
+                                                <button type="button"
+                                                        pButton
+                                                        class="p-button-rounded p-button-outlined p-button-sm"
+                                                        (click)="imageInput.click()"
+                                                        [disabled]="isImageUploading(product.id, column.name)"
+                                                        [aria-label]="'products.uploadImage' | translate">
+                                                    <i class="pi pi-upload"></i>
+                                                    <span class="ml-2 hidden md:inline">{{ 'products.uploadImage' | translate }}</span>
+                                                </button>
+                                            }
+                                            @if (isImageUploading(product.id, column.name)) {
+                                                <i class="pi pi-spin pi-spinner text-primary"></i>
+                                            }
+                                            <input #imageInput type="file" accept="image/*"
+                                                   (change)="onImageFileSelected($event, product, column)" hidden />
+                                        }
+                                    </div>
                                 }
                                 @case (ColumnType.BOOLEAN) {
                                     <i class="pi"
@@ -311,6 +338,45 @@
                                 [(ngModel)]="formModel[column.name]"
                                 [required]="column.required"
                         />
+                        <div *ngSwitchCase="ColumnType.MINIO_IMAGE" class="flex flex-column gap-2">
+                            <div class="flex items-center gap-2">
+                                @if (resolveImageSource(formModel[column.name]); as dialogImageSrc) {
+                                    <img [src]="dialogImageSrc" [alt]="column.displayName"
+                                         style="width: 60px; height: 60px; object-fit: cover;" />
+                                } @else {
+                                    <span class="flex items-center gap-1 text-sm text-surface-500">
+                                        <i class="pi pi-image"></i>
+                                        <span>{{ 'products.noImage' | translate }}</span>
+                                    </span>
+                                }
+                                @if (imageCount(column, formModel[column.name]) > 1) {
+                                    <span class="text-xs text-surface-500">{{ imageCount(column, formModel[column.name]) }}/{{ maxImages(column) }}</span>
+                                }
+                                @if (isImageUploading('dialog', column.name)) {
+                                    <i class="pi pi-spin pi-spinner text-primary"></i>
+                                }
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button"
+                                        pButton
+                                        class="p-button-outlined p-button-sm"
+                                        (click)="dialogImageInput.click()"
+                                        [disabled]="isImageUploading('dialog', column.name)"
+                                        [aria-label]="canReplaceImage(column, formModel[column.name]) ? ( 'products.replaceImage' | translate ) : ( 'products.uploadImage' | translate )">
+                                    <i class="pi" [ngClass]="canReplaceImage(column, formModel[column.name]) ? 'pi-refresh mr-2' : 'pi-upload mr-2'"></i>
+                                    <span>{{ canReplaceImage(column, formModel[column.name]) ? ('products.replaceImage' | translate) : ('products.uploadImage' | translate) }}</span>
+                                </button>
+                                <button type="button"
+                                        pButton
+                                        class="p-button-text p-button-sm"
+                                        (click)="clearDialogImage(column)"
+                                        [disabled]="isImageUploading('dialog', column.name)">
+                                    <i class="pi pi-times mr-1"></i>{{ 'common.clear' | translate }}
+                                </button>
+                            </div>
+                            <input #dialogImageInput type="file" accept="image/*"
+                                   (change)="onDialogImageSelected($event, column)" hidden />
+                        </div>
                         <div *ngSwitchCase="ColumnType.BOOLEAN" class="flex align-items-center gap-2">
                             <input
                                     type="checkbox"

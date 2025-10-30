@@ -164,8 +164,17 @@ export class ProductSchemaService {
   }
 
   private normalizeColumnDefinition(column: ColumnDefinition): ColumnDefinition {
-    const type = this.normalizeType(column?.type);
-    return { ...column, type } as ColumnDefinition;
+    const type = this.normalizeType((column as any)?.type);
+    const rawMetadata = this.cloneMetadata((column as any)?.metadata);
+    const semanticType = (column as any)?.semanticType ?? rawMetadata?.['semanticType'];
+    const mediaConstraints = this.buildMediaConstraints(rawMetadata, type);
+    return {
+      ...column,
+      type,
+      metadata: rawMetadata,
+      semanticType,
+      mediaConstraints
+    } as ColumnDefinition;
   }
 
   private normalizeType(type: ColumnDefinition['type']): ColumnType {
@@ -193,5 +202,51 @@ export class ProductSchemaService {
       default:
         return ColumnType.TEXT;
     }
+  }
+
+  private cloneMetadata(metadata: any): Record<string, any> | undefined {
+    if (!metadata || typeof metadata !== 'object') {
+      return undefined;
+    }
+    try {
+      return JSON.parse(JSON.stringify(metadata));
+    } catch {
+      return { ...metadata };
+    }
+  }
+
+  private buildMediaConstraints(metadata: Record<string, any> | undefined, type: ColumnType): { maxImages: number; maxFileSizeBytes?: number; allowedMimeTypes?: string[] } | undefined {
+    if (type !== ColumnType.MINIO_IMAGE) {
+      return undefined;
+    }
+    const maxImages = this.parseNumber(metadata?.['maxImages'], 1);
+    const maxFileSizeBytes = this.parseNumber(metadata?.['maxFileSizeBytes'], 5 * 1024 * 1024);
+    const allowed = this.normalizeStringArray(metadata?.['allowedMimeTypes']);
+    return {
+      maxImages,
+      maxFileSizeBytes,
+      allowedMimeTypes: allowed.length ? allowed : undefined
+    };
+  }
+
+  private normalizeStringArray(value: any): string[] {
+    if (!value) {
+      return [];
+    }
+    if (Array.isArray(value)) {
+      return value.map(v => String(v)).filter(Boolean);
+    }
+    if (typeof value === 'string') {
+      return value.split(',').map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  private parseNumber(value: any, fallback: number): number {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
+    const num = Number(value);
+    return Number.isFinite(num) && num > 0 ? num : fallback;
   }
 }

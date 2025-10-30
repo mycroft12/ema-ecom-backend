@@ -1,6 +1,12 @@
 package com.mycroft.ema.ecom.domains.products.service.impl;
 
 import com.mycroft.ema.ecom.common.error.NotFoundException;
+import com.mycroft.ema.ecom.common.error.BadRequestException;
+import com.mycroft.ema.ecom.common.files.MinioFileStorageService;
+import com.mycroft.ema.ecom.common.files.MinioImagePayload;
+import com.mycroft.ema.ecom.common.files.MinioProperties;
+import com.mycroft.ema.ecom.common.metadata.ColumnSemantics;
+import com.mycroft.ema.ecom.common.metadata.ColumnSemanticsService;
 import com.mycroft.ema.ecom.domains.products.dto.ProductCreateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductUpdateDto;
 import com.mycroft.ema.ecom.domains.products.dto.ProductViewDto;
@@ -10,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,11 +41,20 @@ public class ProductServiceImpl implements ProductService {
   private final JdbcTemplate jdbc;
   private static final String TABLE = "product_config";
   private final String quotedTable;
+  private final MinioFileStorageService minioStorage;
+  private final ColumnSemanticsService semanticsService;
+  private final MinioProperties minioProperties;
   private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
 
-  public ProductServiceImpl(JdbcTemplate jdbc){
+  public ProductServiceImpl(JdbcTemplate jdbc,
+                            ObjectProvider<MinioFileStorageService> minioProvider,
+                            ColumnSemanticsService semanticsService,
+                            MinioProperties minioProperties){
     this.jdbc=jdbc;
     this.quotedTable = TABLE;
+    this.minioStorage = minioProvider == null ? null : minioProvider.getIfAvailable();
+    this.semanticsService = semanticsService;
+    this.minioProperties = minioProperties;
   }
 
   @Override
@@ -99,6 +115,7 @@ public class ProductServiceImpl implements ProductService {
       UUID id = row.get("id") == null ? null : UUID.fromString(row.get("id").toString());
       Map<String, Object> attrs = new LinkedHashMap<>(row);
       attrs.remove("id");
+      normalizeMediaColumns(attrs, columnLookup);
       content.add(new ProductViewDto(id, attrs));
     }
     return new PageImpl<>(content, pageable, total);
@@ -189,6 +206,7 @@ public class ProductServiceImpl implements ProductService {
       Map<String, Object> row = jdbc.queryForMap("select * from " + quotedTable + " where id = ?", id);
       Map<String, Object> attrs = new LinkedHashMap<>(row);
       attrs.remove("id");
+      normalizeMediaColumns(attrs, columnMetadata());
       return new ProductViewDto(id, attrs);
     } catch (EmptyResultDataAccessException ex){
       throw new NotFoundException("Product not found");
@@ -213,6 +231,14 @@ public class ProductServiceImpl implements ProductService {
   public List<ResponseDto.ColumnDto> listColumns() {
     ensureConfigured();
 
+    Map<String, ColumnSemantics> semanticsByColumn = semanticsService != null
+        ? semanticsService.findByTable(TABLE).stream()
+        .collect(Collectors.toMap(
+            s -> s.columnName().toLowerCase(Locale.ROOT),
+            s -> s,
+            (first, second) -> first))
+        : Map.of();
+
     List<Map<String,Object>> rows = jdbc.queryForList("""
       select column_name, data_type, ordinal_position 
       from information_schema.columns
@@ -228,15 +254,40 @@ public class ProductServiceImpl implements ProductService {
       String dataType = String.valueOf(r.get("data_type"));
       int order = Integer.parseInt(String.valueOf(r.get("ordinal_position"))) - 1;
 
-      ResponseDto.ColumnType type = mapSqlTypeToColumnType(name, dataType);
+      ColumnSemantics semantic = semanticsByColumn.get(name.toLowerCase(Locale.ROOT));
+      ResponseDto.ColumnType type = mapSqlTypeToColumnType(name, dataType, semantic);
       String displayName = prettify(name);
 
-      cols.add(new ResponseDto.ColumnDto(name, displayName, type, false, order));
+      Map<String, Object> metadata = new LinkedHashMap<>();
+      if (semantic != null && semantic.metadata() != null) {
+        metadata.putAll(semantic.metadata());
+      }
+      metadata.putIfAbsent("maxImages", semantic != null
+          ? semantic.maxImages(minioProperties.getDefaultMaxImages())
+          : minioProperties.getDefaultMaxImages());
+      metadata.put("maxFileSizeBytes", semantic != null
+          ? semantic.maxFileSizeBytes(minioProperties.getMaxImageSizeBytes())
+          : minioProperties.getMaxImageSizeBytes());
+      metadata.put("allowedMimeTypes", semantic != null
+          ? semantic.allowedMimeTypes(minioProperties.getAllowedImageMimeTypes())
+          : minioProperties.getAllowedImageMimeTypes());
+
+      cols.add(new ResponseDto.ColumnDto(
+          name,
+          displayName,
+          type,
+          false,
+          order,
+          semantic != null ? semantic.semanticType() : null,
+          metadata));
     }
     return cols;
   }
 
-  private ResponseDto.ColumnType mapSqlTypeToColumnType(String name, String dataType) {
+  private ResponseDto.ColumnType mapSqlTypeToColumnType(String name, String dataType, ColumnSemantics semantics) {
+    if (isMinioSemantic(semantics)) {
+      return ResponseDto.ColumnType.MINIO_IMAGE;
+    }
     // Name hints first (let you render the “example” widgets on FE)
     String n = name.toLowerCase();
     if (n.contains("image") || n.endsWith("_url")) return ResponseDto.ColumnType.MINIO_IMAGE;
@@ -264,9 +315,16 @@ public class ProductServiceImpl implements ProductService {
 
 
   private Map<String, ColumnMeta> columnMetadata() {
+    Map<String, ColumnSemantics> semantics = semanticsService != null
+        ? semanticsService.findByTable(TABLE).stream()
+        .collect(Collectors.toMap(
+            s -> s.columnName().toLowerCase(Locale.ROOT),
+            s -> s,
+            (first, second) -> first))
+        : Map.of();
+
     Map<String, ColumnMeta> map = new HashMap<>();
-    jdbc.query(
-        """
+    jdbc.query("""
           select column_name, data_type
           from information_schema.columns
           where table_schema = current_schema()
@@ -276,7 +334,8 @@ public class ProductServiceImpl implements ProductService {
           String name = rs.getString("column_name");
           String type = rs.getString("data_type");
           if (name != null) {
-            map.put(name.toLowerCase(Locale.ROOT), new ColumnMeta(name, type));
+            ColumnSemantics semantic = semantics.get(name.toLowerCase(Locale.ROOT));
+            map.put(name.toLowerCase(Locale.ROOT), new ColumnMeta(name, type, semantic));
           }
         },
         TABLE);
@@ -287,6 +346,26 @@ public class ProductServiceImpl implements ProductService {
     if (value == null) {
       return null;
     }
+    if (value instanceof CharSequence cs && cs.toString().trim().isEmpty()) {
+      return null;
+    }
+
+    if (isMinioImageColumn(meta)) {
+      MinioImagePayload payload = MinioImagePayload.fromRaw(value, meta.semantics(), minioProperties, OBJECT_MAPPER);
+      if (payload.exceedsMaxImages()) {
+        throw new BadRequestException("Column '" + meta.name() + "' accepts at most " + payload.maxImages() + " image(s)");
+      }
+      MinioImagePayload constrained = payload.ensureConstraints();
+      if (constrained.isEmpty()) {
+        return null;
+      }
+      boolean invalidItem = constrained.items().stream().anyMatch(item -> item == null || !StringUtils.hasText(item.key()) || !StringUtils.hasText(item.url()));
+      if (invalidItem) {
+        throw new BadRequestException("Uploaded image payload is incomplete for column '" + meta.name() + "'");
+      }
+      return constrained.toJson(OBJECT_MAPPER);
+    }
+
     String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
 
     try {
@@ -339,9 +418,83 @@ public class ProductServiceImpl implements ProductService {
     return value;
   }
 
-  private record ColumnMeta(String name, String dataType) {}
+  private record ColumnMeta(String name, String dataType, ColumnSemantics semantics) {}
   private record FilterCriterion(String field, String matchMode, String value) {}
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  private void normalizeMediaColumns(Map<String, Object> attrs, Map<String, ColumnMeta> columnLookup) {
+    if (attrs == null || attrs.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+      String column = entry.getKey();
+      ColumnMeta meta = column == null ? null : columnLookup.get(column.toLowerCase(Locale.ROOT));
+      if (!isMinioImageColumn(meta)) {
+        continue;
+      }
+      MinioImagePayload payload = MinioImagePayload.fromRaw(entry.getValue(), meta.semantics(), minioProperties, OBJECT_MAPPER);
+      MinioImagePayload constrained = payload.ensureConstraints();
+      MinioImagePayload refreshed = maybeRefreshOnRead(constrained);
+      entry.setValue(refreshed.toClientPayload());
+    }
+  }
+
+  private MinioImagePayload maybeRefreshOnRead(MinioImagePayload payload) {
+    if (minioStorage == null || payload == null || payload.isEmpty()) {
+      return payload;
+    }
+    if (!payload.needsRefresh(minioProperties.getRefreshThreshold(), minioProperties.getRefreshClockSkew(), Instant.now())) {
+      return payload;
+    }
+    List<MinioImagePayload.Item> refreshed = new ArrayList<>();
+    for (MinioImagePayload.Item item : payload.items()) {
+      if (item == null || !StringUtils.hasText(item.key())) {
+        refreshed.add(item);
+        continue;
+      }
+      try {
+        MinioFileStorageService.UploadResponse response = minioStorage.refreshUrl(
+            item.key(),
+            minioProperties.getDefaultExpiry(),
+            item.contentType(),
+            item.sizeBytes());
+        refreshed.add(new MinioImagePayload.Item(
+            response.key(),
+            response.url(),
+            response.expiresAt(),
+            response.contentType(),
+            response.sizeBytes()
+        ));
+      } catch (Exception ex) {
+        log.warn("Failed to refresh MinIO URL for object {}: {}", item.key(), ex.getMessage());
+        refreshed.add(item);
+      }
+    }
+    return payload.withItems(refreshed);
+  }
+
+  private boolean isMinioImageColumn(ColumnMeta meta) {
+    if (meta == null) {
+      return false;
+    }
+    if (isMinioSemantic(meta.semantics())) {
+      return true;
+    }
+    String name = meta.name() == null ? "" : meta.name().toLowerCase(Locale.ROOT);
+    return name.contains("image") || name.endsWith("_url");
+  }
+
+  private boolean isMinioSemantic(ColumnSemantics semantics) {
+    if (semantics == null) {
+      return false;
+    }
+    String type = semantics.semanticType();
+    if (!StringUtils.hasText(type)) {
+      return false;
+    }
+    String normalized = type.trim().toUpperCase(Locale.ROOT).replace(':', '_');
+    return normalized.equals(MinioImagePayload.TYPE) || normalized.equals("MINIO_IMAGE");
+  }
 
   private String buildOrderByClause(Pageable pageable, Map<String, ColumnMeta> columnLookup) {
     if (pageable == null || pageable.getSort().isUnsorted()) {

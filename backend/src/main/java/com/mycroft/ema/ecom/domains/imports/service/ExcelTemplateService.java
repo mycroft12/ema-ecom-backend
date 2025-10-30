@@ -1,5 +1,6 @@
 package com.mycroft.ema.ecom.domains.imports.service;
 
+import com.mycroft.ema.ecom.common.files.MinioProperties;
 import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import org.apache.poi.ss.usermodel.*;
@@ -30,9 +31,29 @@ public class ExcelTemplateService {
   private static final int SAMPLE_ROWS = 100;
   private static final Pattern SNAKE_CASE_NON_ALNUM = Pattern.compile("[^a-z0-9_]");
   private final JdbcTemplate jdbcTemplate;
+  private final MinioProperties minioProperties;
 
-  public ExcelTemplateService(JdbcTemplate jdbcTemplate) {
+  public ExcelTemplateService(JdbcTemplate jdbcTemplate, MinioProperties minioProperties) {
     this.jdbcTemplate = jdbcTemplate;
+    this.minioProperties = minioProperties;
+  }
+
+  private ColumnInfo createColumnInfo(String excelName, String normalizedName, String logicalType,
+                                      String sqlType, boolean nullable, String sampleValue) {
+    ColumnInfo info = new ColumnInfo(excelName, normalizedName, logicalType, sqlType, nullable, sampleValue);
+    if ("MINIO_IMAGE".equalsIgnoreCase(logicalType)) {
+      info.setSemanticType("MINIO:IMAGE");
+      Map<String, Object> metadata = new LinkedHashMap<>();
+      if (minioProperties != null) {
+        metadata.put("maxImages", minioProperties.getDefaultMaxImages());
+        metadata.put("maxFileSizeBytes", minioProperties.getMaxImageSizeBytes());
+        metadata.put("allowedMimeTypes", minioProperties.getAllowedImageMimeTypes());
+      } else {
+        metadata.put("maxImages", 1);
+      }
+      info.setMetadata(metadata);
+    }
+    return info;
   }
 
   private void collectCsvRows(MultipartFile file, List<ColumnInfo> columns, boolean typeRowProvided,
@@ -308,7 +329,7 @@ public class ExcelTemplateService {
               String marker = providedTypes.get(i);
               String logical = logicalTypeFor(marker);
               String sql = sqlTypeFor(logical);
-              columns.add(new ColumnInfo(headerName, norm, logical, sql, true, null));
+              columns.add(createColumnInfo(headerName, norm, logical, sql, true, null));
             }
             String normalizedTable = normalize(tableName);
             String ddl = buildCreateTable(normalizedTable, columns);
@@ -348,7 +369,7 @@ public class ExcelTemplateService {
             }
             String sqlType = sqlTypeFor(inferredType);
             boolean isNullable = nullable.getOrDefault(h, Boolean.TRUE);
-            columns.add(new ColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
+            columns.add(createColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
           }
 
           String normalizedTable = normalize(tableName);
@@ -421,7 +442,7 @@ public class ExcelTemplateService {
                 String marker = providedTypes.get(i);
                 String logical = logicalTypeFor(marker);
                 String sql = sqlTypeFor(logical);
-                columns.add(new ColumnInfo(headerName, norm, logical, sql, true, null));
+                columns.add(createColumnInfo(headerName, norm, logical, sql, true, null));
               }
               String normalizedTable = normalize(tableName);
               String ddl = buildCreateTable(normalizedTable, columns);
@@ -470,7 +491,7 @@ public class ExcelTemplateService {
             }
             String sqlType = sqlTypeFor(inferredType);
             boolean isNullable = nullable.getOrDefault(h, Boolean.TRUE);
-            columns.add(new ColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
+            columns.add(createColumnInfo(h, norm, inferredType, sqlType, isNullable, samples.get(h)));
           }
 
           String normalizedTable = normalize(tableName);

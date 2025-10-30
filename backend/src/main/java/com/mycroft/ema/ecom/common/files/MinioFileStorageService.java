@@ -1,14 +1,19 @@
 package com.mycroft.ema.ecom.common.files;
 
 import io.minio.BucketExistsArgs;
+import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.http.Method;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -22,6 +27,8 @@ public class MinioFileStorageService {
     this.props = props;
   }
 
+  private static final Duration MAX_EXPIRY = Duration.ofDays(7);
+
   public UploadResponse uploadImage(MultipartFile file, String domain, String field){
     try{
       ensureBucket();
@@ -34,9 +41,36 @@ public class MinioFileStorageService {
           .contentType(contentType)
           .stream(file.getInputStream(), file.getSize(), -1)
           .build());
-      String url = buildPublicUrl(object);
-      return new UploadResponse(object, url);
+      Instant expiresAt = Instant.now().plus(resolveDefaultExpiry());
+      String url = buildSignedUrl(object, expiresAt);
+      return new UploadResponse(object, url, expiresAt, contentType, file.getSize());
     }catch (Exception e){
+      throw new RuntimeException("Failed to upload to MinIO: " + e.getMessage(), e);
+    }
+  }
+
+  public UploadResponse uploadImage(byte[] content, String contentType, String originalFilename,
+                                    String domain, String field) {
+    if (content == null || content.length == 0) {
+      throw new IllegalArgumentException("Image content cannot be empty");
+    }
+    try {
+      ensureBucket();
+      String resolvedContentType = contentType != null ? contentType : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+      String ext = guessExtension(resolvedContentType, originalFilename);
+      String object = (domain == null ? "generic" : domain) + "/" + (field == null ? "file" : field) + "/" + UUID.randomUUID() + (ext != null ? ("." + ext) : "");
+      try (ByteArrayInputStream bais = new ByteArrayInputStream(content)) {
+        client.putObject(PutObjectArgs.builder()
+            .bucket(props.getBucket())
+            .object(object)
+            .contentType(resolvedContentType)
+            .stream(bais, content.length, -1)
+            .build());
+      }
+      Instant expiresAt = Instant.now().plus(resolveDefaultExpiry());
+      String url = buildSignedUrl(object, expiresAt);
+      return new UploadResponse(object, url, expiresAt, resolvedContentType, (long) content.length);
+    } catch (Exception e) {
       throw new RuntimeException("Failed to upload to MinIO: " + e.getMessage(), e);
     }
   }
@@ -45,6 +79,43 @@ public class MinioFileStorageService {
     boolean exists = client.bucketExists(BucketExistsArgs.builder().bucket(props.getBucket()).build());
     if(!exists){
       client.makeBucket(MakeBucketArgs.builder().bucket(props.getBucket()).build());
+    }
+  }
+
+  public UploadResponse refreshUrl(String objectKey) {
+    return refreshUrl(objectKey, resolveDefaultExpiry(), null, null);
+  }
+
+  public UploadResponse refreshUrl(String objectKey, Duration expiry) {
+    return refreshUrl(objectKey, expiry, null, null);
+  }
+
+  public UploadResponse refreshUrl(String objectKey, Duration expiry, String contentType, Long sizeBytes) {
+    if (objectKey == null || objectKey.isBlank()) {
+      throw new IllegalArgumentException("Object key is required to refresh URL");
+    }
+    Instant expiresAt = Instant.now().plus(expiry == null ? resolveDefaultExpiry() : expiry);
+    String url = buildSignedUrl(objectKey, expiresAt);
+    return new UploadResponse(objectKey, url, expiresAt, contentType, sizeBytes);
+  }
+
+  private String buildSignedUrl(String object, Instant expiresAt) {
+    try {
+      Duration untilExpiry = Duration.between(Instant.now(), expiresAt);
+      long seconds = untilExpiry.getSeconds();
+      if (seconds <= 0) {
+        seconds = resolveDefaultExpiry().getSeconds();
+        expiresAt = Instant.now().plus(resolveDefaultExpiry());
+      }
+      long cappedSeconds = Math.min(seconds, MAX_EXPIRY.getSeconds());
+      return client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+          .method(Method.GET)
+          .bucket(props.getBucket())
+          .object(object)
+          .expiry((int) Math.max(1, cappedSeconds))
+          .build());
+    } catch (Exception ex) {
+      return buildPublicUrl(object);
     }
   }
 
@@ -69,5 +140,17 @@ public class MinioFileStorageService {
     return null;
   }
 
-  public record UploadResponse(String key, String url) {}
+  private Duration resolveDefaultExpiry() {
+    Duration configured = props.getDefaultExpiry();
+    if (configured == null || configured.isNegative() || configured.isZero()) {
+      return Duration.ofDays(6);
+    }
+    long seconds = Math.min(configured.getSeconds(), MAX_EXPIRY.getSeconds());
+    if (seconds <= 0) {
+      seconds = Duration.ofHours(1).getSeconds();
+    }
+    return Duration.ofSeconds(seconds);
+  }
+
+  public record UploadResponse(String key, String url, Instant expiresAt, String contentType, Long sizeBytes) {}
 }

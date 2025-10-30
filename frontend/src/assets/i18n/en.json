@@ -75,6 +75,9 @@
     "columnToggleSelectedItems": "{0} columns selected",
     "pageReport": "Showing {first} to {last} of {totalRecords} entries",
     "noImage": "No image",
+    "uploadImage": "Upload image",
+    "replaceImage": "Replace image",
+    "viewImage": "View image in a larger window",
     "noResults": "No products found",
     "anyOption": "Any",
     "selectOneOption": "Select one",
@@ -111,7 +114,10 @@
       "create": "Failed to create product",
       "update": "Failed to update product",
       "delete": "Failed to delete product",
-      "backend": "Something went wrong. Please contact the administrator."
+      "backend": "Something went wrong. Please contact the administrator.",
+      "maxImages": "You can upload at most {{max}} image(s).",
+      "fileTooLarge": "Image exceeds the {{max}} limit.",
+      "unsupportedImageType": "Unsupported image type."
     }
   },
   "import": {
