@@ -125,6 +125,10 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   get submitLabel(): string {
     return this.translate.instant('common.save');
   }
+  get hasRows(): boolean {
+    const rows = this.dataService.products();
+    return Array.isArray(rows) && rows.length > 0;
+  }
   trackColumn = (_: number, column: ColumnDefinition) => column.name;
 
   ngOnInit() {

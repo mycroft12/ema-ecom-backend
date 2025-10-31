@@ -57,6 +57,8 @@
                                 icon="pi pi-file-excel"
                                 severity="success"
                                 (click)="onExportExcel()"
+                                [disabled]="!hasRows"
+                                [title]="(translationPrefix + '.exportExcelTooltip') | translate"
                         ></p-button>
                         <p-iconfield iconPosition="left" class="search-field">
                             <p-inputicon>
