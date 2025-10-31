@@ -163,7 +163,7 @@ public class DomainImportService {
   }
 
   private void createActionPermissions(String prefix) {
-    List<String> actions = List.of("add", "update", "delete");
+    List<String> actions = List.of("add", "update", "delete", "export:excel");
     actions.forEach(action -> {
       String permissionName = prefix + ":action:" + action;
       var permission = permissionService.ensure(permissionName);

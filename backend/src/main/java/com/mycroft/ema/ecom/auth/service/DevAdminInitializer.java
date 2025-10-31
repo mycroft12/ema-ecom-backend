@@ -99,6 +99,9 @@ public class DevAdminInitializer implements CommandLineRunner {
             "expenses:read","expenses:create","expenses:update","expenses:delete",
             "ads:read","ads:create","ads:update","ads:delete",
             "product:action:export:excel",
+            "orders:action:export:excel",
+            "expenses:action:export:excel",
+            "ads:action:export:excel",
             "import:template","import:configure"
         };
         for (String p : basePerms){
