@@ -27,7 +27,7 @@ public class GoogleSheetSyncService {
   private final GoogleImportConfigRepository configRepository;
   private final DomainImportService domainImportService;
   private final JdbcTemplate jdbcTemplate;
-  private final ProductUpsertBroadcaster upsertBroadcaster;
+  private final HybridUpsertBroadcaster upsertBroadcaster;
   private final com.mycroft.ema.ecom.domains.notifications.service.NotificationLogService notificationLogService;
 
   private static final Pattern JSON_PATTERN = Pattern.compile("^\\s*\\{.+}\\s*$", Pattern.DOTALL);
@@ -35,7 +35,7 @@ public class GoogleSheetSyncService {
   public GoogleSheetSyncService(GoogleImportConfigRepository configRepository,
                                 DomainImportService domainImportService,
                                 JdbcTemplate jdbcTemplate,
-                                ProductUpsertBroadcaster upsertBroadcaster,
+                                HybridUpsertBroadcaster upsertBroadcaster,
                                 com.mycroft.ema.ecom.domains.notifications.service.NotificationLogService notificationLogService) {
     this.configRepository = configRepository;
     this.domainImportService = domainImportService;
@@ -105,7 +105,7 @@ public class GoogleSheetSyncService {
 
       var logEntry = notificationLogService.record(domain, resolvedAction, rowId, request.rowNumber(), changedColumns);
 
-      ProductUpsertEvent event = new ProductUpsertEvent(
+      HybridUpsertEvent event = new HybridUpsertEvent(
           domain,
           rowId,
           Instant.now(),

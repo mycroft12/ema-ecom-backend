@@ -1,0 +1,86 @@
+.hybrid-image { border-radius: 4px; }
+
+:host ::ng-deep {
+    .p-progressbar {
+        height: .5rem;
+        background-color: #D8DADC;
+
+        .p-progressbar-value { background-color: #607D8B; }
+    }
+
+    /* ALIGNMENT FIX */
+    th .header-cell {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        line-height: 1;                 /* normalize line height */
+    }
+
+    th .header-title {
+        display: flex;
+        align-items: center;
+        line-height: 1;
+    }
+
+    /* Center the filter button next to the text */
+    th .header-filter { display: inline-flex; align-items: center; }
+
+    th .header-filter .p-column-filter-menu-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 1.25rem;               /* keeps it aligned with text */
+        width: 1.25rem;
+        padding: 0;
+        margin: 0;
+        transform: translateY(-1px);   /* tiny optical nudge */
+    }
+
+    /* remove extra icon offset some themes add */
+    th .header-filter .p-column-filter-menu-button .p-button-icon { margin: 0; }
+}
+
+.caption-toolbar {
+    width: 100%;
+}
+
+.actions-cell .p-button {
+    width: 2.2rem;
+    height: 2.2rem;
+}
+
+.hybrid-dialog {
+    width: 100%;
+    max-width: 1040px;
+}
+
+.hybrid-dialog .field {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+:host ::ng-deep {
+    .hybrid-table {
+        .sticky-action {
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            background: var(--surface-card, #ffffff);
+            box-shadow: -6px 0 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .p-datatable-thead > tr > .sticky-action {
+            z-index: 3;
+            background: var(--surface-card, #ffffff);
+        }
+
+        .p-datatable-tbody > tr > .sticky-action {
+            background: var(--surface-card, #ffffff);
+        }
+    }
+
+    .column-toggle {
+        min-width: 12rem;
+    }
+}

@@ -47,4 +47,3 @@ app:
 logging:
   level:
     org.springframework.jdbc.core: TRACE
-    com.mycroft.ema.ecom.domains.products.service.impl.ProductServiceImpl: DEBUG

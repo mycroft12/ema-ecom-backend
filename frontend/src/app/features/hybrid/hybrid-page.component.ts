@@ -1,17 +1,17 @@
 import { Component, inject } from '@angular/core';
-import { ProductContainerComponent } from '../products/components/product-container/product-container.component';
 import { ActivatedRoute } from '@angular/router';
 import { HYBRID_ENTITY_DISPLAY_NAME, HYBRID_ENTITY_TYPE, HYBRID_TRANSLATION_PREFIX } from './hybrid.tokens';
-import { ProductSchemaService } from '../products/services/product-schema.service';
-import { ProductDataService } from '../products/services/product-data.service';
+import { HybridContainerComponent } from './components/hybrid-container/hybrid-container.component';
+import { HybridSchemaService } from './services/hybrid-schema.service';
+import { HybridTableDataService } from './services/hybrid-table-data.service';
 
 @Component({
   selector: 'app-hybrid-page',
   standalone: true,
-  imports: [ProductContainerComponent],
+  imports: [HybridContainerComponent],
   providers: [
-    ProductSchemaService,
-    ProductDataService,
+    HybridSchemaService,
+    HybridTableDataService,
     {
       provide: HYBRID_ENTITY_TYPE,
       useFactory: () => {
@@ -34,6 +34,6 @@ import { ProductDataService } from '../products/services/product-data.service';
       }
     }
   ],
-  template: `<app-product-container />`
+  template: `<app-hybrid-container />`
 })
 export class HybridPageComponent {}

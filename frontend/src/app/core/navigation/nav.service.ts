@@ -4,7 +4,7 @@ import { NavItem } from './nav.model';
 import { AuthService } from '../auth.service';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { ProductBadgeService } from '../../features/products/services/product-badge.service';
+import { HybridBadgeService } from '../../features/hybrid/services/hybrid-badge.service';
 
 @Injectable({ providedIn: 'root' })
 export class NavService {
@@ -12,8 +12,8 @@ export class NavService {
   private readonly rebuildTick = signal(0);
 
   constructor(private auth: AuthService, private translate: TranslateService, private router: Router,
-              private productBadge: ProductBadgeService) {
-    const badgeSignal = this.productBadge.asSignal();
+              private badgeService: HybridBadgeService) {
+    const badgeSignal = this.badgeService.asSignal();
     const permissionsSignal = this.auth.permissionsSignal();
     this.menuItemsComputed = computed(() => {
       this.rebuildTick();

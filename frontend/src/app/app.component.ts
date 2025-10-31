@@ -10,7 +10,7 @@ import { LanguageService, LangCode } from './core/language.service';
 import { LanguageSwitcherComponent } from './shared/language-switcher.component';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { ProductUpsertListenerService } from './features/products/services/product-upsert-listener.service';
+import { HybridUpsertListenerService } from './features/hybrid/services/hybrid-upsert-listener.service';
 import { NotificationMenuComponent } from './shared/notification-menu.component';
 
 @Component({
@@ -26,7 +26,7 @@ export class AppComponent {
   constructor(public auth: AuthService,
               private router: Router,
               public lang: LanguageService,
-              upsertListener: ProductUpsertListenerService) {
+              upsertListener: HybridUpsertListenerService) {
     this.selectedLang = this.lang.current();
     upsertListener.start();
   }

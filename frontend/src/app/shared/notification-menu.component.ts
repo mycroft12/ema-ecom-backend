@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ProductBadgeService, NotificationEntry } from '../features/products/services/product-badge.service';
+import { HybridBadgeService, NotificationEntry } from '../features/hybrid/services/hybrid-badge.service';
 
 @Component({
   selector: 'app-notification-menu',
@@ -14,7 +14,7 @@ import { ProductBadgeService, NotificationEntry } from '../features/products/ser
   styleUrls: ['./notification-menu.component.scss']
 })
 export class NotificationMenuComponent {
-  private readonly badge = inject(ProductBadgeService);
+  private readonly badge = inject(HybridBadgeService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
 
