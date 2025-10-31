@@ -3,10 +3,10 @@
     <p-card>
       <div class="flex flex-column align-items-center justify-content-center text-center p-5">
         <i class="pi pi-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
-        <h2>{{ 'products.needConfiguration' | translate }}</h2>
+        <h2>{{ (translationNamespace + '.needConfiguration') | translate }}</h2>
         <div class="mt-4">
           <p-button 
-            [label]="('products.configureNow' | translate)" 
+            [label]="((translationNamespace + '.configureNow') | translate)" 
             icon="pi pi-cog" 
             severity="primary" 
             [raised]="true" 

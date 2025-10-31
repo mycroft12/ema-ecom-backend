@@ -6,12 +6,24 @@ import { ProductSchema, SchemaConfigurationRequest, TemplateValidationResult, Co
 import { AuthService } from '../../../core/auth.service';
 import { TranslateService } from '@ngx-translate/core';
 
+interface HybridContext {
+  entityType: string;
+  translationPrefix: string;
+  displayName: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductSchemaService {
   private readonly http = inject(HttpClient);
   private readonly apiBase = environment.apiBase;
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+
+  private readonly contextSignal = signal<HybridContext>({
+    entityType: 'product',
+    translationPrefix: 'products',
+    displayName: 'Products'
+  });
 
   private readonly schemaSignal = signal<ProductSchema | null>(null);
   private readonly loadingSignal = signal<boolean>(false);
@@ -25,29 +37,64 @@ export class ProductSchemaService {
   readonly isConfigured = computed(() => this.schemaSignal() !== null && this.schemaSignal()!.status === 'ACTIVE');
   readonly columns = computed(() => this.schemaSignal()?.columns ?? []);
   readonly visibleColumns = computed(() => this.columns().filter(c => !c.hidden).sort((a, b) => a.displayOrder - b.displayOrder));
+  readonly displayName = computed(() => this.schemaSignal()?.displayName ?? this.contextSignal().displayName);
+
+  get entityTypeName(): string {
+    return this.contextSignal().entityType;
+  }
+
+  get translationNamespace(): string {
+    return this.contextSignal().translationPrefix;
+  }
+
+  configureContext(context: Partial<HybridContext>): void {
+    const current = this.contextSignal();
+    const nextEntity = this.normalizeEntity(context.entityType ?? current.entityType);
+    const nextTranslation = this.normalizeTranslationPrefix(context.translationPrefix ?? current.translationPrefix, nextEntity);
+    const nextDisplayName = this.normalizeDisplayName(context.displayName ?? current.displayName, nextEntity);
+
+    if (current.entityType === nextEntity &&
+        current.translationPrefix === nextTranslation &&
+        current.displayName === nextDisplayName) {
+      return;
+    }
+    this.contextSignal.set({
+      entityType: nextEntity,
+      translationPrefix: nextTranslation,
+      displayName: nextDisplayName
+    });
+    this.schemaSignal.set(null);
+    this.errorSignal.set(null);
+  }
 
   loadSchema(): void {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
-    this.loadSchemaFromProductsEndpoint();
+    this.loadSchemaFromEndpoint();
   }
 
   /**
-   * Helper method to load schema by probing the products endpoint.
-   * Only called if we've confirmed the product_config table exists.
+   * Helper method to load schema by probing the hybrid endpoint.
    */
-  private loadSchemaFromProductsEndpoint(): void {
-    this.http.get<any>(`${this.apiBase}/api/products`, {
+  private loadSchemaFromEndpoint(): void {
+    const context = this.contextSignal();
+    const entityType = context.entityType;
+
+    this.http.get<any>(`${this.apiBase}/api/hybrid/${entityType}`, {
       params: { includeSchema: true, page: 0, size: 1 } as any
     }).pipe(
         tap(resp => {
           const columns = resp?.columns ?? [];
           const filteredColumns = this.filterColumnsByPermission(columns).map(col => this.normalizeColumnDefinition(col));
+          if (this.contextSignal().entityType !== entityType) {
+            // Context changed while the request was in flight
+            return;
+          }
           this.schemaSignal.set({
             id: 0,
-            tableName: 'product_config',
-            displayName: 'Products',
-            domain: 'products',
+            tableName: `${entityType}_config`,
+            displayName: context.displayName,
+            domain: entityType,
             version: 1,
             status: 'ACTIVE',
             columns: filteredColumns,
@@ -67,9 +114,9 @@ export class ProductSchemaService {
           if (notConfigured) {
             this.errorSignal.set(null);
           } else if (status === 0) {
-            this.errorSignal.set(this.translate.instant('products.errors.backend'));
+            this.errorSignal.set(this.translate.instant(`${this.translationNamespace}.errors.backend`));
           } else {
-            this.errorSignal.set(rawMessage || this.translate.instant('products.errors.backend'));
+            this.errorSignal.set(rawMessage || this.translate.instant(`${this.translationNamespace}.errors.backend`));
           }
           this.loadingSignal.set(false);
           return of(null);
@@ -80,7 +127,7 @@ export class ProductSchemaService {
 
   uploadTemplate(request: SchemaConfigurationRequest): Observable<HttpEvent<any>> {
     const formData = new FormData();
-    formData.append('domain', 'product');
+    formData.append('domain', this.entityTypeName);
     formData.append('file', request.file);
     // Extra fields are ignored by backend for now
     formData.append('displayName', request.displayName);
@@ -111,19 +158,21 @@ export class ProductSchemaService {
 
   downloadTemplate(): void {
     // Generate a simple CSV template client-side: first row headers, second row types
+    const entity = this.entityTypeName;
     const headers = ['name','sku','price','quantity'];
     const types = ['TEXT','TEXT','DECIMAL','INTEGER'];
     const csv = headers.join(',') + '\n' + types.join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    this.downloadFile(blob, 'product-template.csv');
+    this.downloadFile(blob, `${entity}-template.csv`);
   }
 
   generateTemplateWithTypes(): void {
+    const entity = this.entityTypeName;
     const allTypes = ['TEXT','INTEGER','DECIMAL','DATE','BOOLEAN','MINIO_IMAGE','MINIO_FILE'];
     const headers = allTypes.map((t, i) => `col_${i+1}`);
     const csv = headers.join(',') + '\n' + allTypes.join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    this.downloadFile(blob, 'product-template-with-types.csv');
+    this.downloadFile(blob, `${entity}-template-with-types.csv`);
   }
 
   private extractFilename(cd: string | null): string | null {
@@ -144,15 +193,19 @@ export class ProductSchemaService {
 
   private filterColumnsByPermission(columns: ColumnDefinition[]): ColumnDefinition[] {
     const perms = new Set(this.auth.permissions() ?? []);
-    const prefix = 'product:access:';
-    const hasWildcard = Array.from(perms).some(p => p.startsWith('product:*'));
+    const entity = this.entityTypeName;
+    const prefix = `${entity}:access:`;
+    const hasWildcard = Array.from(perms).some(p => p.startsWith(`${entity}:*`));
     const relevant = Array.from(perms).filter(p => p.startsWith(prefix));
     if (hasWildcard) {
-      // If user has wild-card product permissions, expose all columns
       return columns;
     }
     if (relevant.length === 0) {
-      return [];
+      const hasBaseEntityPermission = Array.from(perms).some(p => p.startsWith(`${entity}:`));
+      if (!perms.size || hasBaseEntityPermission) {
+        return columns;
+      }
+      return columns;
     }
     return columns.filter(col => {
       if (!col?.name) {
@@ -202,6 +255,30 @@ export class ProductSchemaService {
       default:
         return ColumnType.TEXT;
     }
+  }
+
+  private normalizeEntity(value: string | null | undefined): string {
+    const normalized = (value ?? '').toString().trim().toLowerCase();
+    return normalized || 'product';
+  }
+
+  private normalizeTranslationPrefix(value: string | null | undefined, entity: string): string {
+    const normalized = (value ?? '').toString().trim();
+    if (normalized) {
+      return normalized;
+    }
+    return entity === 'product' ? 'products' : entity;
+  }
+
+  private normalizeDisplayName(value: string | null | undefined, entity: string): string {
+    const normalized = (value ?? '').toString().trim();
+    if (normalized) {
+      return normalized;
+    }
+    if (entity === 'product') {
+      return 'Products';
+    }
+    return entity.replace(/[-_]/g, ' ').replace(/\b\w/g, (match) => match.toUpperCase());
   }
 
   private cloneMetadata(metadata: any): Record<string, any> | undefined {

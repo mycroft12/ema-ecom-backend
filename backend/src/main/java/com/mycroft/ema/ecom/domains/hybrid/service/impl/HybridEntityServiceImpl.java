@@ -1,0 +1,609 @@
+package com.mycroft.ema.ecom.domains.hybrid.service.impl;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mycroft.ema.ecom.common.error.BadRequestException;
+import com.mycroft.ema.ecom.common.error.NotFoundException;
+import com.mycroft.ema.ecom.common.files.MinioFileStorageService;
+import com.mycroft.ema.ecom.common.files.MinioImagePayload;
+import com.mycroft.ema.ecom.common.files.MinioProperties;
+import com.mycroft.ema.ecom.common.metadata.ColumnSemantics;
+import com.mycroft.ema.ecom.common.metadata.ColumnSemanticsService;
+import com.mycroft.ema.ecom.domains.hybrid.dto.HybridCreateDto;
+import com.mycroft.ema.ecom.domains.hybrid.dto.HybridResponseDto;
+import com.mycroft.ema.ecom.domains.hybrid.dto.HybridUpdateDto;
+import com.mycroft.ema.ecom.domains.hybrid.dto.HybridViewDto;
+import com.mycroft.ema.ecom.domains.hybrid.service.HybridEntityService;
+import com.mycroft.ema.ecom.domains.imports.service.DomainImportService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional(readOnly = true)
+public class HybridEntityServiceImpl implements HybridEntityService {
+
+  private static final Logger log = LoggerFactory.getLogger(HybridEntityServiceImpl.class);
+
+  private final JdbcTemplate jdbc;
+  private final DomainImportService domainImportService;
+  private final ColumnSemanticsService semanticsService;
+  private final MinioFileStorageService minioStorage;
+  private final MinioProperties minioProperties;
+
+  public HybridEntityServiceImpl(JdbcTemplate jdbc,
+                                 DomainImportService domainImportService,
+                                 ColumnSemanticsService semanticsService,
+                                 ObjectProvider<MinioFileStorageService> minioProvider,
+                                 MinioProperties minioProperties) {
+    this.jdbc = jdbc;
+    this.domainImportService = domainImportService;
+    this.semanticsService = semanticsService;
+    this.minioStorage = minioProvider == null ? null : minioProvider.getIfAvailable();
+    this.minioProperties = minioProperties;
+  }
+
+  @Override
+  public Page<HybridViewDto> search(String entityType, String q, MultiValueMap<String, String> filters, Pageable pageable) {
+    String table = ensureConfigured(entityType);
+    Map<String, ColumnMeta> columnLookup = columnMetadata(table);
+    List<String> searchableColumns = columnLookup.values().stream()
+        .map(ColumnMeta::name)
+        .filter(name -> name != null && !"id".equalsIgnoreCase(name))
+        .toList();
+
+    List<Object> filterArgs = new ArrayList<>();
+    List<String> whereParts = new ArrayList<>();
+
+    String trimmedQuery = q == null ? null : q.trim();
+    if (StringUtils.hasText(trimmedQuery) && !searchableColumns.isEmpty()) {
+      String clause = searchableColumns.stream()
+          .map(col -> "lower(" + col + "::text) like ?")
+          .collect(Collectors.joining(" OR "));
+      whereParts.add("(" + clause + ")");
+      String pattern = "%" + trimmedQuery.toLowerCase(Locale.ROOT) + "%";
+      searchableColumns.forEach(col -> filterArgs.add(pattern));
+    }
+
+    List<FilterCriterion> criteria = extractFilterCriteria(filters);
+    for (FilterCriterion criterion : criteria) {
+      if (!StringUtils.hasText(criterion.field())) {
+        continue;
+      }
+      ColumnMeta meta = columnLookup.get(criterion.field().toLowerCase(Locale.ROOT));
+      if (meta == null || "id".equalsIgnoreCase(meta.name())) {
+        continue;
+      }
+      Optional<String> clause = buildColumnFilterClause(table, meta, criterion, filterArgs);
+      clause.ifPresent(whereParts::add);
+    }
+
+    String whereClause = whereParts.isEmpty() ? "" : " where " + String.join(" and ", whereParts);
+
+    String countSql = "select count(*) from " + table + whereClause;
+    Long totalCount = jdbc.queryForObject(countSql, filterArgs.toArray(), Long.class);
+    long total = totalCount == null ? 0 : totalCount;
+
+    int pageSize = pageable.getPageSize();
+    int offset = (int) pageable.getOffset();
+
+    List<Object> dataArgs = new ArrayList<>(filterArgs);
+    dataArgs.add(pageSize);
+    dataArgs.add(offset);
+
+    String orderClause = buildOrderByClause(table, pageable, columnLookup);
+
+    List<Map<String, Object>> rows = jdbc.queryForList(
+        "select * from " + table + whereClause + orderClause + " limit ? offset ?", dataArgs.toArray());
+
+    List<HybridViewDto> content = new ArrayList<>();
+    for (Map<String, Object> row : rows) {
+      UUID id = row.get("id") == null ? null : UUID.fromString(row.get("id").toString());
+      Map<String, Object> attrs = new LinkedHashMap<>(row);
+      attrs.remove("id");
+      normalizeMediaColumns(attrs, columnLookup);
+      content.add(new HybridViewDto(id, attrs));
+    }
+    return new PageImpl<>(content, pageable, total);
+  }
+
+  @Override
+  @Transactional
+  public HybridViewDto create(String entityType, HybridCreateDto dto) {
+    String table = ensureConfigured(entityType);
+    Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
+    Map<String, ColumnMeta> columnLookup = columnMetadata(table);
+    List<String> cols = new ArrayList<>();
+    List<Object> vals = new ArrayList<>();
+    for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+      String col = Optional.ofNullable(entry.getKey()).orElse("");
+      ColumnMeta meta = columnLookup.get(col.toLowerCase(Locale.ROOT));
+      if (meta == null) continue;
+      String actual = meta.name();
+      if ("id".equalsIgnoreCase(actual)) continue;
+      cols.add(actual);
+      vals.add(convertValue(meta, entry.getValue()));
+    }
+    UUID id;
+    if (cols.isEmpty()) {
+      id = jdbc.queryForObject("insert into " + table + " default values returning id", UUID.class);
+    } else {
+      String placeholders = String.join(", ", Collections.nCopies(cols.size(), "?"));
+      String columns = String.join(", ", cols);
+      String sql = "insert into " + table + " (" + columns + ") values (" + placeholders + ") returning id";
+      id = jdbc.queryForObject(sql, vals.toArray(), UUID.class);
+    }
+    return get(entityType, id);
+  }
+
+  @Override
+  @Transactional
+  public HybridViewDto update(String entityType, UUID id, HybridUpdateDto dto) {
+    String table = ensureConfigured(entityType);
+    Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
+    if (attrs.isEmpty()) {
+      return get(entityType, id);
+    }
+    Map<String, ColumnMeta> columnLookup = columnMetadata(table);
+    List<String> sets = new ArrayList<>();
+    List<Object> vals = new ArrayList<>();
+    for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+      String col = Optional.ofNullable(entry.getKey()).orElse("");
+      ColumnMeta meta = columnLookup.get(col.toLowerCase(Locale.ROOT));
+      if (meta == null) continue;
+      String actual = meta.name();
+      if ("id".equalsIgnoreCase(actual)) continue;
+      sets.add(actual + " = ?");
+      vals.add(convertValue(meta, entry.getValue()));
+    }
+    if (!sets.isEmpty()) {
+      String sql = "update " + table + " set " + String.join(", ", sets) + " where id = ?";
+      vals.add(id);
+      jdbc.update(sql, vals.toArray());
+    }
+    return get(entityType, id);
+  }
+
+  @Override
+  @Transactional
+  public void delete(String entityType, UUID id) {
+    String table = ensureConfigured(entityType);
+    int updated = jdbc.update("delete from " + table + " where id = ?", id);
+    if (updated == 0) {
+      throw new NotFoundException("Entity not found");
+    }
+  }
+
+  @Override
+  public HybridViewDto get(String entityType, UUID id) {
+    String table = ensureConfigured(entityType);
+    try {
+      Map<String, Object> row = jdbc.queryForMap("select * from " + table + " where id = ?", id);
+      Map<String, Object> attrs = new LinkedHashMap<>(row);
+      attrs.remove("id");
+      normalizeMediaColumns(attrs, columnMetadata(table));
+      return new HybridViewDto(id, attrs);
+    } catch (EmptyResultDataAccessException ex) {
+      throw new NotFoundException("Entity not found");
+    }
+  }
+
+  @Override
+  public List<HybridResponseDto.ColumnDto> listColumns(String entityType) {
+    String table = ensureConfigured(entityType);
+
+    List<Map<String, Object>> rows = jdbc.queryForList("""
+        select column_name, data_type, ordinal_position 
+        from information_schema.columns
+        where table_schema = current_schema() and table_name = ?
+        order by ordinal_position
+        """, table);
+
+    Map<String, ColumnSemantics> semanticsByColumn = semanticsService.findByTable(table).stream()
+        .collect(Collectors.toMap(
+            s -> s.columnName().toLowerCase(Locale.ROOT),
+            s -> s,
+            (first, second) -> first));
+
+    List<HybridResponseDto.ColumnDto> cols = new ArrayList<>();
+    for (Map<String, Object> row : rows) {
+      String name = String.valueOf(row.get("column_name"));
+      if ("id".equalsIgnoreCase(name)) continue;
+
+      String dataType = String.valueOf(row.get("data_type"));
+      int order = Integer.parseInt(String.valueOf(row.get("ordinal_position"))) - 1;
+
+      ColumnSemantics semantic = semanticsByColumn.get(name.toLowerCase(Locale.ROOT));
+      HybridResponseDto.ColumnType type = mapSqlTypeToColumnType(name, dataType, semantic);
+      String displayName = prettify(name);
+
+      Map<String, Object> metadata = new HashMap<>();
+      if (semantic != null && semantic.metadata() != null) {
+        metadata.putAll(semantic.metadata());
+      }
+      metadata.putIfAbsent("maxImages", semantic != null
+          ? semantic.maxImages(minioProperties.getDefaultMaxImages())
+          : minioProperties.getDefaultMaxImages());
+      metadata.put("maxFileSizeBytes", semantic != null
+          ? semantic.maxFileSizeBytes(minioProperties.getMaxImageSizeBytes())
+          : minioProperties.getMaxImageSizeBytes());
+      metadata.put("allowedMimeTypes", semantic != null
+          ? semantic.allowedMimeTypes(minioProperties.getAllowedImageMimeTypes())
+          : minioProperties.getAllowedImageMimeTypes());
+
+      cols.add(new HybridResponseDto.ColumnDto(
+          name,
+          displayName,
+          type,
+          false,
+          order,
+          semantic != null ? semantic.semanticType() : null,
+          metadata));
+    }
+    return cols;
+  }
+
+  private String ensureConfigured(String entityType) {
+    String normalized = (entityType == null ? "" : entityType.trim().toLowerCase(Locale.ROOT));
+    if (normalized.isEmpty()) {
+      throw new NotFoundException("Unknown entity type");
+    }
+    String table;
+    try {
+      table = domainImportService.tableForDomain(normalized);
+    } catch (IllegalArgumentException ex) {
+      throw new NotFoundException("Unsupported entity type: " + normalized);
+    }
+    Boolean exists = jdbc.queryForObject(
+        "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
+        Boolean.class, table);
+    if (!Boolean.TRUE.equals(exists)) {
+      throw new NotFoundException("Entity '" + normalized + "' is not configured");
+    }
+    return table;
+  }
+
+  private Map<String, ColumnMeta> columnMetadata(String table) {
+    Map<String, ColumnSemantics> semantics = semanticsService.findByTable(table).stream()
+        .collect(Collectors.toMap(
+            s -> s.columnName().toLowerCase(Locale.ROOT),
+            s -> s,
+            (first, second) -> first));
+
+    Map<String, ColumnMeta> map = new HashMap<>();
+    jdbc.query(
+        """
+          select column_name, data_type
+          from information_schema.columns
+          where table_schema = current_schema()
+            and table_name = ?
+        """,
+        rs -> {
+          String name = rs.getString("column_name");
+          String type = rs.getString("data_type");
+          if (name != null) {
+            ColumnSemantics semantic = semantics.get(name.toLowerCase(Locale.ROOT));
+            map.put(name.toLowerCase(Locale.ROOT), new ColumnMeta(name, type, semantic));
+          }
+        },
+        table);
+    return map;
+  }
+
+  private Optional<String> buildColumnFilterClause(String table,
+                                                   ColumnMeta meta,
+                                                   FilterCriterion criterion,
+                                                   List<Object> args) {
+    if (!StringUtils.hasText(criterion.value())) {
+      return Optional.empty();
+    }
+    String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
+    String matchMode = (criterion.matchMode() == null ? "" : criterion.matchMode().trim().toLowerCase(Locale.ROOT));
+    String column = meta.name();
+    if (!StringUtils.hasText(column)) {
+      return Optional.empty();
+    }
+
+    if ("in".equals(matchMode)) {
+      try {
+        List<String> values = OBJECT_MAPPER.readValue(criterion.value(), LIST_STRING);
+        if (values == null || values.isEmpty()) {
+          return Optional.empty();
+        }
+        String placeholders = values.stream().map(v -> "?").collect(Collectors.joining(","));
+        args.addAll(values);
+        return Optional.of(column + " in (" + placeholders + ")");
+      } catch (Exception ex) {
+        args.add(criterion.value());
+        return Optional.of(column + " = ?");
+      }
+    }
+
+    if ("between".equals(matchMode) && ("numeric".equalsIgnoreCase(criterion.type()) || dataType.contains("int") || dataType.contains("numeric"))) {
+      try {
+        List<String> values = OBJECT_MAPPER.readValue(criterion.value(), LIST_STRING);
+        if (values == null || values.size() != 2) {
+          return Optional.empty();
+        }
+        args.add(values.get(0));
+        args.add(values.get(1));
+        return Optional.of(column + " between ? and ?");
+      } catch (Exception ex) {
+        return Optional.empty();
+      }
+    }
+
+    if (matchMode.isEmpty() || "contains".equals(matchMode)) {
+      args.add("%" + criterion.value().trim().toLowerCase(Locale.ROOT) + "%");
+      return Optional.of("lower(" + column + "::text) like ?");
+    }
+
+    if ("equals".equals(matchMode) || "startswith".equals(matchMode) || "endswith".equals(matchMode)) {
+      String value = criterion.value().trim();
+      if (!StringUtils.hasText(value)) {
+        return Optional.empty();
+      }
+      if ("startswith".equals(matchMode)) {
+        args.add(value.toLowerCase(Locale.ROOT) + "%");
+        return Optional.of("lower(" + column + "::text) like ?");
+      }
+      if ("endswith".equals(matchMode)) {
+        args.add("%" + value.toLowerCase(Locale.ROOT));
+        return Optional.of("lower(" + column + "::text) like ?");
+      }
+      args.add(value);
+      return Optional.of(column + " = ?");
+    }
+
+    return Optional.empty();
+  }
+
+  private List<FilterCriterion> extractFilterCriteria(MultiValueMap<String, String> filters) {
+    if (filters == null || filters.isEmpty()) {
+      return List.of();
+    }
+    List<FilterCriterion> out = new ArrayList<>();
+    filters.forEach((key, values) -> {
+      if (key == null || !key.startsWith("filter.")) {
+        return;
+      }
+      String column = key.substring("filter.".length());
+      for (String value : values) {
+        if (!StringUtils.hasText(value)) {
+          continue;
+        }
+        try {
+          Map<String, Object> parsed = OBJECT_MAPPER.readValue(value, MAP_STRING_OBJECT);
+          String matchMode = parsed.containsKey("matchMode") ? Objects.toString(parsed.get("matchMode"), null) : null;
+          Object filterValue = parsed.get("value");
+          String serialized;
+          if (filterValue instanceof Collection<?> collection) {
+            serialized = OBJECT_MAPPER.writeValueAsString(collection);
+          } else {
+            serialized = Objects.toString(filterValue, null);
+          }
+          out.add(new FilterCriterion(column, matchMode, serialized, Objects.toString(parsed.get("type"), null)));
+        } catch (Exception ex) {
+          out.add(new FilterCriterion(column, null, value, null));
+        }
+      }
+    });
+    return out;
+  }
+
+  private void normalizeMediaColumns(Map<String, Object> attrs, Map<String, ColumnMeta> columnLookup) {
+    if (attrs == null || attrs.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+      String column = entry.getKey();
+      ColumnMeta meta = column == null ? null : columnLookup.get(column.toLowerCase(Locale.ROOT));
+      if (!isMinioImageColumn(meta)) {
+        continue;
+      }
+      MinioImagePayload payload = MinioImagePayload.fromRaw(entry.getValue(), meta.semantics(), minioProperties, OBJECT_MAPPER);
+      MinioImagePayload constrained = payload.ensureConstraints();
+      MinioImagePayload refreshed = maybeRefreshOnRead(constrained);
+      entry.setValue(refreshed.toClientPayload());
+    }
+  }
+
+  private MinioImagePayload maybeRefreshOnRead(MinioImagePayload payload) {
+    if (minioStorage == null || payload == null || payload.isEmpty()) {
+      return payload;
+    }
+    if (!payload.needsRefresh(minioProperties.getRefreshThreshold(), minioProperties.getRefreshClockSkew(), Instant.now())) {
+      return payload;
+    }
+    List<MinioImagePayload.Item> refreshed = new ArrayList<>();
+    for (MinioImagePayload.Item item : payload.items()) {
+      if (item == null || !StringUtils.hasText(item.key())) {
+        refreshed.add(item);
+        continue;
+      }
+      try {
+        MinioFileStorageService.UploadResponse response = minioStorage.refreshUrl(
+            item.key(),
+            minioProperties.getDefaultExpiry(),
+            item.contentType(),
+            item.sizeBytes());
+        refreshed.add(new MinioImagePayload.Item(
+            response.key(),
+            response.url(),
+            response.expiresAt(),
+            response.contentType(),
+            response.sizeBytes()
+        ));
+      } catch (Exception ex) {
+        log.warn("Failed to refresh MinIO URL for object {}: {}", item.key(), ex.getMessage());
+        refreshed.add(item);
+      }
+    }
+    return payload.withItems(refreshed);
+  }
+
+  private boolean isMinioImageColumn(ColumnMeta meta) {
+    if (meta == null) {
+      return false;
+    }
+    if (isMinioSemantic(meta.semantics())) {
+      return true;
+    }
+    String name = meta.name() == null ? "" : meta.name().toLowerCase(Locale.ROOT);
+    return name.contains("image") || name.endsWith("_url");
+  }
+
+  private boolean isMinioSemantic(ColumnSemantics semantics) {
+    if (semantics == null) {
+      return false;
+    }
+    String type = semantics.semanticType();
+    if (!StringUtils.hasText(type)) {
+      return false;
+    }
+    String normalized = type.trim().toUpperCase(Locale.ROOT).replace(':', '_');
+    return normalized.equals(MinioImagePayload.TYPE) || normalized.equals("MINIO_IMAGE");
+  }
+
+  private Object convertValue(ColumnMeta meta, Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof CharSequence cs && cs.toString().trim().isEmpty()) {
+      return null;
+    }
+
+    if (isMinioImageColumn(meta)) {
+      MinioImagePayload payload = MinioImagePayload.fromRaw(value, meta.semantics(), minioProperties, OBJECT_MAPPER);
+      if (payload.exceedsMaxImages()) {
+        throw new BadRequestException("Column '" + meta.name() + "' accepts at most " + payload.maxImages() + " image(s)");
+      }
+      MinioImagePayload constrained = payload.ensureConstraints();
+      if (constrained.isEmpty()) {
+        return null;
+      }
+      boolean invalidItem = constrained.items().stream().anyMatch(item -> item == null || !StringUtils.hasText(item.key()) || !StringUtils.hasText(item.url()));
+      if (invalidItem) {
+        throw new BadRequestException("Uploaded image payload is incomplete for column '" + meta.name() + "'");
+      }
+      return constrained.toJson(OBJECT_MAPPER);
+    }
+
+    String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
+
+    try {
+      if (dataType.contains("timestamp")) {
+        if (value instanceof Timestamp ts) return ts;
+        if (value instanceof Instant instant) return Timestamp.from(instant);
+        if (value instanceof LocalDateTime ldt) return Timestamp.valueOf(ldt);
+        if (value instanceof CharSequence cs) {
+          String text = cs.toString().trim();
+          if (text.isEmpty()) return null;
+          try {
+            return Timestamp.from(Instant.parse(text));
+          } catch (Exception ignored) {}
+          try {
+            return Timestamp.valueOf(LocalDateTime.parse(text, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+          } catch (Exception ignored) {}
+          String normalized = text.replace('T', ' ').replace("Z", "");
+          return Timestamp.valueOf(normalized);
+        }
+      }
+
+      if (dataType.contains("numeric") || dataType.contains("decimal")) {
+        if (value instanceof BigDecimal bd) return bd;
+        if (value instanceof Number number) {
+          return BigDecimal.valueOf(number.doubleValue());
+        }
+        if (value instanceof CharSequence cs) {
+          String text = cs.toString().trim();
+          if (text.isEmpty()) return null;
+          return new BigDecimal(text);
+        }
+      }
+
+      if (dataType.contains("bigint") || dataType.contains("int")) {
+        if (value instanceof Number number) {
+          return number.longValue();
+        }
+        if (value instanceof CharSequence cs) {
+          String text = cs.toString().trim();
+          if (text.isEmpty()) return null;
+          return Long.parseLong(text);
+        }
+      }
+    } catch (Exception ex) {
+      if (log.isDebugEnabled()) {
+        log.debug("Failed to coerce value '{}' for column '{}' ({}). Using raw value.", value, meta.name(), dataType, ex);
+      }
+    }
+
+    return value;
+  }
+
+  private String buildOrderByClause(String table, Pageable pageable, Map<String, ColumnMeta> columnLookup) {
+    if (pageable == null || pageable.getSort().isUnsorted()) {
+      return " order by id";
+    }
+    for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+      String property = order.getProperty();
+      if (!StringUtils.hasText(property)) {
+        continue;
+      }
+      ColumnMeta meta = columnLookup.get(property.toLowerCase(Locale.ROOT));
+      if (meta == null) {
+        continue;
+      }
+      return " order by " + meta.name() + " " + (order.getDirection().isAscending() ? "asc" : "desc");
+    }
+    return " order by id";
+  }
+
+  private HybridResponseDto.ColumnType mapSqlTypeToColumnType(String name, String dataType, ColumnSemantics semantics) {
+    if (isMinioSemantic(semantics)) {
+      return HybridResponseDto.ColumnType.MINIO_IMAGE;
+    }
+    String n = name.toLowerCase();
+    if (n.contains("image") || n.endsWith("_url")) return HybridResponseDto.ColumnType.MINIO_IMAGE;
+
+    String dt = dataType.toLowerCase();
+    if (dt.contains("bool")) return HybridResponseDto.ColumnType.BOOLEAN;
+    if (dt.contains("int")) return HybridResponseDto.ColumnType.INTEGER;
+    if (dt.contains("numeric") || dt.contains("decimal") || dt.contains("double") || dt.contains("real")) return HybridResponseDto.ColumnType.DECIMAL;
+    if (dt.contains("date") || dt.contains("timestamp")) return HybridResponseDto.ColumnType.DATE;
+
+    return HybridResponseDto.ColumnType.TEXT;
+  }
+
+  private String prettify(String name) {
+    return Arrays.stream(name.replace('_', ' ').split(" "))
+        .filter(s -> !s.isBlank())
+        .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
+        .collect(Collectors.joining(" "));
+  }
+
+  private record ColumnMeta(String name, String dataType, ColumnSemantics semantics) {}
+  private record FilterCriterion(String field, String matchMode, String value, String type) {}
+
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT = new TypeReference<>() {};
+  private static final TypeReference<List<String>> LIST_STRING = new TypeReference<>() {};
+}

@@ -16,6 +16,8 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { HttpEventType } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
+import { HYBRID_TRANSLATION_PREFIX } from '../../../hybrid/hybrid.tokens';
 
 @Component({
   selector: 'app-schema-configuration',
@@ -39,15 +41,19 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrls: ['./schema-configuration.component.scss']
 })
 export class SchemaConfigurationComponent {
-  private readonly schemaService = inject(ProductSchemaService);
+  private readonly productSchemaService = inject(ProductSchemaService);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
+  private readonly translationPrefix = inject(HYBRID_TRANSLATION_PREFIX);
 
   navigateToImport(): void {
-    this.router.navigate(['/import']);
+    const domain = this.productSchemaService.entityTypeName || 'product';
+    this.router.navigate(['/import'], { queryParams: { domain } });
   }
 
-  readonly displayName = signal<string>('Products');
+  readonly translationNamespace = this.productSchemaService.translationNamespace || this.translationPrefix;
+  readonly displayName = signal<string>(this.productSchemaService.displayName());
   readonly validateBeforeApply = signal<boolean>(true);
   readonly selectedFile = signal<File | null>(null);
   readonly isUploading = signal<boolean>(false);
@@ -58,7 +64,7 @@ export class SchemaConfigurationComponent {
       this.selectedFile.set(file);
       this.messageService.add({
         severity: 'info',
-        summary: 'File Selected',
+        summary: this.translate.instant(`${this.translationPrefix}.fileSelected`),
         detail: `${file.name}`
       });
     }
@@ -71,7 +77,11 @@ export class SchemaConfigurationComponent {
   uploadTemplate(): void {
     const file = this.selectedFile();
     if (!file) {
-      this.messageService.add({ severity: 'warn', summary: 'No File', detail: 'Please select a file to upload' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant(`${this.translationPrefix}.noFile`),
+        detail: this.translate.instant(`${this.translationPrefix}.selectFilePrompt`)
+      });
       return;
     }
 
@@ -83,17 +93,25 @@ export class SchemaConfigurationComponent {
 
     this.isUploading.set(true);
 
-    this.schemaService.uploadTemplate(request).subscribe({
+    this.productSchemaService.uploadTemplate(request).subscribe({
       next: (event) => {
         if (event.type === HttpEventType.Response) {
           this.isUploading.set(false);
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Product schema configured successfully' });
+          this.messageService.add({
+            severity: 'success',
+            summary: this.translate.instant(`${this.translationPrefix}.toastSuccess`),
+            detail: this.translate.instant(`${this.translationPrefix}.configuredSuccess`)
+          });
           this.selectedFile.set(null);
         }
       },
       error: (error) => {
         this.isUploading.set(false);
-        this.messageService.add({ severity: 'error', summary: 'Upload Failed', detail: error.error?.message || 'Failed to upload template' });
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant(`${this.translationPrefix}.toastError`),
+          detail: error.error?.message || this.translate.instant(`${this.translationPrefix}.uploadFailed`)
+        });
       }
     });
   }

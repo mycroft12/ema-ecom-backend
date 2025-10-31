@@ -28,7 +28,7 @@ public class ImportTemplateController {
 
   @GetMapping(produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
   @PreAuthorize("hasAuthority('import:configure')")
-  @Operation(summary = "Download domain template", description = "Download an Excel template for the supported domain (currently 'product'). Use query param 'domain'.")
+  @Operation(summary = "Download domain template", description = "Download an Excel template for a supported domain (product, orders, expenses, ads). Use query param 'domain'.")
   public ResponseEntity<byte[]> byDomain(@RequestParam("domain") String domain){
     byte[] data = service.generateExampleTemplate(domain);
     String filename = "import_template_" + domain + ".xlsx";
@@ -40,7 +40,7 @@ public class ImportTemplateController {
 
   @GetMapping(value = "/example", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
   @PreAuthorize("hasAuthority('import:configure')")
-  @Operation(summary = "Download example template", description = "Download an example Excel template. Optional query param 'type' can be 'product'.")
+  @Operation(summary = "Download example template", description = "Download an example Excel template. Optional query param 'type' can be product, orders, expenses, or ads.")
   public ResponseEntity<byte[]> example(@RequestParam(value = "type", required = false) String type){
     byte[] data = service.generateExampleTemplate(type);
     String filename = "import_template" + (type != null ? ("_"+type) : "") + ".xlsx";

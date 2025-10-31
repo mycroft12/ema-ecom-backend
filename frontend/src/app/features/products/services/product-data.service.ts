@@ -17,18 +17,28 @@ export interface MinioUploadResponse {
 @Injectable({ providedIn: 'root' })
 export class ProductDataService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiBase}/api/products`;
   private readonly schemaService = inject(ProductSchemaService);
 
   private readonly productsSignal = signal<Product[]>([]);
   private readonly totalRecordsSignal = signal<number>(0);
   private readonly loadingSignal = signal<boolean>(false);
+  private activeEntityType = 'product';
 
   readonly products = this.productsSignal.asReadonly();
   readonly totalRecords = this.totalRecordsSignal.asReadonly();
   readonly isLoading = this.loadingSignal.asReadonly();
 
+  setEntityContext(entity: string | null | undefined): void {
+    const normalized = this.normalizeEntity(entity);
+    if (normalized === this.activeEntityType) {
+      return;
+    }
+    this.activeEntityType = normalized;
+    this.resetState();
+  }
+
   loadProducts(event: TableLazyLoadEvent): Observable<ProductPageResponse> {
+    const entity = this.ensureEntityContext();
     this.loadingSignal.set(true);
 
     let params = new HttpParams()
@@ -56,7 +66,7 @@ export class ProductDataService {
       });
     }
 
-    return this.http.get<ProductPageResponse>(this.apiUrl, { params }).pipe(
+    return this.http.get<ProductPageResponse>(this.apiUrlFor(entity), { params }).pipe(
       tap(resp => {
         const flattened = (resp.content ?? []).map(item => this.flattenProduct(item));
         this.productsSignal.set(flattened);
@@ -67,42 +77,49 @@ export class ProductDataService {
   }
 
   getProduct(id: string): Observable<Product> {
-    return this.http.get<RawProductDto>(`${this.apiUrl}/${id}`).pipe(
+    const entity = this.ensureEntityContext();
+    return this.http.get<RawProductDto>(`${this.apiUrlFor(entity)}/${id}`).pipe(
       map(dto => this.flattenProduct(dto))
     );
   }
 
   createProduct(attributes: Record<string, any>): Observable<Product> {
-    return this.http.post<RawProductDto>(this.apiUrl, { attributes }).pipe(
+    const entity = this.ensureEntityContext();
+    return this.http.post<RawProductDto>(this.apiUrlFor(entity), { attributes }).pipe(
       map(dto => this.flattenProduct(dto))
     );
   }
 
   updateProduct(id: string, attributes: Record<string, any>): Observable<Product> {
-    return this.http.put<RawProductDto>(`${this.apiUrl}/${id}`, { attributes }).pipe(
+    const entity = this.ensureEntityContext();
+    return this.http.put<RawProductDto>(`${this.apiUrlFor(entity)}/${id}`, { attributes }).pipe(
       map(dto => this.flattenProduct(dto))
     );
   }
 
   uploadProductImage(field: string, file: File): Observable<MinioUploadResponse> {
+    const entity = this.ensureEntityContext();
     const formData = new FormData();
     formData.append('file', file);
     let params = new HttpParams()
-      .set('domain', 'product')
+      .set('domain', entity)
       .set('field', field);
     return this.http.post<MinioUploadResponse>(`${environment.apiBase}/api/files/upload`, formData, { params });
   }
 
   deleteProduct(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    const entity = this.ensureEntityContext();
+    return this.http.delete<void>(`${this.apiUrlFor(entity)}/${id}`);
   }
 
   bulkDelete(ids: string[]): Observable<void> {
     // Backend bulk-delete endpoint not available; delete sequentially using existing DELETE /{id}
     return new Observable<void>(observer => {
       const perform = async () => {
+        const entity = this.ensureEntityContext();
+        const baseUrl = this.apiUrlFor(entity);
         for (const id of ids) {
-          await this.http.delete<void>(`${this.apiUrl}/${id}`).toPromise().catch(() => {/* ignore individual failures */});
+          await this.http.delete<void>(`${baseUrl}/${id}`).toPromise().catch(() => {/* ignore individual failures */});
         }
         observer.next();
         observer.complete();
@@ -231,6 +248,7 @@ export class ProductDataService {
 
   exportToExcel(filters?: any): void {
     // Client-side CSV export of currently loaded page as a fallback
+    const entity = this.ensureEntityContext();
     const rows = this.products();
     if (!rows || !rows.length) {
       return;
@@ -238,7 +256,31 @@ export class ProductDataService {
     const headers = Object.keys(rows[0]);
     const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => JSON.stringify(r[h] ?? '')).join(','))).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    this.download(blob, `products-export-${new Date().getTime()}.csv`);
+    this.download(blob, `${entity}-export-${new Date().getTime()}.csv`);
+  }
+
+  private ensureEntityContext(): string {
+    const entity = this.normalizeEntity(this.schemaService.entityTypeName);
+    if (entity !== this.activeEntityType) {
+      this.activeEntityType = entity;
+      this.resetState();
+    }
+    return this.activeEntityType;
+  }
+
+  private apiUrlFor(entity: string): string {
+    return `${environment.apiBase}/api/hybrid/${entity}`;
+  }
+
+  private resetState(): void {
+    this.productsSignal.set([]);
+    this.totalRecordsSignal.set(0);
+    this.loadingSignal.set(false);
+  }
+
+  private normalizeEntity(value: string | null | undefined): string {
+    const normalized = (value ?? '').toString().trim().toLowerCase();
+    return normalized || 'product';
   }
 
   private download(blob: Blob, filename: string): void {

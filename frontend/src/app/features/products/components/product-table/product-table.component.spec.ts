@@ -31,6 +31,9 @@ class ProductDataServiceStub {
 }
 
 class ProductSchemaServiceStub {
+  translationNamespace = 'products';
+  entityTypeName = 'product';
+
   private readonly columns: ColumnDefinition[] = [
     {
       name: 'image_url',

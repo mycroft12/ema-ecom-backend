@@ -1,5 +1,5 @@
 <div class="card">
-    <div class="font-semibold text-xl mb-4">{{ 'products.title' | translate }}</div>
+    <div class="font-semibold text-xl mb-4">{{ (translationPrefix + '.title') | translate }}</div>
 
     <div class="card">
         <p-table
@@ -33,7 +33,7 @@
                         ></p-button>
                         <p-button
                                 *ngIf="canAdd"
-                                [label]="'products.newProduct' | translate"
+                                [label]="(translationPrefix + '.newItem') | translate"
                                 icon="pi pi-plus"
                                 (click)="openCreateDialog()"
                         ></p-button>
@@ -45,7 +45,7 @@
                                 optionValue="value"
                                 display="chip"
                                 [showToggleAll]="false"
-                                [placeholder]="'products.columnTogglePlaceholder' | translate"
+                                [placeholder]="(translationPrefix + '.columnTogglePlaceholder') | translate"
                                 [selectedItemsLabel]="columnToggleSelectedItemsLabel"
                                 (onChange)="onColumnToggleChange($event.value)"
                         ></p-multiselect>
@@ -53,7 +53,7 @@
                     <div class="flex items-center gap-2 ml-auto">
                         <p-button
                                 *ngIf="canExport"
-                                [label]="'products.exportExcel' | translate"
+                                [label]="(translationPrefix + '.exportExcel') | translate"
                                 icon="pi pi-file-excel"
                                 severity="success"
                                 (click)="onExportExcel()"
@@ -67,7 +67,7 @@
                                     type="text"
                                     [(ngModel)]="searchValue"
                                     (input)="onGlobalFilter($event, dt1)"
-                                    [placeholder]="'products.searchKeywordPlaceholder' | translate"
+                                    [placeholder]="(translationPrefix + '.searchKeywordPlaceholder') | translate"
                             />
                         </p-iconfield>
                     </div>
@@ -109,7 +109,7 @@
                                                     [(ngModel)]="repFilterModel"
                                                     [options]="representativeOptions"
                                                     optionLabel="name"
-                                                    [placeholder]="'products.anyOption' | translate"
+                                                [placeholder]="(translationPrefix + '.anyOption') | translate"
                                                     (onChange)="filter($event.value)"
                                                     style="min-width: 14rem"
                                                     [panelStyle]="{ minWidth: '16rem' }"
@@ -131,7 +131,7 @@
                                                     optionLabel="label"
                                                     optionValue="value"
                                                     (onChange)="filter($event.value)"
-                                                    [placeholder]="'products.selectOneOption' | translate"
+                                                [placeholder]="(translationPrefix + '.selectOneOption') | translate"
                                                     styleClass="w-full"
                                             >
                                                 <ng-template pTemplate="item" let-option>
@@ -161,7 +161,7 @@
                         }
                     }
                     @if (showActionColumn) {
-                        <th class="actions-header text-center sticky-action">{{ 'products.actions' | translate }}</th>
+                        <th class="actions-header text-center sticky-action">{{ (translationPrefix + '.actions') | translate }}</th>
                     }
                 </tr>
             </ng-template>
@@ -182,7 +182,7 @@
                                                     [preview]="true"
                                                     [imageStyle]="{ width: '80px', height: '80px', 'object-fit': 'cover', 'border-radius': '6px', cursor: 'pointer' }"
                                                     [style]="{ 'border-radius': '6px', display: 'inline-flex' }"
-                                                    [title]="'products.viewImage' | translate">
+                                                    [title]="(translationPrefix + '.viewImage') | translate">
                                             </p-image>
                                         }
                                         @if (imageCount(column, product[column.name]) > 1) {
@@ -195,9 +195,9 @@
                                                         class="p-button-rounded p-button-outlined p-button-sm"
                                                         (click)="imageInput.click()"
                                                         [disabled]="isImageUploading(product.id, column.name)"
-                                                        [aria-label]="'products.uploadImage' | translate">
+                                                        [aria-label]="(translationPrefix + '.uploadImage') | translate">
                                                     <i class="pi pi-upload"></i>
-                                                    <span class="ml-2 hidden md:inline">{{ 'products.uploadImage' | translate }}</span>
+                                                    <span class="ml-2 hidden md:inline">{{ (translationPrefix + '.uploadImage') | translate }}</span>
                                                 </button>
                                             }
                                             @if (isImageUploading(product.id, column.name)) {
@@ -287,7 +287,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td [attr.colspan]="schemaService.visibleColumns().length + (showActionColumn ? 1 : 0)">{{ 'products.noResults' | translate }}</td>
+                    <td [attr.colspan]="schemaService.visibleColumns().length + (showActionColumn ? 1 : 0)">{{ (translationPrefix + '.noResults') | translate }}</td>
                 </tr>
             </ng-template>
 
@@ -296,7 +296,7 @@
                     <td [attr.colspan]="schemaService.visibleColumns().length + (showActionColumn ? 1 : 0)">
                         <div class="flex align-items-center justify-content-center p-3">
                             <i class="pi pi-spin pi-spinner mr-2"></i>
-                            <span>{{ 'products.loading' | translate }}</span>
+                            <span>{{ (translationPrefix + '.loading') | translate }}</span>
                         </div>
                     </td>
                 </tr>
@@ -354,7 +354,7 @@
                                 } @else {
                                     <span class="flex items-center gap-1 text-sm text-surface-500">
                                         <i class="pi pi-image"></i>
-                                        <span>{{ 'products.noImage' | translate }}</span>
+                                        <span>{{ (translationPrefix + '.noImage') | translate }}</span>
                                     </span>
                                 }
                                 @if (imageCount(column, formModel[column.name]) > 1) {
@@ -370,9 +370,9 @@
                                         class="p-button-outlined p-button-sm"
                                         (click)="dialogImageInput.click()"
                                         [disabled]="isImageUploading('dialog', column.name)"
-                                        [aria-label]="canReplaceImage(column, formModel[column.name]) ? ( 'products.replaceImage' | translate ) : ( 'products.uploadImage' | translate )">
+                                        [aria-label]="canReplaceImage(column, formModel[column.name]) ? ( (translationPrefix + '.replaceImage') | translate ) : ( (translationPrefix + '.uploadImage') | translate )">
                                     <i class="pi" [ngClass]="canReplaceImage(column, formModel[column.name]) ? 'pi-refresh mr-2' : 'pi-upload mr-2'"></i>
-                                    <span>{{ canReplaceImage(column, formModel[column.name]) ? ('products.replaceImage' | translate) : ('products.uploadImage' | translate) }}</span>
+                                    <span>{{ canReplaceImage(column, formModel[column.name]) ? ((translationPrefix + '.replaceImage') | translate) : ((translationPrefix + '.uploadImage') | translate) }}</span>
                                 </button>
                                 <button type="button"
                                         pButton

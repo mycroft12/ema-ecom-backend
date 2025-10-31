@@ -6,6 +6,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
 import { SchemaConfigurationComponent } from '../schema-configuration/schema-configuration.component';
 import { ProductTableComponent } from '../product-table/product-table.component';
+import { HYBRID_ENTITY_DISPLAY_NAME, HYBRID_ENTITY_TYPE, HYBRID_TRANSLATION_PREFIX } from '../../../hybrid/hybrid.tokens';
+import { ProductDataService } from '../../services/product-data.service';
 
 @Component({
   selector: 'app-product-container',
@@ -23,12 +25,19 @@ import { ProductTableComponent } from '../product-table/product-table.component'
 })
 export class ProductContainerComponent implements OnInit {
   readonly schemaService = inject(ProductSchemaService);
+  private readonly dataService = inject(ProductDataService);
+  private readonly entityType = inject(HYBRID_ENTITY_TYPE);
+  private readonly translationPrefix = inject(HYBRID_TRANSLATION_PREFIX);
+  private readonly entityDisplayName = inject(HYBRID_ENTITY_DISPLAY_NAME);
 
   ngOnInit(): void {
-    // Load the schema to determine if the product_config table is configured
-    // The loadSchema method first checks if the product_config table exists
-    // If it exists, it will set isConfigured to true and show the product table
-    // If it doesn't exist, it will set isConfigured to false and show the configuration component
+    // Align services with the active hybrid context before loading schema/data
+    this.schemaService.configureContext({
+      entityType: this.entityType,
+      translationPrefix: this.translationPrefix,
+      displayName: this.entityDisplayName
+    });
+    this.dataService.setEntityContext(this.schemaService.entityTypeName);
     this.schemaService.loadSchema();
   }
 }

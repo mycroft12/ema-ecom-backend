@@ -1,8 +1,9 @@
-import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
@@ -16,8 +17,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../core/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-type DomainKey = 'product' | '';
+type DomainKey = 'product' | 'orders' | 'expenses' | 'ads' | '';
 type ConfigurationSource = 'dynamic' | 'google';
 
 interface GoogleSheetConnectResponse {
@@ -474,6 +476,8 @@ export class ImportTemplatePageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   @ViewChild('serviceAccountFile') serviceAccountFileInput?: ElementRef<HTMLInputElement>;
@@ -508,7 +512,10 @@ export class ImportTemplatePageComponent implements OnInit {
   showApiInstructionsDialog = false;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
-    { key: 'import.domainProduct', value: 'product' }
+    { key: 'import.domainProduct', value: 'product' },
+    { key: 'import.domainOrders', value: 'orders' },
+    { key: 'import.domainExpenses', value: 'expenses' },
+    { key: 'import.domainAds', value: 'ads' }
   ];
 
   ngOnInit(): void {
@@ -518,6 +525,15 @@ export class ImportTemplatePageComponent implements OnInit {
     if (this.canManageGoogleIntegration) {
       this.fetchServiceAccountStatus();
     }
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        const requestedDomain = this.normalizeDomain(params.get('domain'));
+        if (requestedDomain && requestedDomain !== this.domain) {
+          this.domain = requestedDomain;
+          this.activeTabIndex = 0;
+        }
+      });
   }
 
   fetchConfiguredTables(): void {
@@ -953,6 +969,23 @@ export class ImportTemplatePageComponent implements OnInit {
       case 'product':
       case 'products':
         return 'product';
+      case 'order':
+      case 'orders':
+      case 'order_config':
+      case 'orders_config':
+        return 'orders';
+      case 'expense':
+      case 'expenses':
+      case 'commission':
+      case 'commissions':
+      case 'expenses_config':
+        return 'expenses';
+      case 'ad':
+      case 'ads':
+      case 'advertising':
+      case 'marketing':
+      case 'ads_config':
+        return 'ads';
       default:
         return null;
     }

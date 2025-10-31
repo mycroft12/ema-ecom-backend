@@ -66,6 +66,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly productBadge = inject(ProductBadgeService);
   private readonly imageUploadBusy: Record<string, boolean> = {};
+  readonly translationPrefix = this.schemaService.translationNamespace;
 
   ColumnType = ColumnType; // expose enum to template
 
@@ -102,12 +103,6 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   activityMax = 100;
   activityRange: [number, number] = [0, 100];
 
-  private readonly productPermissionKeys = {
-    create: 'product:create',
-    update: 'product:update',
-    delete: 'product:delete',
-    export: 'product:action:export:excel'
-  } as const;
   private permissionsState = { add: false, edit: false, delete: false, export: false };
 
   displayDialog = false;
@@ -124,8 +119,8 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
   get dialogHeader(): string {
     return this.dialogMode === 'create'
-      ? this.translate.instant('products.newProduct')
-      : this.translate.instant('products.editProduct');
+      ? this.translate.instant(`${this.translationPrefix}.newItem`)
+      : this.translate.instant(`${this.translationPrefix}.editItem`);
   }
   get submitLabel(): string {
     return this.translate.instant('common.save');
@@ -242,11 +237,19 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private refreshActionPermissions(): void {
     const permissions = new Set(this.auth.permissions() ?? []);
     this.permissionsState = {
-      add: permissions.has(this.productPermissionKeys.create),
-      edit: permissions.has(this.productPermissionKeys.update),
-      delete: permissions.has(this.productPermissionKeys.delete),
-      export: permissions.has(this.productPermissionKeys.export)
+      add: permissions.has(this.resolvePermissionName('create')),
+      edit: permissions.has(this.resolvePermissionName('update')),
+      delete: permissions.has(this.resolvePermissionName('delete')),
+      export: permissions.has(this.resolvePermissionName('export'))
     };
+  }
+
+  private resolvePermissionName(action: 'create' | 'update' | 'delete' | 'export'): string {
+    const prefix = (this.schemaService.entityTypeName ?? 'product').toLowerCase();
+    if (action === 'export') {
+      return `${prefix}:action:export:excel`;
+    }
+    return `${prefix}:${action}`;
   }
 
   onGlobalFilter(event: Event, table: Table): void {
@@ -285,7 +288,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.displayDialog = false;
-        this.showError(this.translate.instant('products.errors.loadOne'));
+        this.showError(this.translate.instant(`${this.translationPrefix}.errors.loadOne`));
       }
     });
   }
@@ -305,7 +308,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
       next: () => {
         this.saving = false;
         this.showSuccess(this.translate.instant(
-          this.dialogMode === 'create' ? 'products.toastCreated' : 'products.toastUpdated'
+          this.dialogMode === 'create' ? `${this.translationPrefix}.toastCreated` : `${this.translationPrefix}.toastUpdated`
         ));
         this.closeDialog();
         this.reloadTable();
@@ -313,7 +316,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
       error: () => {
         this.saving = false;
         this.showError(this.translate.instant(
-          this.dialogMode === 'create' ? 'products.errors.create' : 'products.errors.update'
+          this.dialogMode === 'create' ? `${this.translationPrefix}.errors.create` : `${this.translationPrefix}.errors.update`
         ));
       }
     });
@@ -330,8 +333,8 @@ export class ProductTableComponent implements OnInit, OnDestroy {
     if (!this.canDelete || !productId) {
       return;
     }
-    const header = this.translate.instant('products.confirmDeleteHeader');
-    const message = this.translate.instant('products.confirmDeleteMessage');
+    const header = this.translate.instant(`${this.translationPrefix}.confirmDeleteHeader`);
+    const message = this.translate.instant(`${this.translationPrefix}.confirmDeleteMessage`);
     this.confirmationService.confirm({
       header,
       message,
@@ -346,10 +349,10 @@ export class ProductTableComponent implements OnInit, OnDestroy {
     this.dataService.deleteProduct(productId).subscribe({
       next: () => {
         this.resetFiltersAndState();
-        this.showSuccess(this.translate.instant('products.toastDeleted'));
+        this.showSuccess(this.translate.instant(`${this.translationPrefix}.toastDeleted`));
         this.reloadTable();
       },
-      error: () => this.showError(this.translate.instant('products.errors.delete'))
+      error: () => this.showError(this.translate.instant(`${this.translationPrefix}.errors.delete`))
     });
   }
 
@@ -437,7 +440,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   }
 
   private updateColumnToggleSelectedLabel(): void {
-    this.columnToggleSelectedItemsLabel = this.translate.instant('products.columnToggleSelectedItems');
+    this.columnToggleSelectedItemsLabel = this.translate.instant(`${this.translationPrefix}.columnToggleSelectedItems`);
   }
 
   private buildInitialFormModel(initial?: Record<string, any>): Record<string, any> {
@@ -528,7 +531,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private showSuccess(detail: string): void {
     this.messageService.add({
       severity: 'success',
-      summary: this.translate.instant('products.toastSuccess'),
+      summary: this.translate.instant(`${this.translationPrefix}.toastSuccess`),
       detail
     });
   }
@@ -536,7 +539,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private showError(detail: string): void {
     this.messageService.add({
       severity: 'error',
-      summary: this.translate.instant('products.toastError'),
+      summary: this.translate.instant(`${this.translationPrefix}.toastError`),
       detail
     });
   }
@@ -630,7 +633,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
     const maxImages = this.resolveMaxImages(column, existingPayload);
     const replaceMode = maxImages === 1;
     if (!replaceMode && existingPayload && existingPayload.items.length >= maxImages) {
-      this.showError(this.translate.instant('products.errors.maxImages', { max: maxImages }));
+      this.showError(this.translate.instant(`${this.translationPrefix}.errors.maxImages`, { max: maxImages }));
       if (input) {
         input.value = '';
       }
@@ -656,7 +659,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: () => this.reloadTable(),
-      error: () => this.showError(this.translate.instant('products.errors.update'))
+      error: () => this.showError(this.translate.instant(`${this.translationPrefix}.errors.update`))
     });
   }
 
@@ -698,7 +701,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
     const maxImages = this.resolveMaxImages(column, existing);
     const replaceMode = maxImages === 1;
     if (!replaceMode && existing && existing.items.length >= maxImages) {
-      this.showError(this.translate.instant('products.errors.maxImages', { max: maxImages }));
+      this.showError(this.translate.instant(`${this.translationPrefix}.errors.maxImages`, { max: maxImages }));
       if (input) {
         input.value = '';
       }
@@ -722,7 +725,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
           : [...(existing?.items ?? []), newItem];
         this.formModel[column.name] = this.buildMinioPayload(column, items);
       },
-      error: () => this.showError(this.translate.instant('products.errors.update'))
+      error: () => this.showError(this.translate.instant(`${this.translationPrefix}.errors.update`))
     });
   }
 
@@ -891,7 +894,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
   private validateImageFile(file: File, column: ColumnDefinition): boolean {
     const constraints = this.getConstraints(column);
     if (constraints.maxFileSizeBytes && file.size > constraints.maxFileSizeBytes) {
-      this.showError(this.translate.instant('products.errors.fileTooLarge', {
+      this.showError(this.translate.instant(`${this.translationPrefix}.errors.fileTooLarge`, {
         max: this.formatBytes(constraints.maxFileSizeBytes)
       }));
       return false;
@@ -903,7 +906,7 @@ export class ProductTableComponent implements OnInit, OnDestroy {
         ? mime.startsWith(type.substring(0, type.indexOf('/')) + '/')
         : type === mime);
       if (!matches) {
-        this.showError(this.translate.instant('products.errors.unsupportedImageType'));
+        this.showError(this.translate.instant(`${this.translationPrefix}.errors.unsupportedImageType`));
         return false;
       }
     }

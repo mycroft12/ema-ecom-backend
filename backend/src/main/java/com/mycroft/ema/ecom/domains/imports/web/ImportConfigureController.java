@@ -105,7 +105,7 @@ public class ImportConfigureController {
   @Operation(summary = "List configured domain tables", description = "Returns existing component tables with row counts.")
   public List<DomainTableInfo> listTables(){
     List<DomainTableInfo> out = new ArrayList<>();
-    String[] domains = new String[]{"product"};
+    String[] domains = new String[]{"product", "orders", "expenses", "ads"};
     for (String d : domains){
       String table = domainImportService.tableForDomain(d);
       Boolean exists = jdbcTemplate.queryForObject(
@@ -137,6 +137,7 @@ public class ImportConfigureController {
       try (java.sql.Statement stmt = conn.createStatement()) {
         stmt.execute("drop table if exists " + table + " cascade");
       }
+      jdbcTemplate.update("delete from column_semantics where table_name = ?", table);
       return ResponseEntity.noContent().build();
     } catch (DataAccessException ex) {
       throw new RuntimeException("Failed to drop table '" + table + "': " + ex.getMessage(), ex);
