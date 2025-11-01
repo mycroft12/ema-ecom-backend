@@ -9,6 +9,9 @@
     "closeDialog": "Close dialog",
     "loading": "Loading...",
     "discard": "Discard",
+    "realtimeErrorTitle": "Live update issue",
+    "realtimeParseError": "We could not process a live update for {{component}}. The feed was ignored.",
+    "realtimeConnectionError": "Live updates for {{component}} are temporarily unavailable. Reconnecting…",
     "dialog": {
       "addTitle": "Add {{component}}",
       "updateTitle": "Update {{component}}",

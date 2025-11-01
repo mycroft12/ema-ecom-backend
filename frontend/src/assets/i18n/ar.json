@@ -9,6 +9,9 @@
     "closeDialog": "إغلاق النافذة",
     "loading": "جارٍ التحميل...",
     "discard": "تجاهل",
+    "realtimeErrorTitle": "مشكلة في التحديث المباشر",
+    "realtimeParseError": "تعذّر معالجة تحديث مباشر لـ {{component}}. تم تجاهل التدفق.",
+    "realtimeConnectionError": "التحديثات المباشرة لـ {{component}} غير متاحة مؤقتًا. تتم إعادة المحاولة...",
     "dialog": {
       "addTitle": "إضافة {{component}}",
       "updateTitle": "تحديث {{component}}",

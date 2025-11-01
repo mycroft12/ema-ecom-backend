@@ -8,6 +8,7 @@ import { routes } from './app/app.routes';
 import { authInterceptor } from './app/core/auth.interceptor';
 
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 import Lara from '@primeng/themes/lara';
 
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -28,6 +29,7 @@ bootstrapApplication(AppComponent, {
       }
     }),
     provideAnimations(),
+    MessageService,
     importProvidersFrom(
       TranslateModule.forRoot({
         defaultLanguage: 'en',
@@ -39,5 +41,4 @@ bootstrapApplication(AppComponent, {
   // Display error in an alert since we can't use Angular services during bootstrap
   const errorMessage = err instanceof Error ? err.message : 'Unknown error during application startup';
   alert(`Application Error: ${errorMessage}`);
-  console.error('Bootstrap error:', err);
 });

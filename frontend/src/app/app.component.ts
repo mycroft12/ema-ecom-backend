@@ -10,13 +10,14 @@ import { LanguageService, LangCode } from './core/language.service';
 import { LanguageSwitcherComponent } from './shared/language-switcher.component';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { ToastModule } from 'primeng/toast';
 import { HybridUpsertListenerService } from './features/hybrid/services/hybrid-upsert-listener.service';
 import { NotificationMenuComponent } from './shared/notification-menu.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NgIf, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent, AvatarModule, OverlayPanelModule, NotificationMenuComponent],
+  imports: [RouterOutlet, RouterLink, NgIf, MenubarModule, ButtonModule, DropdownModule, TranslateModule, LanguageSwitcherComponent, AvatarModule, OverlayPanelModule, NotificationMenuComponent, ToastModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })

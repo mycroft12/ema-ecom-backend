@@ -2,16 +2,21 @@ import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { HybridBadgeService, HybridUpsertEvent } from './hybrid-badge.service';
 import { AuthService } from '../../../core/auth.service';
 import { HybridSchemaService } from './hybrid-schema.service';
+import { MessageService } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class HybridUpsertListenerService implements OnDestroy {
   private eventSource?: EventSource;
   private retryHandle?: ReturnType<typeof setTimeout>;
+  private lastConnectionErrorAt = 0;
 
   constructor(private badge: HybridBadgeService,
               private zone: NgZone,
               private auth: AuthService,
-              private schemaService: HybridSchemaService) {}
+              private schemaService: HybridSchemaService,
+              private messageService: MessageService,
+              private translate: TranslateService) {}
 
   start(): void {
     if (this.eventSource) {
@@ -28,8 +33,8 @@ export class HybridUpsertListenerService implements OnDestroy {
       let parsed: HybridUpsertEvent | null = null;
       try {
         parsed = event?.data ? JSON.parse(event.data) : null;
-      } catch (error) {
-        console.error('[HybridUpsertListener] Failed to parse event data', error);
+      } catch (_error) {
+        this.reportParseError();
       }
       if (!parsed) {
         return;
@@ -38,8 +43,8 @@ export class HybridUpsertListenerService implements OnDestroy {
         this.badge.notifyUpsert(parsed as HybridUpsertEvent);
       });
     });
-    this.eventSource.addEventListener('error', (err) => {
-      console.error('[HybridUpsertListener] SSE error', err);
+    this.eventSource.addEventListener('error', () => {
+      this.reportConnectionError();
       this.stop();
       this.scheduleRetry();
     });
@@ -68,5 +73,36 @@ export class HybridUpsertListenerService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stop();
+  }
+
+  private reportParseError(): void {
+    this.zone.run(() => {
+      this.messageService.add({
+        key: 'global',
+        severity: 'error',
+        summary: this.translate.instant('common.realtimeErrorTitle'),
+        detail: this.translate.instant('common.realtimeParseError', {
+          component: this.schemaService.displayName()
+        })
+      });
+    });
+  }
+
+  private reportConnectionError(): void {
+    const now = Date.now();
+    if (now - this.lastConnectionErrorAt < 10000) {
+      return;
+    }
+    this.lastConnectionErrorAt = now;
+    this.zone.run(() => {
+      this.messageService.add({
+        key: 'global',
+        severity: 'error',
+        summary: this.translate.instant('common.realtimeErrorTitle'),
+        detail: this.translate.instant('common.realtimeConnectionError', {
+          component: this.schemaService.displayName()
+        })
+      });
+    });
   }
 }

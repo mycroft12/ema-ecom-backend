@@ -384,7 +384,7 @@
                                                 [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
                                         </p-inputNumber>
 
-                                        <p-calendar
+                                        <p-datepicker
                                                 *ngSwitchCase="ColumnType.DATE"
                                                 [showButtonBar]="false"
                                                 [appendTo]="doc.body"
@@ -404,7 +404,7 @@
                                                 [ngClass]="{ 'p-invalid': isFieldInvalid(model) }"
                                                 [attr.aria-invalid]="isFieldInvalid(model)"
                                                 [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
-                                        </p-calendar>
+                                        </p-datepicker>
 
                                         <div *ngSwitchCase="ColumnType.MINIO_IMAGE" class="minio-image-dialog">
                                             <div class="image-preview" *ngIf="formModel[column.name]?.items?.length">

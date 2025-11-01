@@ -9,6 +9,9 @@
     "closeDialog": "Fermer la fenêtre",
     "loading": "Chargement...",
     "discard": "Abandonner",
+    "realtimeErrorTitle": "Problème de mise à jour en direct",
+    "realtimeParseError": "Impossible de traiter une mise à jour en direct pour {{component}}. Le flux a été ignoré.",
+    "realtimeConnectionError": "Les mises à jour en direct pour {{component}} sont temporairement indisponibles. Nouvelle tentative…",
     "dialog": {
       "addTitle": "Ajouter {{component}}",
       "updateTitle": "Mettre à jour {{component}}",

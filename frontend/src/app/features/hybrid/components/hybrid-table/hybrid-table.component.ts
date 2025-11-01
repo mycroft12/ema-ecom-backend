@@ -21,7 +21,7 @@ import { ImageModule } from 'primeng/image';
 import { MessageModule } from 'primeng/message';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputSwitchModule } from 'primeng/inputswitch';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePicker } from 'primeng/datepicker';
 import { SharedDialogComponent } from '@shared/ui/dialog';
 
 import { HybridTableDataService, HybridMinioUploadResponse } from '../../services/hybrid-table-data.service';
@@ -59,7 +59,7 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
     MessageModule,
     InputNumberModule,
     InputSwitchModule,
-    CalendarModule,
+    DatePicker,
     InputTextarea,
     SharedDialogComponent
   ],
