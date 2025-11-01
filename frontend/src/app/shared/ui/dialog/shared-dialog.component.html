@@ -1,4 +1,5 @@
 <p-dialog
+  #dialogShell
   [(visible)]="isOpen"
   [modal]="true"
   [closable]="false"
@@ -7,14 +8,16 @@
   [resizable]="false"
   [breakpoints]="responsive ? breakpoints : undefined"
   [styleClass]="dialogClass"
-  [contentStyle]="{ overflow: 'hidden' }"
+  [style]="dialogStyle"
+  [contentStyle]="{ overflowY: 'auto', maxHeight: '80vh' }"
+  (onShow)="onShow()"
   (onHide)="onHide()"
   role="dialog"
   [attr.aria-modal]="true"
   [attr.aria-labelledby]="headerId"
 >
   <ng-template pTemplate="header">
-    <header class="app-dialog__header">
+    <header #dialogHeaderRef class="app-dialog__header">
       <div class="app-dialog__titles">
         <h2 class="app-dialog__title" [attr.id]="headerId">{{ title }}</h2>
         <p class="app-dialog__subtitle" *ngIf="hasSubtitle">{{ subtitle }}</p>
@@ -31,18 +34,20 @@
     </header>
   </ng-template>
 
-  <section class="app-dialog__body">
-    <div class="app-dialog__body-inner">
+  <section #dialogBodyRef class="app-dialog__body">
+    <div #dialogScrollRef class="app-dialog__body-inner">
       <ng-content></ng-content>
     </div>
   </section>
 
   <ng-template pTemplate="footer">
-    <footer class="app-dialog__footer" *ngIf="footerActions">
-      <ng-container [ngTemplateOutlet]="footerActions"></ng-container>
-    </footer>
-    <footer class="app-dialog__footer" *ngIf="!footerActions">
-      <ng-content select="[dialogFooter]"></ng-content>
+    <footer #dialogFooterRef class="app-dialog__footer">
+      <ng-container *ngIf="footerActions; else projectedFooter">
+        <ng-container [ngTemplateOutlet]="footerActions"></ng-container>
+      </ng-container>
+      <ng-template #projectedFooter>
+        <ng-content select="[dialogFooter]"></ng-content>
+      </ng-template>
     </footer>
   </ng-template>
 </p-dialog>

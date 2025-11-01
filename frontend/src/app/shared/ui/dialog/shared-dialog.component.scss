@@ -1,7 +1,16 @@
 .app-dialog {
+  --app-dialog-header-height: 80px;
+  --app-dialog-footer-height: 88px;
+  --app-dialog-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --app-dialog-safe-margin: 2.5rem;
+  --app-dialog-body-padding: 1.5rem;
+
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--app-dialog-safe-margin));
 
   &.app-dialog--sm {
     max-width: 560px;
@@ -19,6 +28,8 @@
     @media (max-width: 640px) {
       margin: 0 1rem;
       max-width: none;
+      max-height: calc(100vh - 1rem);
+      --app-dialog-safe-margin: 1rem;
     }
   }
 
@@ -28,6 +39,13 @@
     padding: 0;
     background: var(--surface-card, #ffffff);
   }
+
+  .p-dialog-content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 }
 
 .app-dialog__header,
@@ -36,18 +54,26 @@
   align-items: center;
   justify-content: flex-start;
   gap: 1.25rem;
-  padding: 1.5rem;
+    padding: 1.5rem;
   background: var(--surface-card, #ffffff);
   width: 100%;
   box-sizing: border-box;
+  flex: 0 0 auto;
 }
 
 .app-dialog__header {
   border-bottom: 1px solid var(--surface-border, #e0e0e0);
+  min-height: var(--app-dialog-header-height);
 }
 
 .app-dialog__footer {
   border-top: 1px solid var(--surface-border, #e0e0e0);
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  padding-bottom: calc(var(--app-dialog-body-padding) + var(--app-dialog-safe-area-bottom));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), var(--surface-card, #ffffff) 60%);
+  z-index: 1;
 }
 
 .app-dialog__titles {
@@ -82,16 +108,23 @@
 }
 
 .app-dialog__body {
-  overflow-y: auto;
-  max-height: min(72vh, calc(100vh - 8rem));
-  padding: 0 1.5rem;
+  flex: 1 1 auto;
+  display: flex;
+  overflow: hidden;
+  padding: 0;
+  min-height: 0;
+  max-height: calc(100vh - var(--app-dialog-header-height) - var(--app-dialog-footer-height) - var(--app-dialog-safe-margin));
 }
 
 .app-dialog__body-inner {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: 1.75rem 0;
+  padding: var(--app-dialog-body-padding) var(--app-dialog-body-padding) calc(var(--app-dialog-footer-height) + var(--app-dialog-body-padding) + var(--app-dialog-safe-area-bottom));
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-padding-bottom: calc(var(--app-dialog-footer-height) + var(--app-dialog-body-padding) + var(--app-dialog-safe-area-bottom));
 }
 
 .app-dialog__footer {
@@ -105,13 +138,13 @@
     padding: 1.25rem;
   }
 
-  .app-dialog__body {
-    padding: 0 1.25rem;
+  .app-dialog {
+    --app-dialog-body-padding: 1.25rem;
   }
 
   .app-dialog__body-inner {
     gap: 1rem;
-    padding: 1.5rem 0;
+    padding: var(--app-dialog-body-padding) var(--app-dialog-body-padding) calc(var(--app-dialog-footer-height) + var(--app-dialog-body-padding) + var(--app-dialog-safe-area-bottom));
   }
 }
 
@@ -122,11 +155,15 @@
   }
 
   .app-dialog__body {
-    padding: 0 1rem;
+    padding: 0;
+  }
+
+  .app-dialog {
+    --app-dialog-body-padding: 1rem;
   }
 
   .app-dialog__body-inner {
-    padding: 1.25rem 0;
+    padding: var(--app-dialog-body-padding) var(--app-dialog-body-padding) calc(var(--app-dialog-footer-height) + var(--app-dialog-body-padding) + var(--app-dialog-safe-area-bottom));
     gap: .75rem;
   }
 }

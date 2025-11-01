@@ -320,7 +320,7 @@
                 class="record-form"
                 (ngSubmit)="saveRecord(recordForm)"
                 [attr.aria-labelledby]="dialogTitleId">
-            <div class="dialog-body" #dialogBody>
+            <div class="dialog-body scrollable" #dialogBody>
                 <p-message
                         *ngIf="dialogErrorMessage"
                         severity="error"
@@ -335,7 +335,7 @@
 
                 <ng-container *ngIf="!dialogLoading">
                     <ng-container *ngIf="hasVisibleFields; else dialogEmptyState">
-                        <div class="formgrid grid dialog-form-grid">
+                        <div class="formgrid grid dialog-form-grid" #formScroll>
                             <ng-container *ngFor="let column of schemaService.visibleColumns(); trackBy: trackColumn; let idx = index">
                                 <div
                                         class="field col-12"
@@ -386,19 +386,22 @@
 
                                         <p-calendar
                                                 *ngSwitchCase="ColumnType.DATE"
+                                                [showButtonBar]="false"
+                                                [appendTo]="doc.body"
+                                                [styleClass]="''"
+                                                [panelStyleClass]="''"
                                                 [inputId]="'field-' + column.name"
                                                 [name]="'field-' + column.name"
                                                 [(ngModel)]="formModel[column.name]"
                                                 (ngModelChange)="onDateFieldChange(column.name, $event)"
                                                 [showIcon]="true"
                                                 [iconDisplay]="'input'"
-                                                [touchUI]="true"
+                                                [showOnFocus]="false"
                                                 [required]="column.required"
                                                 [disabled]="isColumnDisabled(column)"
                                                 [dateFormat]="dateDisplayFormat"
-                                                [showButtonBar]="true"
                                                 #model="ngModel"
-                                                [class.p-invalid]="isFieldInvalid(model)"
+                                                [ngClass]="{ 'p-invalid': isFieldInvalid(model) }"
                                                 [attr.aria-invalid]="isFieldInvalid(model)"
                                                 [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
                                         </p-calendar>

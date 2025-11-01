@@ -1,3 +1,5 @@
+@import "primeicons/primeicons.css";
+
 /* Global base styles for EMA E-commerce (works with PrimeNG v19 + PrimeFlex) */
 html, body { height: 100%; }
 body {
@@ -199,4 +201,3 @@ a:hover { text-decoration: underline; }
   min-width: 1.4rem;
   line-height: 1;
 }
-

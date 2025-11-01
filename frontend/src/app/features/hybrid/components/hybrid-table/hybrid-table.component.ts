@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {CommonModule, DOCUMENT} from '@angular/common';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -135,7 +135,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   private dialogInitialModel: Record<string, any> = {};
   private pendingFocusHandle: ReturnType<typeof setTimeout> | null = null;
   readonly dateDisplayFormat = 'dd/mm/yy';
-
+  readonly doc = inject(DOCUMENT);
   get canAdd(): boolean { return this.permissionsState.add; }
   get canEdit(): boolean { return this.permissionsState.edit; }
   get canDelete(): boolean { return this.permissionsState.delete; }

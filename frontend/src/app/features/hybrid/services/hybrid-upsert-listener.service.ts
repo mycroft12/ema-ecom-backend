@@ -23,10 +23,8 @@ export class HybridUpsertListenerService implements OnDestroy {
     }
     const domain = (this.schemaService.schema()?.domain ?? 'product').toLowerCase();
     const url = `/api/hybrid/${encodeURIComponent(domain)}/upserts/stream?token=${encodeURIComponent(token)}`;
-    console.log('[HybridUpsertListener] Connecting to', url);
     this.eventSource = new EventSource(url);
     this.eventSource.addEventListener('upsert', (event) => {
-      console.log('[HybridUpsertListener] upsert event received', event);
       let parsed: HybridUpsertEvent | null = null;
       try {
         parsed = event?.data ? JSON.parse(event.data) : null;
