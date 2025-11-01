@@ -5,7 +5,25 @@
     "cancel": "Cancel",
     "save": "Save",
     "clear": "Clear",
-    "close": "Close"
+    "close": "Close",
+    "closeDialog": "Close dialog",
+    "loading": "Loading...",
+    "discard": "Discard",
+    "dialog": {
+      "addTitle": "Add {{component}}",
+      "updateTitle": "Update {{component}}",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "You have unsaved changes for this {{component}}. Do you want to discard them?"
+    }
+  },
+  "validation": {
+    "required": "{{field}} is required.",
+    "min": "{{field}} must be greater than or equal to {{min}}.",
+    "max": "{{field}} must be less than or equal to {{max}}.",
+    "pattern": "{{field}} has an invalid format.",
+    "generic": "Please review {{field}}.",
+    "maxImages": "Up to {{max}} image(s).",
+    "maxFileSize": "Maximum file size {{size}} MB."
   },
   "orders": {
     "title": "Orders",
@@ -34,6 +52,10 @@
     "uploadImage": "Upload image",
     "replaceImage": "Replace image",
     "viewImage": "View image in a larger window",
+    "previewImage": "Preview image",
+    "previewImage": "Preview image",
+    "previewImage": "Preview image",
+    "previewImage": "Preview image",
     "noResults": "No orders found",
     "anyOption": "Any",
     "selectOneOption": "Select one",
@@ -78,6 +100,10 @@
       "maxImages": "You can upload at most {{max}} image(s).",
       "fileTooLarge": "Image exceeds the {{max}} limit.",
       "unsupportedImageType": "Unsupported image type."
+    },
+    "dialog": {
+      "subtitle": "Fill in the details to manage {{component}}.",
+      "noFields": "No fields are available for {{component}} yet."
     }
   },
   "expenses": {
@@ -151,6 +177,10 @@
       "maxImages": "You can upload at most {{max}} image(s).",
       "fileTooLarge": "Image exceeds the {{max}} limit.",
       "unsupportedImageType": "Unsupported image type."
+    },
+    "dialog": {
+      "subtitle": "Fill in the details to manage {{component}}.",
+      "noFields": "No fields are available for {{component}} yet."
     }
   },
   "ads": {
@@ -224,6 +254,10 @@
       "maxImages": "You can upload at most {{max}} image(s).",
       "fileTooLarge": "Image exceeds the {{max}} limit.",
       "unsupportedImageType": "Unsupported image type."
+    },
+    "dialog": {
+      "subtitle": "Fill in the details to manage {{component}}.",
+      "noFields": "No fields are available for {{component}} yet."
     }
   },
   "app": {
@@ -345,6 +379,10 @@
       "maxImages": "You can upload at most {{max}} image(s).",
       "fileTooLarge": "Image exceeds the {{max}} limit.",
       "unsupportedImageType": "Unsupported image type."
+    },
+    "dialog": {
+      "subtitle": "Fill in the details to manage {{component}}.",
+      "noFields": "No fields are available for {{component}} yet."
     }
   },
   "import": {

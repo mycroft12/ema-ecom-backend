@@ -1,86 +1,219 @@
-.hybrid-image { border-radius: 4px; }
+.hybrid-image {
+  border-radius: 4px;
+}
 
 :host ::ng-deep {
-    .p-progressbar {
-        height: .5rem;
-        background-color: #D8DADC;
+  .p-progressbar {
+    height: .5rem;
+    background-color: #d8dadc;
 
-        .p-progressbar-value { background-color: #607D8B; }
-    }
+    .p-progressbar-value { background-color: #607d8b; }
+  }
 
-    /* ALIGNMENT FIX */
-    th .header-cell {
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-        line-height: 1;                 /* normalize line height */
-    }
+  th .header-cell {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    line-height: 1;
+  }
 
-    th .header-title {
-        display: flex;
-        align-items: center;
-        line-height: 1;
-    }
+  th .header-filter {
+    display: inline-flex;
+    align-items: center;
+  }
 
-    /* Center the filter button next to the text */
-    th .header-filter { display: inline-flex; align-items: center; }
-
-    th .header-filter .p-column-filter-menu-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 1.25rem;               /* keeps it aligned with text */
-        width: 1.25rem;
-        padding: 0;
-        margin: 0;
-        transform: translateY(-1px);   /* tiny optical nudge */
-    }
-
-    /* remove extra icon offset some themes add */
-    th .header-filter .p-column-filter-menu-button .p-button-icon { margin: 0; }
+  th .header-filter .p-column-filter-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.25rem;
+    width: 1.25rem;
+    padding: 0;
+    margin: 0;
+    transform: translateY(-1px);
+  }
 }
 
 .caption-toolbar {
-    width: 100%;
+  width: 100%;
 }
 
 .actions-cell .p-button {
-    width: 2.2rem;
-    height: 2.2rem;
-}
-
-.hybrid-dialog {
-    width: 100%;
-    max-width: 1040px;
-}
-
-.hybrid-dialog .field {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
+  width: 2.2rem;
+  height: 2.2rem;
 }
 
 :host ::ng-deep {
-    .hybrid-table {
-        .sticky-action {
-            position: sticky;
-            right: 0;
-            z-index: 2;
-            background: var(--surface-card, #ffffff);
-            box-shadow: -6px 0 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .p-datatable-thead > tr > .sticky-action {
-            z-index: 3;
-            background: var(--surface-card, #ffffff);
-        }
-
-        .p-datatable-tbody > tr > .sticky-action {
-            background: var(--surface-card, #ffffff);
-        }
+  .hybrid-table {
+    .sticky-action {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: var(--surface-card, #ffffff);
+      box-shadow: -6px 0 6px rgba(0, 0, 0, 0.05);
     }
 
-    .column-toggle {
-        min-width: 12rem;
+    .p-datatable-thead > tr > .sticky-action,
+    .p-datatable-tbody > tr > .sticky-action {
+      background: var(--surface-card, #ffffff);
     }
+  }
+
+  .column-toggle {
+    min-width: 12rem;
+  }
+}
+
+.record-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dialog-loading {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.dialog-form-grid {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  row-gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.field-label {
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+}
+
+.required-indicator {
+  color: var(--red-500, #ef4444);
+  font-weight: 700;
+}
+
+.field-hint {
+  font-size: .75rem;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.field-error-text {
+  font-size: .75rem;
+  color: var(--red-500, #ef4444);
+}
+
+.field .p-inputtext,
+.field .p-inputtextarea,
+.field .p-inputswitch,
+.field .p-inputnumber,
+.field .p-dropdown,
+.field .p-calendar {
+  width: 100%;
+}
+
+.field .p-invalid input,
+.field .p-invalid textarea,
+.field .p-invalid .p-inputtext,
+.field .p-invalid .p-inputnumber-input {
+  border-color: var(--red-400, #f87171);
+}
+
+.field-disabled {
+  opacity: .85;
+}
+
+.boolean-field {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.boolean-label {
+  margin: 0;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.minio-image-dialog .image-preview {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.minio-image-dialog .dialog-image-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: .75rem;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host ::ng-deep .dialog-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.minio-image-dialog .upload-actions button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.dialog-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.dialog-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.dialog-empty-state .pi {
+  font-size: 2rem;
+  color: var(--primary-color, #2563eb);
+}
+
+@media (max-width: 640px) {
+  .dialog-body {
+    gap: 1rem;
+  }
+
+  .dialog-form-grid {
+    max-width: 100%;
+  }
+
+  .dialog-footer-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .dialog-footer-actions .p-button {
+    width: 100%;
+  }
 }

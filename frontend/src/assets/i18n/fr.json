@@ -5,7 +5,25 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "clear": "Effacer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "closeDialog": "Fermer la fenêtre",
+    "loading": "Chargement...",
+    "discard": "Abandonner",
+    "dialog": {
+      "addTitle": "Ajouter {{component}}",
+      "updateTitle": "Mettre à jour {{component}}",
+      "discardTitle": "Annuler les modifications ?",
+      "discardMessage": "Vous avez des modifications non enregistrées pour {{component}}. Voulez-vous les annuler ?"
+    }
+  },
+  "validation": {
+    "required": "{{field}} est obligatoire.",
+    "min": "{{field}} doit être supérieur ou égal à {{min}}.",
+    "max": "{{field}} doit être inférieur ou égal à {{max}}.",
+    "pattern": "Le format de {{field}} est invalide.",
+    "generic": "Veuillez vérifier {{field}}.",
+    "maxImages": "Jusqu'à {{max}} image(s).",
+    "maxFileSize": "Taille maximale {{size}} Mo."
   },
   "app": {
     "title": "EMA E-Commerce Panel",
@@ -80,6 +98,8 @@
     "uploadImage": "Téléverser l'image",
     "replaceImage": "Remplacer l'image",
     "viewImage": "Afficher l'image en grand",
+    "previewImage": "Prévisualiser l'image",
+    "previewImage": "Prévisualiser l'image",
     "noResults": "Aucun produit trouvé",
     "anyOption": "Tous",
     "selectOneOption": "Sélectionner",
@@ -121,6 +141,10 @@
       "maxImages": "Vous pouvez téléverser au maximum {{max}} image(s).",
       "fileTooLarge": "L'image dépasse la limite de {{max}}.",
       "unsupportedImageType": "Type d'image non pris en charge."
+    },
+    "dialog": {
+      "subtitle": "Renseignez les informations pour gérer {{component}}.",
+      "noFields": "Aucun champ disponible pour {{component}} pour le moment."
     }
   },
   "orders": {
@@ -148,6 +172,7 @@
     "uploadImage": "Téléverser l'image",
     "replaceImage": "Remplacer l'image",
     "viewImage": "Afficher l'image en grand",
+    "previewImage": "Prévisualiser l'image",
     "noResults": "Aucune commande trouvée",
     "anyOption": "Tous",
     "selectOneOption": "Sélectionner",
@@ -190,6 +215,10 @@
       "fileTooLarge": "L'image dépasse la limite de {{max}}.",
       "unsupportedImageType": "Type d'image non pris en charge."
     },
+    "dialog": {
+      "subtitle": "Renseignez les informations pour gérer {{component}}.",
+      "noFields": "Aucun champ disponible pour {{component}} pour le moment."
+    },
     "newItem": "Nouvelle commande",
     "editItem": "Modifier la commande",
     "configuredSuccess": "Le schéma des commandes a été configuré avec succès"
@@ -219,9 +248,14 @@
     "uploadImage": "Téléverser l'image",
     "replaceImage": "Remplacer l'image",
     "viewImage": "Afficher l'image en grand",
+    "previewImage": "Prévisualiser l'image",
     "noResults": "Aucune dépense trouvée",
     "anyOption": "Tous",
     "selectOneOption": "Sélectionner",
+    "dialog": {
+      "subtitle": "Renseignez les informations pour gérer {{component}}.",
+      "noFields": "Aucun champ disponible pour {{component}} pour le moment."
+    },
     "newProduct": "Nouvelle dépense",
     "editProduct": "Modifier la dépense",
     "exportExcel": "Exporter Excel",
@@ -293,6 +327,10 @@
     "noResults": "Aucune entrée publicitaire trouvée",
     "anyOption": "Tous",
     "selectOneOption": "Sélectionner",
+    "dialog": {
+      "subtitle": "Renseignez les informations pour gérer {{component}}.",
+      "noFields": "Aucun champ disponible pour {{component}} pour le moment."
+    },
     "newProduct": "Nouvelle entrée publicitaire",
     "editProduct": "Modifier l'entrée publicitaire",
     "exportExcel": "Exporter Excel",

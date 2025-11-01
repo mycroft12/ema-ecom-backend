@@ -5,7 +5,25 @@
     "cancel": "إلغاء",
     "save": "حفظ",
     "clear": "مسح",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "closeDialog": "إغلاق النافذة",
+    "loading": "جارٍ التحميل...",
+    "discard": "تجاهل",
+    "dialog": {
+      "addTitle": "إضافة {{component}}",
+      "updateTitle": "تحديث {{component}}",
+      "discardTitle": "هل تريد تجاهل التغييرات؟",
+      "discardMessage": "لديك تغييرات غير محفوظة لـ {{component}}. هل تريد تجاهلها؟"
+    }
+  },
+  "validation": {
+    "required": "{{field}} مطلوب.",
+    "min": "{{field}} يجب أن يكون أكبر من أو يساوي {{min}}.",
+    "max": "{{field}} يجب أن يكون أقل من أو يساوي {{max}}.",
+    "pattern": "تنسيق {{field}} غير صحيح.",
+    "generic": "يرجى مراجعة {{field}}.",
+    "maxImages": "بحد أقصى {{max}} صورة.",
+    "maxFileSize": "الحجم الأقصى للملف {{size}} ميغابايت."
   },
   "app": {
     "title": "لوحة إدارة التجارة الإلكترونية",
@@ -77,9 +95,17 @@
     "uploadImage": "تحميل الصورة",
     "replaceImage": "استبدال الصورة",
     "viewImage": "عرض الصورة بحجم أكبر",
+    "previewImage": "معاينة الصورة",
+    "previewImage": "معاينة الصورة",
+    "previewImage": "معاينة الصورة",
+    "previewImage": "معاينة الصورة",
     "noResults": "لا توجد منتجات",
     "anyOption": "أي",
     "selectOneOption": "اختر واحدًا",
+    "dialog": {
+      "subtitle": "أدخل التفاصيل لإدارة {{component}}.",
+      "noFields": "لا توجد حقول متاحة لـ {{component}} بعد."
+    },
     "newProduct": "منتج جديد",
     "editProduct": "تعديل المنتج",
     "exportExcel": "تصدير إلى Excel",
@@ -423,6 +449,10 @@
     "noResults": "لا توجد طلبات",
     "anyOption": "أي",
     "selectOneOption": "اختر واحدًا",
+    "dialog": {
+      "subtitle": "أدخل التفاصيل لإدارة {{component}}.",
+      "noFields": "لا توجد حقول متاحة لـ {{component}} بعد."
+    },
     "newProduct": "طلب جديد",
     "editProduct": "تعديل الطلب",
     "exportExcel": "تصدير إلى Excel",
@@ -494,6 +524,10 @@
     "noResults": "لا توجد نفقات",
     "anyOption": "أي",
     "selectOneOption": "اختر واحدًا",
+    "dialog": {
+      "subtitle": "أدخل التفاصيل لإدارة {{component}}.",
+      "noFields": "لا توجد حقول متاحة لـ {{component}} بعد."
+    },
     "newProduct": "نفقة جديدة",
     "editProduct": "تعديل النفقة",
     "exportExcel": "تصدير إلى Excel",
@@ -565,6 +599,10 @@
     "noResults": "لا توجد سجلات إعلانية",
     "anyOption": "أي",
     "selectOneOption": "اختر واحدًا",
+    "dialog": {
+      "subtitle": "أدخل التفاصيل لإدارة {{component}}.",
+      "noFields": "لا توجد حقول متاحة لـ {{component}} بعد."
+    },
     "newProduct": "سجل إعلاني جديد",
     "editProduct": "تعديل السجل الإعلاني",
     "exportExcel": "تصدير إلى Excel",

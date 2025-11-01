@@ -306,126 +306,244 @@
         </p-table>
     </div>
 
-    <p-dialog
-            [(visible)]="displayDialog"
-            [modal]="true"
-            [header]="dialogHeader"
-            [draggable]="false"
-            [resizable]="false"
-            [style]="dialogStyle"
-            class="record-dialog"
-    >
-        <form #recordForm="ngForm" (ngSubmit)="saveRecord(recordForm)" class="flex flex-column gap-3">
-            <ng-container *ngFor="let column of schemaService.visibleColumns(); trackBy: trackColumn">
-                <div class="field">
-                    <label [for]="'field-' + column.name">{{ column.displayName }}</label>
-                    <ng-container [ngSwitch]="column.type">
-                        <input
-                                *ngSwitchCase="ColumnType.INTEGER"
-                                pInputText
-                                type="number"
-                                [name]="'field-' + column.name"
-                                [id]="'field-' + column.name"
-                                [(ngModel)]="formModel[column.name]"
-                                [required]="column.required"
-                        />
-                        <input
-                                *ngSwitchCase="ColumnType.DECIMAL"
-                                pInputText
-                                type="number"
-                                step="any"
-                                [name]="'field-' + column.name"
-                                [id]="'field-' + column.name"
-                                [(ngModel)]="formModel[column.name]"
-                                [required]="column.required"
-                        />
-                        <input
-                                *ngSwitchCase="ColumnType.DATE"
-                                pInputText
-                                type="date"
-                                [name]="'field-' + column.name"
-                                [id]="'field-' + column.name"
-                                [(ngModel)]="formModel[column.name]"
-                                [required]="column.required"
-                        />
-                        <div *ngSwitchCase="ColumnType.MINIO_IMAGE" class="flex flex-column gap-2">
-                            <div class="flex items-center gap-2">
-                                @if (resolveImageSource(formModel[column.name]); as dialogImageSrc) {
-                                    <img [src]="dialogImageSrc" [alt]="column.displayName"
-                                         style="width: 60px; height: 60px; object-fit: cover;" />
-                                } @else {
-                                    <span class="flex items-center gap-1 text-sm text-surface-500">
-                                        <i class="pi pi-image"></i>
-                                        <span>{{ (translationPrefix + '.noImage') | translate }}</span>
-                                    </span>
-                                }
-                                @if (imageCount(column, formModel[column.name]) > 1) {
-                                    <span class="text-xs text-surface-500">{{ imageCount(column, formModel[column.name]) }}/{{ maxImages(column) }}</span>
-                                }
-                                @if (isImageUploading('dialog', column.name)) {
-                                    <i class="pi pi-spin pi-spinner text-primary"></i>
-                                }
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button"
-                                        pButton
-                                        class="p-button-outlined p-button-sm"
-                                        (click)="dialogImageInput.click()"
-                                        [disabled]="isImageUploading('dialog', column.name)"
-                                        [aria-label]="canReplaceImage(column, formModel[column.name]) ? ( (translationPrefix + '.replaceImage') | translate ) : ( (translationPrefix + '.uploadImage') | translate )">
-                                    <i class="pi" [ngClass]="canReplaceImage(column, formModel[column.name]) ? 'pi-refresh mr-2' : 'pi-upload mr-2'"></i>
-                                    <span>{{ canReplaceImage(column, formModel[column.name]) ? ((translationPrefix + '.replaceImage') | translate) : ((translationPrefix + '.uploadImage') | translate) }}</span>
-                                </button>
-                                <button type="button"
-                                        pButton
-                                        class="p-button-text p-button-sm"
-                                        (click)="clearDialogImage(column)"
-                                        [disabled]="isImageUploading('dialog', column.name)">
-                                    <i class="pi pi-times mr-1"></i>{{ 'common.clear' | translate }}
-                                </button>
-                            </div>
-                            <input #dialogImageInput type="file" accept="image/*"
-                                   (change)="onDialogImageSelected($event, column)" hidden />
-                        </div>
-                        <div *ngSwitchCase="ColumnType.BOOLEAN" class="flex align-items-center gap-2">
-                            <input
-                                    type="checkbox"
-                                    [name]="'field-' + column.name"
-                                    [id]="'field-' + column.name"
-                                    [(ngModel)]="formModel[column.name]"
-                            />
-                            <label [for]="'field-' + column.name" class="mb-0">{{ formModel[column.name] ? ('common.yes' | translate) : ('common.no' | translate) }}</label>
-                        </div>
-                        <input
-                                *ngSwitchDefault
-                                pInputText
-                                type="text"
-                                [name]="'field-' + column.name"
-                                [id]="'field-' + column.name"
-                                [(ngModel)]="formModel[column.name]"
-                                [required]="column.required"
-                        />
-                    </ng-container>
+    <app-shared-dialog
+            [isOpen]="displayDialog"
+            [title]="dialogTitle"
+            [subtitle]="dialogSubtitle"
+            [size]="dialogSize"
+            (close)="onDialogCloseRequested($event)"
+            [footerActions]="dialogFooterTpl"
+            [ariaLabelledBy]="dialogTitleId">
+        <form
+                #recordForm="ngForm"
+                [attr.id]="dialogFormId"
+                class="record-form"
+                (ngSubmit)="saveRecord(recordForm)"
+                [attr.aria-labelledby]="dialogTitleId">
+            <div class="dialog-body" #dialogBody>
+                <p-message
+                        *ngIf="dialogErrorMessage"
+                        severity="error"
+                        [text]="dialogErrorMessage"
+                        class="dialog-error-message">
+                </p-message>
+
+                <div class="dialog-loading" *ngIf="dialogLoading">
+                    <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+                    <span>{{ 'common.loading' | translate }}</span>
                 </div>
-            </ng-container>
-            <div class="flex justify-content-end gap-2">
+
+                <ng-container *ngIf="!dialogLoading">
+                    <ng-container *ngIf="hasVisibleFields; else dialogEmptyState">
+                        <div class="formgrid grid dialog-form-grid">
+                            <ng-container *ngFor="let column of schemaService.visibleColumns(); trackBy: trackColumn; let idx = index">
+                                <div
+                                        class="field col-12"
+                                        [ngClass]="getFieldContainerClasses(column)"
+                                        [attr.data-focus-anchor]="idx === 0 ? 'true' : null">
+                                    <label
+                                            class="field-label"
+                                            [for]="'field-' + column.name">
+                                        {{ column.displayName }}
+                                        <span *ngIf="column.required" class="required-indicator" aria-hidden="true">*</span>
+                                    </label>
+                                    <ng-container [ngSwitch]="column.type">
+                                        <p-inputNumber
+                                                *ngSwitchCase="ColumnType.INTEGER"
+                                                [inputId]="'field-' + column.name"
+                                                [name]="'field-' + column.name"
+                                                [(ngModel)]="formModel[column.name]"
+                                                (ngModelChange)="onFieldChange(column.name)"
+                                                [useGrouping]="false"
+                                                [min]="getNumericRule(column, 'min')"
+                                                [max]="getNumericRule(column, 'max')"
+                                                [required]="column.required"
+                                                [disabled]="isColumnDisabled(column)"
+                                                #model="ngModel"
+                                                [class.p-invalid]="isFieldInvalid(model)"
+                                                [attr.aria-invalid]="isFieldInvalid(model)"
+                                                [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                        </p-inputNumber>
+
+                                        <p-inputNumber
+                                                *ngSwitchCase="ColumnType.DECIMAL"
+                                                mode="decimal"
+                                                [minFractionDigits]="getDecimalScale(column)"
+                                                [maxFractionDigits]="getDecimalScale(column)"
+                                                [inputId]="'field-' + column.name"
+                                                [name]="'field-' + column.name"
+                                                [(ngModel)]="formModel[column.name]"
+                                                (ngModelChange)="onFieldChange(column.name)"
+                                                [min]="getNumericRule(column, 'min')"
+                                                [max]="getNumericRule(column, 'max')"
+                                                [required]="column.required"
+                                                [disabled]="isColumnDisabled(column)"
+                                                #model="ngModel"
+                                                [class.p-invalid]="isFieldInvalid(model)"
+                                                [attr.aria-invalid]="isFieldInvalid(model)"
+                                                [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                        </p-inputNumber>
+
+                                        <p-calendar
+                                                *ngSwitchCase="ColumnType.DATE"
+                                                [inputId]="'field-' + column.name"
+                                                [name]="'field-' + column.name"
+                                                [(ngModel)]="formModel[column.name]"
+                                                (ngModelChange)="onDateFieldChange(column.name, $event)"
+                                                [showIcon]="true"
+                                                [iconDisplay]="'input'"
+                                                [touchUI]="true"
+                                                [required]="column.required"
+                                                [disabled]="isColumnDisabled(column)"
+                                                [dateFormat]="dateDisplayFormat"
+                                                [showButtonBar]="true"
+                                                #model="ngModel"
+                                                [class.p-invalid]="isFieldInvalid(model)"
+                                                [attr.aria-invalid]="isFieldInvalid(model)"
+                                                [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                        </p-calendar>
+
+                                        <div *ngSwitchCase="ColumnType.MINIO_IMAGE" class="minio-image-dialog">
+                                            <div class="image-preview" *ngIf="formModel[column.name]?.items?.length">
+                                                <ng-container *ngFor="let image of formModel[column.name].items">
+                                                    <p-image
+                                                            [src]="image.url"
+                                                            [preview]="true"
+                                                            [alt]="column.displayName"
+                                                            [previewButtonTitle]="(translationPrefix + '.previewImage') | translate"
+                                                            class="dialog-image-preview">
+                                                    </p-image>
+                                                </ng-container>
+                                            </div>
+                                            <div class="upload-actions flex gap-2 align-items-center mt-2 flex-wrap">
+                                                <button
+                                                        type="button"
+                                                        pButton
+                                                        class="p-button-outlined p-button-sm"
+                                                        (click)="dialogImageInput.click()"
+                                                        [disabled]="isImageUploading('dialog', column.name) || isColumnDisabled(column)"
+                                                        [attr.aria-label]="uploadButtonLabel(column)">
+                                                    <i class="pi" [ngClass]="canReplaceImage(column, formModel[column.name]) ? 'pi-refresh mr-2' : 'pi-upload mr-2'"></i>
+                                                    <span>{{ uploadButtonLabel(column) }}</span>
+                                                </button>
+                                                <button type="button"
+                                                        pButton
+                                                        class="p-button-text p-button-sm"
+                                                        (click)="clearDialogImage(column)"
+                                                        [disabled]="isImageUploading('dialog', column.name) || isColumnDisabled(column)">
+                                                    <i class="pi pi-times mr-1"></i>{{ 'common.clear' | translate }}
+                                                </button>
+                                            </div>
+                                            <input
+                                                    #dialogImageInput
+                                                    type="file"
+                                                    accept="image/*"
+                                                    (change)="onDialogImageSelected($event, column)"
+                                                    hidden />
+                                            <small class="field-hint" *ngIf="getImageConstraintsHint(column)">{{ getImageConstraintsHint(column) }}</small>
+                                        </div>
+
+                                        <div *ngSwitchCase="ColumnType.BOOLEAN" class="boolean-field">
+                                            <p-inputSwitch
+                                                    [inputId]="'field-' + column.name"
+                                                    [name]="'field-' + column.name"
+                                                    [(ngModel)]="formModel[column.name]"
+                                                    (ngModelChange)="onFieldChange(column.name)"
+                                                    [disabled]="isColumnDisabled(column)"
+                                                    #model="ngModel"
+                                                    [aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                            </p-inputSwitch>
+                                            <label [for]="'field-' + column.name" class="boolean-label">
+                                                {{ formModel[column.name] ? ('common.yes' | translate) : ('common.no' | translate) }}
+                                            </label>
+                                        </div>
+
+                                        <ng-container *ngSwitchDefault>
+                                            <textarea
+                                                    *ngIf="isTextarea(column); else defaultTextInput"
+                                                    pInputTextarea
+                                                    [name]="'field-' + column.name"
+                                                    [id]="'field-' + column.name"
+                                                    [(ngModel)]="formModel[column.name]"
+                                                    (ngModelChange)="onFieldChange(column.name)"
+                                                    [required]="column.required"
+                                                    [readonly]="isColumnReadOnly(column)"
+                                                    [disabled]="isColumnDisabled(column)"
+                                                    [attr.maxLength]="column.maxLength || null"
+                                                    #model="ngModel"
+                                                    [class.p-invalid]="isFieldInvalid(model)"
+                                                    [attr.aria-invalid]="isFieldInvalid(model)"
+                                                    [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                            </textarea>
+                                            <ng-template #defaultTextInput>
+                                                <input
+                                                        pInputText
+                                                        type="text"
+                                                        [name]="'field-' + column.name"
+                                                        [id]="'field-' + column.name"
+                                                        [(ngModel)]="formModel[column.name]"
+                                                        (ngModelChange)="onFieldChange(column.name)"
+                                                        [required]="column.required"
+                                                        [readonly]="isColumnReadOnly(column)"
+                                                        [disabled]="isColumnDisabled(column)"
+                                                        [attr.maxLength]="column.maxLength || null"
+                                                [attr.pattern]="getPatternRule(column)"
+                                                        #model="ngModel"
+                                                        [class.p-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                            </ng-template>
+                                        </ng-container>
+                                    </ng-container>
+
+                                    <small
+                                            *ngIf="getFieldHint(column)"
+                                            class="field-hint"
+                                            [id]="getFieldHintId(column.name)">
+                                        {{ getFieldHint(column) }}
+                                    </small>
+                                    <small
+                                            *ngIf="getFieldError(column, model)"
+                                            class="field-error-text"
+                                            [id]="getFieldErrorId(column.name)">
+                                        {{ getFieldError(column, model) }}
+                                    </small>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </ng-container>
+                </ng-container>
+            </div>
+        </form>
+        <ng-template #dialogEmptyState>
+            <div class="dialog-empty-state">
+                <i class="pi pi-info-circle"></i>
+                <p>{{ (translationPrefix + '.dialog.noFields') | translate:{ component: schemaService.displayName() } }}</p>
+            </div>
+        </ng-template>
+
+        <ng-template #dialogFooterTpl>
+            <div class="dialog-footer-actions">
                 <button
                         type="button"
                         pButton
                         class="p-button-text"
                         [label]="'common.cancel' | translate"
-                        (click)="closeDialog()"
-                        [disabled]="saving"
-                ></button>
+                        (click)="onDialogCloseRequested('cancel')"
+                        [disabled]="saving || dialogLoading">
+                </button>
                 <button
                         type="submit"
                         pButton
+                        class="p-button-primary"
                         [label]="submitLabel"
                         [loading]="saving"
-                ></button>
+                        [disabled]="saving || dialogLoading || !hasVisibleFields"
+                        [attr.form]="dialogFormId">
+                </button>
             </div>
-        </form>
-    </p-dialog>
+        </ng-template>
+    </app-shared-dialog>
 </div>
 
 <p-confirmDialog></p-confirmDialog>

@@ -1,0 +1,48 @@
+<p-dialog
+  [(visible)]="isOpen"
+  [modal]="true"
+  [closable]="false"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [breakpoints]="responsive ? breakpoints : undefined"
+  [styleClass]="dialogClass"
+  [contentStyle]="{ overflow: 'hidden' }"
+  (onHide)="onHide()"
+  role="dialog"
+  [attr.aria-modal]="true"
+  [attr.aria-labelledby]="headerId"
+>
+  <ng-template pTemplate="header">
+    <header class="app-dialog__header">
+      <div class="app-dialog__titles">
+        <h2 class="app-dialog__title" [attr.id]="headerId">{{ title }}</h2>
+        <p class="app-dialog__subtitle" *ngIf="hasSubtitle">{{ subtitle }}</p>
+      </div>
+      <button
+        type="button"
+        pButton
+        class="p-button-rounded p-button-text app-dialog__close"
+        icon="pi pi-times"
+        (click)="close.emit('closeButton')"
+        [attr.aria-label]="'common.close' | translate"
+        tabindex="0">
+      </button>
+    </header>
+  </ng-template>
+
+  <section class="app-dialog__body">
+    <div class="app-dialog__body-inner">
+      <ng-content></ng-content>
+    </div>
+  </section>
+
+  <ng-template pTemplate="footer">
+    <footer class="app-dialog__footer" *ngIf="footerActions">
+      <ng-container [ngTemplateOutlet]="footerActions"></ng-container>
+    </footer>
+    <footer class="app-dialog__footer" *ngIf="!footerActions">
+      <ng-content select="[dialogFooter]"></ng-content>
+    </footer>
+  </ng-template>
+</p-dialog>

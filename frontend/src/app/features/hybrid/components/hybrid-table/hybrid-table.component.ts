@@ -1,22 +1,28 @@
-import { Component, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputTextarea } from 'primeng/inputtextarea';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { SliderModule } from 'primeng/slider';
-import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ImageModule } from 'primeng/image';
+import { MessageModule } from 'primeng/message';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { CalendarModule } from 'primeng/calendar';
+import { SharedDialogComponent } from '@shared/ui/dialog';
 
 import { HybridTableDataService, HybridMinioUploadResponse } from '../../services/hybrid-table-data.service';
 import { HybridSchemaService } from '../../services/hybrid-schema.service';
@@ -45,11 +51,17 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
     MultiSelectModule,
     SelectModule,
     ProgressBarModule,
+    ProgressSpinnerModule,
     TagModule,
     SliderModule,
-    DialogModule,
     ConfirmDialogModule,
-    ImageModule
+    ImageModule,
+    MessageModule,
+    InputNumberModule,
+    InputSwitchModule,
+    CalendarModule,
+    InputTextarea,
+    SharedDialogComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './hybrid-table.component.html',
@@ -57,6 +69,8 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
 })
 export class HybridTableComponent implements OnInit, OnDestroy {
   @ViewChild('dt1') dt1!: Table;
+  @ViewChild('dialogBody') dialogBody?: ElementRef<HTMLDivElement>;
+  @ViewChild('recordForm') dialogFormDirective?: NgForm;
 
   readonly dataService = inject(HybridTableDataService);
   readonly schemaService = inject(HybridSchemaService);
@@ -67,6 +81,11 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   private readonly badgeService = inject(HybridBadgeService);
   private readonly imageUploadBusy: Record<string, boolean> = {};
   readonly translationPrefix = this.schemaService.translationNamespace;
+
+  private static dialogInstanceCounter = 0;
+  private readonly dialogInstanceId = ++HybridTableComponent.dialogInstanceCounter;
+  readonly dialogTitleId = `hybrid-dialog-title-${this.dialogInstanceId}`;
+  readonly dialogFormId = `hybrid-dialog-form-${this.dialogInstanceId}`;
 
   HybridColumnType = HybridColumnType; // expose enum for TS helpers
   ColumnType = HybridColumnType; // backward-compatible alias for template bindings
@@ -82,7 +101,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   columnToggleOptions: Array<{ label: string; value: string }> = [];
   selectedColumnKeys: string[] = [];
   columnToggleSelectedItemsLabel = '';
-  dialogStyle = { width: 'clamp(550px, 70vw, 1040px)' };
 
   private readonly destroy$ = new Subject<void>();
   private lastLazyLoadEvent: TableLazyLoadEvent | null = null;
@@ -112,25 +130,58 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   editingRecordId: string | null = null;
   saving = false;
   formSubmitted = false;
+  dialogErrorMessage: string | null = null;
+  dialogLoading = false;
+  private dialogInitialModel: Record<string, any> = {};
+  private pendingFocusHandle: ReturnType<typeof setTimeout> | null = null;
+  readonly dateDisplayFormat = 'dd/mm/yy';
 
   get canAdd(): boolean { return this.permissionsState.add; }
   get canEdit(): boolean { return this.permissionsState.edit; }
   get canDelete(): boolean { return this.permissionsState.delete; }
   get canExport(): boolean { return this.permissionsState.export; }
   get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
-  get dialogHeader(): string {
-    return this.dialogMode === 'create'
-      ? this.translate.instant(`${this.translationPrefix}.newItem`)
-      : this.translate.instant(`${this.translationPrefix}.editItem`);
+  get dialogTitle(): string {
+    const key = this.dialogMode === 'create' ? 'common.dialog.addTitle' : 'common.dialog.updateTitle';
+    return this.translate.instant(key, { component: this.componentDisplayName });
+  }
+  get dialogSubtitle(): string {
+    const key = `${this.translationPrefix}.dialog.subtitle`;
+    const translated = this.translate.instant(key, { component: this.componentDisplayName });
+    return translated === key ? '' : translated;
   }
   get submitLabel(): string {
     return this.translate.instant('common.save');
+  }
+  get hasVisibleFields(): boolean {
+    return this.schemaService.visibleColumns().length > 0;
   }
   get hasRows(): boolean {
     const rows = this.dataService.records();
     return Array.isArray(rows) && rows.length > 0;
   }
+  get dialogSize(): 'sm' | 'md' | 'lg' {
+    const columnCount = this.schemaService.visibleColumns().length;
+    if (columnCount >= 8) {
+      return 'lg';
+    }
+    if (columnCount >= 4) {
+      return 'md';
+    }
+    return 'sm';
+  }
   trackColumn = (_: number, column: HybridColumnDefinition) => column.name;
+
+  @HostListener('window:keydown', ['$event'])
+  handleWindowKeydown(event: KeyboardEvent): void {
+    if (!this.displayDialog) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.onDialogCloseRequested('escape');
+    }
+  }
 
   ngOnInit() {
     this.loading = true;
@@ -158,6 +209,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.realtimeEffectRef.destroy();
+    this.clearPendingFocus();
   }
 
   onLazyLoad(event: TableLazyLoadEvent) {
@@ -269,9 +321,13 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     }
     this.dialogMode = 'create';
     this.editingRecordId = null;
+    this.dialogErrorMessage = null;
+    this.dialogLoading = false;
     this.formModel = this.buildInitialFormModel();
+    this.setInitialFormState();
     this.formSubmitted = false;
     this.displayDialog = true;
+    this.queueFocusOnDialog();
   }
 
   onExportExcel(): void {
@@ -286,13 +342,20 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.editingRecordId = recordId;
     this.formModel = this.buildInitialFormModel();
     this.formSubmitted = false;
+    this.dialogErrorMessage = null;
+    this.dialogLoading = true;
+    this.setInitialFormState();
     this.displayDialog = true;
     this.dataService.getRecord(recordId).subscribe({
       next: product => {
         this.formModel = this.buildInitialFormModel(product);
+        this.dialogLoading = false;
+        this.setInitialFormState();
+        this.queueFocusOnDialog();
       },
       error: () => {
         this.displayDialog = false;
+        this.dialogLoading = false;
         this.showError(this.translate.instant(`${this.translationPrefix}.errors.loadOne`));
       }
     });
@@ -300,7 +363,9 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   saveRecord(form: NgForm): void {
     this.formSubmitted = true;
+    this.dialogErrorMessage = null;
     if (form.invalid) {
+      this.focusFirstInvalidField();
       return;
     }
     const attributes = this.collectAttributesFromFormModel();
@@ -315,23 +380,330 @@ export class HybridTableComponent implements OnInit, OnDestroy {
         this.showSuccess(this.translate.instant(
           this.dialogMode === 'create' ? `${this.translationPrefix}.toastCreated` : `${this.translationPrefix}.toastUpdated`
         ));
-        this.closeDialog();
+        this.forceCloseDialog();
         this.reloadTable();
       },
       error: () => {
         this.saving = false;
-        this.showError(this.translate.instant(
+        this.dialogErrorMessage = this.translate.instant(
           this.dialogMode === 'create' ? `${this.translationPrefix}.errors.create` : `${this.translationPrefix}.errors.update`
-        ));
+        );
+        this.focusFirstInvalidField();
       }
     });
   }
 
-  closeDialog(): void {
+  onDialogCloseRequested(reason: 'cancel' | 'closeButton' | 'escape' | 'mask'): void {
+    if (!this.displayDialog || this.saving || this.dialogLoading) {
+      return;
+    }
+    if (this.isDialogDirty()) {
+      this.confirmationService.confirm({
+        header: this.translate.instant('common.dialog.discardTitle'),
+        message: this.translate.instant('common.dialog.discardMessage', { component: this.componentDisplayName }),
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: this.translate.instant('common.discard'),
+        rejectLabel: this.translate.instant('common.cancel'),
+        acceptButtonStyleClass: 'p-button-danger',
+        accept: () => this.forceCloseDialog()
+      });
+    } else {
+      this.forceCloseDialog();
+    }
+  }
+
+  onFieldChange(_fieldName: string): void {
+    this.markDialogDirty();
+  }
+
+  onDateFieldChange(fieldName: string, value: Date | null): void {
+    this.formModel[fieldName] = value ?? null;
+    this.markDialogDirty();
+  }
+
+  getFieldContainerClasses(column: HybridColumnDefinition): Record<string, boolean> {
+    const fullWidth = this.isFullWidthColumn(column);
+    return {
+      'md:col-6': !fullWidth,
+      'md:col-12': fullWidth,
+      'field-disabled': this.isColumnDisabled(column)
+    };
+  }
+
+  getNumericRule(column: HybridColumnDefinition, key: 'min' | 'max'): number | null {
+    const rulesValue = column.validationRules?.[key];
+    if (rulesValue !== undefined && rulesValue !== null) {
+      const numeric = Number(rulesValue);
+      return Number.isNaN(numeric) ? null : numeric;
+    }
+    const metaValue = column.metadata?.[key];
+    if (metaValue !== undefined && metaValue !== null) {
+      const numeric = Number(metaValue);
+      return Number.isNaN(numeric) ? null : numeric;
+    }
+    return null;
+  }
+
+  getDecimalScale(column: HybridColumnDefinition): number {
+    const metaScale = column.metadata?.['scale'] ?? column.metadata?.['decimals'];
+    const scale = column.scale ?? metaScale;
+    return typeof scale === 'number' && !Number.isNaN(scale) ? scale : 2;
+  }
+
+  getPatternRule(column: HybridColumnDefinition): string | null {
+    const fromRules = column.validationRules?.['pattern'];
+    if (typeof fromRules === 'string' && fromRules.trim()) {
+      return fromRules.trim();
+    }
+    const fromMeta = column.metadata?.['pattern'];
+    if (typeof fromMeta === 'string' && fromMeta.trim()) {
+      return fromMeta.trim();
+    }
+    return null;
+  }
+
+  getFieldHint(column: HybridColumnDefinition): string | null {
+    const meta = (column.metadata ?? {}) as Record<string, any>;
+    const hintKey = meta['hintKey'] ?? meta['helperKey'];
+    if (typeof hintKey === 'string' && hintKey.trim()) {
+      const translated = this.translate.instant(hintKey.trim(), { component: this.componentDisplayName });
+      return translated === hintKey ? null : translated;
+    }
+    const hint = meta['hint'] ?? meta['helperText'] ?? meta['description'];
+    if (typeof hint === 'string' && hint.trim()) {
+      return hint.trim();
+    }
+    return null;
+  }
+
+  getFieldError(column: HybridColumnDefinition, control: NgModel | null): string | null {
+    if (!control || !this.isFieldInvalid(control)) {
+      return null;
+    }
+    const errors = control.errors ?? {};
+    if (errors['required']) {
+      return this.translate.instant('validation.required', { field: column.displayName });
+    }
+    if (errors['min']) {
+      const min = this.getNumericRule(column, 'min');
+      return this.translate.instant('validation.min', { field: column.displayName, min });
+    }
+    if (errors['max']) {
+      const max = this.getNumericRule(column, 'max');
+      return this.translate.instant('validation.max', { field: column.displayName, max });
+    }
+    if (errors['pattern']) {
+      return this.translate.instant('validation.pattern', { field: column.displayName });
+    }
+    return this.translate.instant('validation.generic', { field: column.displayName });
+  }
+
+  getFieldErrorId(columnName: string): string {
+    return `${this.dialogFormId}-${columnName}-error`;
+  }
+
+  getFieldHintId(columnName: string): string {
+    return `${this.dialogFormId}-${columnName}-hint`;
+  }
+
+  getFieldAriaDescribedBy(columnName: string, control: NgModel | null): string | null {
+    const ids: string[] = [];
+    const hint = this.getFieldHintByName(columnName);
+    if (hint) {
+      ids.push(this.getFieldHintId(columnName));
+    }
+    if (control && this.isFieldInvalid(control)) {
+      ids.push(this.getFieldErrorId(columnName));
+    }
+    return ids.length ? ids.join(' ') : null;
+  }
+
+  isFieldInvalid(control: NgModel | null): boolean {
+    if (!control) {
+      return false;
+    }
+    return Boolean(control.invalid) && (control.dirty || this.formSubmitted);
+  }
+
+  uploadButtonLabel(column: HybridColumnDefinition): string {
+    const key = this.canReplaceImage(column, this.formModel[column.name])
+      ? `${this.translationPrefix}.replaceImage`
+      : `${this.translationPrefix}.uploadImage`;
+    return this.translate.instant(key);
+  }
+
+  getImageConstraintsHint(column: HybridColumnDefinition): string | null {
+    const maxImages = this.resolveMaxImages(column);
+    const constraints = column.mediaConstraints ?? column.metadata?.['mediaConstraints'];
+    const parts: string[] = [];
+    if (maxImages) {
+      parts.push(this.translate.instant('validation.maxImages', { max: maxImages }));
+    }
+    const maxSize = this.resolveMaxFileSize(column, constraints);
+    if (maxSize) {
+      const sizeMb = (maxSize / (1024 * 1024)).toFixed(1);
+      parts.push(this.translate.instant('validation.maxFileSize', { size: sizeMb }));
+    }
+    return parts.length ? parts.join(' • ') : null;
+  }
+
+  private resolveMaxFileSize(column: HybridColumnDefinition, constraints?: any): number | null {
+    const candidate = (constraints && constraints.maxFileSizeBytes !== undefined)
+      ? constraints.maxFileSizeBytes
+      : this.getConstraints(column)?.maxFileSizeBytes;
+    if (candidate === undefined || candidate === null) {
+      return null;
+    }
+    const numeric = Number(candidate);
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
+  }
+
+  private forceCloseDialog(): void {
     this.displayDialog = false;
     this.formSubmitted = false;
     this.saving = false;
+    this.dialogLoading = false;
     this.editingRecordId = null;
+    this.dialogErrorMessage = null;
+    this.formModel = {};
+    this.dialogInitialModel = {};
+    this.clearPendingFocus();
+  }
+
+  private setInitialFormState(): void {
+    this.dialogInitialModel = this.cloneModel(this.formModel);
+    this.dialogErrorMessage = null;
+  }
+
+  private isDialogDirty(): boolean {
+    return JSON.stringify(this.formModel ?? {}) !== JSON.stringify(this.dialogInitialModel ?? {});
+  }
+
+  private cloneModel(model: Record<string, any>): Record<string, any> {
+    return JSON.parse(JSON.stringify(model ?? {}));
+  }
+
+  private queueFocusOnDialog(): void {
+    this.clearPendingFocus();
+    this.pendingFocusHandle = setTimeout(() => {
+      const container = this.dialogBody?.nativeElement;
+      if (!container) {
+        return;
+      }
+      const selectors = [
+        '[data-focus-anchor] input:not([type=hidden])',
+        '[data-focus-anchor] textarea',
+        '[data-focus-anchor] select',
+        '[data-focus-anchor] .p-inputswitch-input',
+        '[data-focus-anchor] button'
+      ];
+      let target: HTMLElement | null = null;
+      for (const selector of selectors) {
+        target = container.querySelector<HTMLElement>(selector);
+        if (target) {
+          break;
+        }
+      }
+      target ??= container.querySelector<HTMLElement>('button, [tabindex]');
+      target?.focus();
+    }, 75);
+  }
+
+  private clearPendingFocus(): void {
+    if (this.pendingFocusHandle) {
+      clearTimeout(this.pendingFocusHandle);
+      this.pendingFocusHandle = null;
+    }
+  }
+
+  private focusFirstInvalidField(): void {
+    setTimeout(() => {
+      const container = this.dialogBody?.nativeElement;
+      if (!container) {
+        return;
+      }
+      const selectors = [
+        '.field .p-invalid input',
+        '.field .p-invalid textarea',
+        '.field .p-invalid select',
+        '.field .p-invalid .p-inputswitch-input',
+        '.field input.ng-invalid',
+        '.field textarea.ng-invalid'
+      ];
+      let element: HTMLElement | null = null;
+      for (const selector of selectors) {
+        element = container.querySelector<HTMLElement>(selector);
+        if (element) {
+          break;
+        }
+      }
+      element ??= container.querySelector<HTMLElement>('[data-focus-anchor] input, [data-focus-anchor] textarea');
+      element?.focus();
+    }, 50);
+  }
+
+  private isFullWidthColumn(column: HybridColumnDefinition): boolean {
+    if (column.type === HybridColumnType.MINIO_IMAGE) {
+      return true;
+    }
+    if (this.isTextarea(column)) {
+      return true;
+    }
+    const metaLayout = column.metadata?.['layout'] ?? column.metadata?.['width'];
+    if (typeof metaLayout === 'string') {
+      const normalized = metaLayout.trim().toLowerCase();
+      if (['full', 'fullwidth', 'wide', '12', '100%'].includes(normalized)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private isTextarea(column: HybridColumnDefinition): boolean {
+    const meta = (column.metadata ?? {}) as Record<string, any>;
+    return meta['textarea'] === true
+      || meta['input'] === 'textarea'
+      || meta['component'] === 'textarea'
+      || meta['type'] === 'textarea';
+  }
+
+  isColumnReadOnly(column: HybridColumnDefinition): boolean {
+    const meta = (column.metadata ?? {}) as Record<string, any>;
+    if (column.primaryKey && column.autoGenerated) {
+      return true;
+    }
+    if (meta['readonly'] === true || meta['readOnly'] === true) {
+      return true;
+    }
+    if (meta['editable'] === false) {
+      return true;
+    }
+    return false;
+  }
+
+  isColumnDisabled(column: HybridColumnDefinition): boolean {
+    const meta = (column.metadata ?? {}) as Record<string, any>;
+    if (this.isColumnReadOnly(column)) {
+      return true;
+    }
+    return meta['disabled'] === true;
+  }
+
+  private markDialogDirty(): void {
+    this.dialogErrorMessage = null;
+  }
+
+  private getFieldHintByName(columnName: string): string | null {
+    const column = this.findColumnDefinition(columnName);
+    return column ? this.getFieldHint(column) : null;
+  }
+
+  private findColumnDefinition(columnName: string): HybridColumnDefinition | undefined {
+    return this.schemaService.visibleColumns().find(col => col.name === columnName);
+  }
+
+  private get componentDisplayName(): string {
+    return this.schemaService.displayName();
   }
 
   confirmDeleteRecord(recordId: string): void {
@@ -471,9 +843,9 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       case HybridColumnType.DATE: {
         const date = value instanceof Date ? value : new Date(value);
         if (Number.isNaN(date.getTime())) {
-          return '';
+          return null;
         }
-        return date.toISOString().substring(0, 10);
+        return date;
       }
       case HybridColumnType.MINIO_IMAGE:
         return this.parseMinioValue(value, column);
@@ -487,6 +859,8 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       case HybridColumnType.BOOLEAN:
         return false;
       case HybridColumnType.MINIO_IMAGE:
+        return null;
+      case HybridColumnType.DATE:
         return null;
       default:
         return '';
@@ -524,8 +898,13 @@ export class HybridTableComponent implements OnInit, OnDestroy {
         const parsed = Number(value);
         return Number.isNaN(parsed) ? null : parsed;
       }
-      case HybridColumnType.DATE:
-        return value ? new Date(value).toISOString() : null;
+      case HybridColumnType.DATE: {
+        if (!value) {
+          return null;
+        }
+        const date = value instanceof Date ? value : new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date.toISOString();
+      }
       case HybridColumnType.MINIO_IMAGE:
         return this.normalizeMinioPayloadForSave(value, column);
       default:
@@ -729,6 +1108,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
           ? [newItem]
           : [...(existing?.items ?? []), newItem];
         this.formModel[column.name] = this.buildMinioPayload(column, items);
+        this.markDialogDirty();
       },
       error: () => this.showError(this.translate.instant(`${this.translationPrefix}.errors.update`))
     });
@@ -736,6 +1116,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   clearDialogImage(column: HybridColumnDefinition): void {
     this.formModel[column.name] = null;
+    this.markDialogDirty();
   }
 
   private looksLikeUrl(value: string): boolean {
