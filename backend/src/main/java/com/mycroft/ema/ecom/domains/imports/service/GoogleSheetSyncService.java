@@ -1,5 +1,7 @@
 package com.mycroft.ema.ecom.domains.imports.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycroft.ema.ecom.domains.imports.domain.GoogleImportConfig;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetSyncRequest;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
@@ -31,6 +33,7 @@ public class GoogleSheetSyncService {
   private final com.mycroft.ema.ecom.domains.notifications.service.NotificationLogService notificationLogService;
 
   private static final Pattern JSON_PATTERN = Pattern.compile("^\\s*\\{.+}\\s*$", Pattern.DOTALL);
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   public GoogleSheetSyncService(GoogleImportConfigRepository configRepository,
                                 DomainImportService domainImportService,
@@ -439,11 +442,32 @@ public class GoogleSheetSyncService {
         + "ON CONFLICT (id) DO UPDATE SET " + String.join(", ", updates);
 
     try {
-      jdbcTemplate.update(upsertSql, ordered.values().toArray());
+      jdbcTemplate.update(upsertSql, ordered.values().stream().map(GoogleSheetSyncService::toJdbcValue).toArray());
     } catch (Exception ex) {
       log.error("Failed to upsert row {} in {}: {}", id, table, ex.getMessage(), ex);
       throw ex;
     }
+  }
+
+  private static Object toJdbcValue(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Map<?, ?> map) {
+      try {
+        return JSON_MAPPER.writeValueAsString(map);
+      } catch (JsonProcessingException e) {
+        throw new IllegalArgumentException("Unable to serialize map column for sync", e);
+      }
+    }
+    if (value instanceof Collection<?> col) {
+      try {
+        return JSON_MAPPER.writeValueAsString(col);
+      } catch (JsonProcessingException e) {
+        throw new IllegalArgumentException("Unable to serialize collection column for sync", e);
+      }
+    }
+    return value;
   }
 
   private void deleteRow(String table, UUID rowId) {
