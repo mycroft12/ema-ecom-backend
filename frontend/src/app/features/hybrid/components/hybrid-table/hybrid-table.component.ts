@@ -374,21 +374,53 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   }
 
   private refreshActionPermissions(): void {
-    const permissions = new Set(this.auth.permissions() ?? []);
     this.permissionsState = {
-      add: permissions.has(this.resolvePermissionName('create')),
-      edit: permissions.has(this.resolvePermissionName('update')),
-      delete: permissions.has(this.resolvePermissionName('delete')),
-      export: permissions.has(this.resolvePermissionName('export'))
+      add: this.hasActionPermission('create'),
+      edit: this.hasActionPermission('update'),
+      delete: this.hasActionPermission('delete'),
+      export: this.hasActionPermission('export')
     };
   }
 
-  private resolvePermissionName(action: 'create' | 'update' | 'delete' | 'export'): string {
+  private hasActionPermission(action: 'create' | 'update' | 'delete' | 'export'): boolean {
+    const permissions = new Set(this.auth.permissions() ?? []);
     const prefix = (this.schemaService.entityTypeName ?? 'product').toLowerCase();
-    if (action === 'export') {
-      return `${prefix}:action:export:excel`;
+    const candidates: string[] = [];
+    switch (action) {
+      case 'create':
+        candidates.push(
+          `${prefix}:action:add`,
+          `${prefix}:create`,
+          `${prefix}:add`,
+          `${prefix}:action:create`
+        );
+        break;
+      case 'update':
+        candidates.push(
+          `${prefix}:action:update`,
+          `${prefix}:update`,
+          `${prefix}:action:edit`,
+          `${prefix}:edit`
+        );
+        break;
+      case 'delete':
+        candidates.push(
+          `${prefix}:action:delete`,
+          `${prefix}:delete`,
+          `${prefix}:action:remove`,
+          `${prefix}:remove`
+        );
+        break;
+      case 'export':
+        candidates.push(
+          `${prefix}:action:export:excel`,
+          `${prefix}:action:export`,
+          `${prefix}:export:excel`,
+          `${prefix}:export`
+        );
+        break;
     }
-    return `${prefix}:${action}`;
+    return candidates.some(candidate => permissions.has(candidate));
   }
 
   onGlobalFilter(event: Event, table: Table): void {
