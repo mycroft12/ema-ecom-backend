@@ -130,6 +130,10 @@ public class ImportConfigureController {
   @Transactional
   @Operation(summary = "Delete a domain table", description = "Drops the specified component table and all its data.")
   public ResponseEntity<Void> dropTable(@RequestParam("domain") String domain){
+    String normalizedDomain = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
+    if (normalizedDomain.isEmpty()) {
+      throw new IllegalArgumentException("Unsupported domain: " + domain);
+    }
     String table = domainImportService.tableForDomain(domain);
     try (java.sql.Connection conn = jdbcTemplate.getDataSource().getConnection()) {
       // Use a separate connection with auto-commit to ensure DDL is committed
@@ -138,6 +142,33 @@ public class ImportConfigureController {
         stmt.execute("drop table if exists " + table + " cascade");
       }
       jdbcTemplate.update("delete from column_semantics where table_name = ?", table);
+      googleImportConfigRepository.findByDomain(normalizedDomain).ifPresent(googleImportConfigRepository::delete);
+
+      List<String> exactPermissionNames = List.of(
+          normalizedDomain + ":read",
+          normalizedDomain + ":create",
+          normalizedDomain + ":update",
+          normalizedDomain + ":delete",
+          normalizedDomain + ":export:excel"
+      );
+      for (String name : exactPermissionNames) {
+        String lowered = name.toLowerCase(Locale.ROOT);
+        jdbcTemplate.update(
+            "delete from roles_permissions where permission_id in (select id from permissions where lower(name) = ?)",
+            lowered);
+        jdbcTemplate.update("delete from permissions where lower(name) = ?", lowered);
+      }
+
+      List<String> patterns = List.of(
+          normalizedDomain + ":access:%",
+          normalizedDomain + ":action:%"
+      );
+      for (String pattern : patterns) {
+        jdbcTemplate.update(
+            "delete from roles_permissions where permission_id in (select id from permissions where lower(name) like ?)",
+            pattern);
+        jdbcTemplate.update("delete from permissions where lower(name) like ?", pattern);
+      }
       return ResponseEntity.noContent().build();
     } catch (DataAccessException ex) {
       throw new RuntimeException("Failed to drop table '" + table + "': " + ex.getMessage(), ex);

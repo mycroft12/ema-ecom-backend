@@ -63,6 +63,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     } catch (Exception ex) {
       log.warn("Failed to bootstrap default product component: {}", ex.getMessage());
     }
+    domainImportService.cleanupLegacyPermissions("product");
     seedProductsSample();
   }
 
@@ -86,6 +87,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     } catch (Exception ex) {
       log.warn("Failed to bootstrap default orders component: {}", ex.getMessage());
     }
+    domainImportService.cleanupLegacyPermissions("orders");
     seedOrdersSample();
   }
 
@@ -107,6 +109,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     } catch (Exception ex) {
       log.warn("Failed to bootstrap default expenses component: {}", ex.getMessage());
     }
+    domainImportService.cleanupLegacyPermissions("expenses");
     seedExpensesSample();
   }
 
@@ -129,6 +132,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     } catch (Exception ex) {
       log.warn("Failed to bootstrap default advertising component: {}", ex.getMessage());
     }
+    domainImportService.cleanupLegacyPermissions("ads");
     seedAdsSample();
   }
 

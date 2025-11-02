@@ -163,12 +163,10 @@ public class DomainImportService {
   }
 
   private void createActionPermissions(String prefix) {
-    List<String> actions = List.of("add", "update", "delete", "export:excel");
-    actions.forEach(action -> {
-      String permissionName = prefix + ":action:" + action;
-      var permission = permissionService.ensure(permissionName);
-      assignPermissionToAdmin(permission.getId());
-    });
+    cleanupLegacyActionPermissions(prefix);
+    String exportPermissionName = prefix + ":export:excel";
+    var permission = permissionService.ensure(exportPermissionName);
+    assignPermissionToAdmin(permission.getId());
   }
 
   private void assignPermissionToAdmin(UUID permissionId) {
@@ -176,5 +174,33 @@ public class DomainImportService {
         "INSERT INTO roles_permissions(role_id, permission_id) " +
             "SELECT r.id, ? FROM roles r WHERE r.name = 'ADMIN' " +
             "ON CONFLICT DO NOTHING", permissionId);
+  }
+
+  public void cleanupLegacyPermissions(String domain) {
+    String prefix = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
+    if (prefix.isEmpty()) {
+      return;
+    }
+    cleanupLegacyActionPermissions(prefix);
+  }
+
+  private void cleanupLegacyActionPermissions(String prefix) {
+    List<String> legacyNames = List.of(
+        prefix + ":action:add",
+        prefix + ":action:update",
+        prefix + ":action:delete"
+    );
+    for (String legacy : legacyNames) {
+      String lowered = legacy.toLowerCase(Locale.ROOT);
+      List<UUID> ids = jdbcTemplate.query(
+          "select id from permissions where lower(name) = ?",
+          (rs, rowNum) -> rs.getObject("id", UUID.class),
+          lowered
+      );
+      for (UUID id : ids) {
+        jdbcTemplate.update("delete from roles_permissions where permission_id = ?", id);
+        jdbcTemplate.update("delete from permissions where id = ?", id);
+      }
+    }
   }
 }
