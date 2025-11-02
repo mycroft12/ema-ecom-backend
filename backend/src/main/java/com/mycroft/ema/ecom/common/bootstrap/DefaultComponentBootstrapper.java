@@ -35,6 +35,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     initializeOrders();
     initializeExpenses();
     initializeAds();
+    domainImportService.assignAllPermissionsToAdmin();
   }
 
   private void initializeProducts() {

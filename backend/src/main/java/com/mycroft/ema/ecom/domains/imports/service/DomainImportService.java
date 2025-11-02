@@ -4,6 +4,7 @@ import com.mycroft.ema.ecom.common.metadata.ColumnSemanticsService;
 import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import com.mycroft.ema.ecom.auth.service.PermissionService;
+import com.mycroft.ema.ecom.auth.repo.RoleRepository;
 import com.mycroft.ema.ecom.auth.domain.Permission;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -23,14 +25,17 @@ public class DomainImportService {
   private final JdbcTemplate jdbcTemplate;
   private final PermissionService permissionService;
   private final ColumnSemanticsService columnSemanticsService;
+  private final RoleRepository roleRepository;
 
   public DomainImportService(ExcelTemplateService templateService, JdbcTemplate jdbcTemplate,
                              PermissionService permissionService,
-                             ColumnSemanticsService columnSemanticsService) {
+                             ColumnSemanticsService columnSemanticsService,
+                             RoleRepository roleRepository) {
     this.templateService = templateService;
     this.jdbcTemplate = jdbcTemplate;
     this.permissionService = permissionService;
     this.columnSemanticsService = columnSemanticsService;
+    this.roleRepository = roleRepository;
   }
 
   public TemplateAnalysisResponse configureFromFile(String domain, MultipartFile file) {
@@ -238,5 +243,17 @@ public class DomainImportService {
             "SELECT ?, id FROM permissions WHERE lower(name) LIKE ? " +
             "ON CONFLICT DO NOTHING",
         adminRoleId, pattern);
+  }
+
+  public void assignAllPermissionsToAdmin() {
+    UUID adminRoleId = ensureAdminRole();
+    jdbcTemplate.update(
+        "INSERT INTO roles_permissions(role_id, permission_id) " +
+            "SELECT ?, id FROM permissions ON CONFLICT DO NOTHING",
+        adminRoleId);
+    roleRepository.findByName("ADMIN").ifPresent(role -> {
+      role.setPermissions(new HashSet<>(permissionService.findAll()));
+      roleRepository.save(role);
+    });
   }
 }
