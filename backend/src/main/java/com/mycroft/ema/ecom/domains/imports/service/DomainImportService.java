@@ -99,7 +99,8 @@ public class DomainImportService {
         normalized + ":read",
         normalized + ":create",
         normalized + ":update",
-        normalized + ":delete"
+        normalized + ":delete",
+        normalized + ":export:excel"
     );
     for (String name : base) {
       Permission perm = permissionService.ensure(name);
@@ -156,10 +157,15 @@ public class DomainImportService {
       return;
     }
     analysis.getColumns().forEach(column -> {
-      String permissionName = prefix + ":access:" + column.getName();
+      String columnName = column.getName();
+      if (columnName == null || columnName.isBlank()) {
+        return;
+      }
+      String permissionName = prefix + ":access:" + columnName.toLowerCase(Locale.ROOT);
       var permission = permissionService.ensure(permissionName);
       assignPermissionToAdmin(permission.getId());
     });
+    assignAllColumnPermissionsToAdmin(prefix);
   }
 
   private void createActionPermissions(String prefix) {
@@ -167,13 +173,31 @@ public class DomainImportService {
     String exportPermissionName = prefix + ":export:excel";
     var permission = permissionService.ensure(exportPermissionName);
     assignPermissionToAdmin(permission.getId());
+    assignAllColumnPermissionsToAdmin(prefix);
   }
 
   private void assignPermissionToAdmin(UUID permissionId) {
+    UUID adminRoleId = ensureAdminRole();
     jdbcTemplate.update(
-        "INSERT INTO roles_permissions(role_id, permission_id) " +
-            "SELECT r.id, ? FROM roles r WHERE r.name = 'ADMIN' " +
-            "ON CONFLICT DO NOTHING", permissionId);
+        "INSERT INTO roles_permissions(role_id, permission_id) VALUES (?, ?) " +
+            "ON CONFLICT DO NOTHING",
+        adminRoleId, permissionId);
+  }
+
+  private UUID ensureAdminRole() {
+    List<UUID> ids = jdbcTemplate.query(
+        "select id from roles where name = 'ADMIN'",
+        (rs, rowNum) -> rs.getObject("id", UUID.class));
+    if (!ids.isEmpty()) {
+      return ids.get(0);
+    }
+    UUID roleId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO roles(id, name) VALUES (?, ?) ON CONFLICT (name) DO NOTHING",
+        roleId, "ADMIN");
+    return jdbcTemplate.queryForObject(
+        "select id from roles where name = 'ADMIN'",
+        UUID.class);
   }
 
   public void cleanupLegacyPermissions(String domain) {
@@ -188,7 +212,9 @@ public class DomainImportService {
     List<String> legacyNames = List.of(
         prefix + ":action:add",
         prefix + ":action:update",
-        prefix + ":action:delete"
+        prefix + ":action:delete",
+        prefix + ":action:export:excel",
+        prefix + ":action:export"
     );
     for (String legacy : legacyNames) {
       String lowered = legacy.toLowerCase(Locale.ROOT);
@@ -202,5 +228,15 @@ public class DomainImportService {
         jdbcTemplate.update("delete from permissions where id = ?", id);
       }
     }
+  }
+
+  private void assignAllColumnPermissionsToAdmin(String prefix) {
+    UUID adminRoleId = ensureAdminRole();
+    String pattern = (prefix + ":access:%").toLowerCase(Locale.ROOT);
+    jdbcTemplate.update(
+        "INSERT INTO roles_permissions(role_id, permission_id) " +
+            "SELECT ?, id FROM permissions WHERE lower(name) LIKE ? " +
+            "ON CONFLICT DO NOTHING",
+        adminRoleId, pattern);
   }
 }

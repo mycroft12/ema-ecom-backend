@@ -94,14 +94,10 @@ public class DevAdminInitializer implements CommandLineRunner {
         // Seed a minimal set of permissions for admin (idempotent)
         String[] basePerms = new String[]{
             "user:read","user:create","user:update","user:delete",
-            "product:read","product:create","product:update","product:delete",
-            "orders:read","orders:create","orders:update","orders:delete",
-            "expenses:read","expenses:create","expenses:update","expenses:delete",
-            "ads:read","ads:create","ads:update","ads:delete",
-            "product:action:export:excel",
-            "orders:action:export:excel",
-            "expenses:action:export:excel",
-            "ads:action:export:excel",
+            "product:read","product:create","product:update","product:delete","product:export:excel",
+            "orders:read","orders:create","orders:update","orders:delete","orders:export:excel",
+            "expenses:read","expenses:create","expenses:update","expenses:delete","expenses:export:excel",
+            "ads:read","ads:create","ads:update","ads:delete","ads:export:excel",
             "import:template","import:configure"
         };
         for (String p : basePerms){

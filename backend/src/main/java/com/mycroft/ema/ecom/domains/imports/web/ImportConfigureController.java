@@ -143,6 +143,7 @@ public class ImportConfigureController {
       }
       jdbcTemplate.update("delete from column_semantics where table_name = ?", table);
       googleImportConfigRepository.findByDomain(normalizedDomain).ifPresent(googleImportConfigRepository::delete);
+      domainImportService.cleanupLegacyPermissions(normalizedDomain);
 
       List<String> exactPermissionNames = List.of(
           normalizedDomain + ":read",

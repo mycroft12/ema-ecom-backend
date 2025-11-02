@@ -11,17 +11,7 @@ INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:read') ON 
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:create') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:update') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:delete') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:action:export:excel') ON CONFLICT (name) DO NOTHING;
-
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'employee:read') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'employee:create') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'employee:update') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'employee:delete') ON CONFLICT (name) DO NOTHING;
-
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'delivery:read') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'delivery:create') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'delivery:update') ON CONFLICT (name) DO NOTHING;
-INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'delivery:delete') ON CONFLICT (name) DO NOTHING;
+INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'product:export:excel') ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'import:template') ON CONFLICT (name) DO NOTHING;
 INSERT INTO permissions(id, name) VALUES (gen_random_uuid(), 'import:configure') ON CONFLICT (name) DO NOTHING;

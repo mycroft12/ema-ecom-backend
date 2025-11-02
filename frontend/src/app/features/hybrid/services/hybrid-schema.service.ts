@@ -183,27 +183,19 @@ export class HybridSchemaService {
   }
 
   private filterColumnsByPermission(columns: HybridColumnDefinition[]): HybridColumnDefinition[] {
-    const perms = new Set(this.auth.permissions() ?? []);
-    const entity = this.entityTypeName;
+    const normalizedPerms = new Set((this.auth.permissions() ?? []).map(p => p.toLowerCase()));
+    const entity = this.entityTypeName.toLowerCase();
     const prefix = `${entity}:access:`;
-    const hasWildcard = Array.from(perms).some(p => p.startsWith(`${entity}:*`));
-    const relevant = Array.from(perms).filter(p => p.startsWith(prefix));
+    const hasWildcard = Array.from(normalizedPerms).some(p => p.startsWith(`${entity}:*`));
     if (hasWildcard) {
-      return columns;
-    }
-    if (relevant.length === 0) {
-      const hasBaseEntityPermission = Array.from(perms).some(p => p.startsWith(`${entity}:`));
-      if (!perms.size || hasBaseEntityPermission) {
-        return columns;
-      }
       return columns;
     }
     return columns.filter(col => {
       if (!col?.name) {
         return true;
       }
-      const required = prefix + col.name;
-      return perms.has(required);
+      const required = (prefix + col.name).toLowerCase();
+      return normalizedPerms.has(required);
     });
   }
 

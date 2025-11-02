@@ -383,44 +383,35 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   }
 
   private hasActionPermission(action: 'create' | 'update' | 'delete' | 'export'): boolean {
-    const permissions = new Set(this.auth.permissions() ?? []);
+    const permissions = new Set((this.auth.permissions() ?? []).map(p => p.toLowerCase()));
     const prefix = (this.schemaService.entityTypeName ?? 'product').toLowerCase();
-    const candidates: string[] = [];
-    switch (action) {
-      case 'create':
-        candidates.push(
-          `${prefix}:action:add`,
-          `${prefix}:create`,
-          `${prefix}:add`,
-          `${prefix}:action:create`
-        );
-        break;
-      case 'update':
-        candidates.push(
-          `${prefix}:action:update`,
-          `${prefix}:update`,
-          `${prefix}:action:edit`,
-          `${prefix}:edit`
-        );
-        break;
-      case 'delete':
-        candidates.push(
-          `${prefix}:action:delete`,
-          `${prefix}:delete`,
-          `${prefix}:action:remove`,
-          `${prefix}:remove`
-        );
-        break;
-      case 'export':
-        candidates.push(
-          `${prefix}:action:export:excel`,
-          `${prefix}:action:export`,
-          `${prefix}:export:excel`,
-          `${prefix}:export`
-        );
-        break;
+
+    const canonical = (() => {
+      switch (action) {
+        case 'create':
+          return `${prefix}:create`;
+        case 'update':
+          return `${prefix}:update`;
+        case 'delete':
+          return `${prefix}:delete`;
+        case 'export':
+          return `${prefix}:export:excel`;
+        default:
+          return '';
+      }
+    })();
+    if (canonical && permissions.has(canonical)) {
+      return true;
     }
-    return candidates.some(candidate => permissions.has(candidate));
+
+    const legacyFallbacks: Record<'create' | 'update' | 'delete' | 'export', string[]> = {
+      create: [`${prefix}:action:add`, `${prefix}:add`, `${prefix}:action:create`],
+      update: [`${prefix}:action:update`, `${prefix}:action:edit`, `${prefix}:edit`],
+      delete: [`${prefix}:action:delete`, `${prefix}:action:remove`, `${prefix}:remove`],
+      export: [`${prefix}:action:export:excel`, `${prefix}:action:export`, `${prefix}:export`]
+    };
+
+    return legacyFallbacks[action].some(candidate => permissions.has(candidate));
   }
 
   onGlobalFilter(event: Event, table: Table): void {
