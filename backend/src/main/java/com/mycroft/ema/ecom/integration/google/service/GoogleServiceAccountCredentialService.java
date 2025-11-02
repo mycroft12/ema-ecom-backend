@@ -1,9 +1,11 @@
-package com.mycroft.ema.ecom.integration.google;
+package com.mycroft.ema.ecom.integration.google.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.mycroft.ema.ecom.common.security.AesGcmSecretEncryptor;
+import com.mycroft.ema.ecom.integration.google.domain.GoogleServiceAccountSecret;
+import com.mycroft.ema.ecom.integration.google.repository.GoogleServiceAccountSecretRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;

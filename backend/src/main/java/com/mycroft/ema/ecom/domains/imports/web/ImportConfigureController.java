@@ -145,31 +145,11 @@ public class ImportConfigureController {
       googleImportConfigRepository.findByDomain(normalizedDomain).ifPresent(googleImportConfigRepository::delete);
       domainImportService.cleanupLegacyPermissions(normalizedDomain);
 
-      List<String> exactPermissionNames = List.of(
-          normalizedDomain + ":read",
-          normalizedDomain + ":create",
-          normalizedDomain + ":update",
-          normalizedDomain + ":delete",
-          normalizedDomain + ":export:excel"
-      );
-      for (String name : exactPermissionNames) {
-        String lowered = name.toLowerCase(Locale.ROOT);
-        jdbcTemplate.update(
-            "delete from roles_permissions where permission_id in (select id from permissions where lower(name) = ?)",
-            lowered);
-        jdbcTemplate.update("delete from permissions where lower(name) = ?", lowered);
-      }
-
-      List<String> patterns = List.of(
-          normalizedDomain + ":access:%",
-          normalizedDomain + ":action:%"
-      );
-      for (String pattern : patterns) {
-        jdbcTemplate.update(
-            "delete from roles_permissions where permission_id in (select id from permissions where lower(name) like ?)",
-            pattern);
-        jdbcTemplate.update("delete from permissions where lower(name) like ?", pattern);
-      }
+      String accessPattern = normalizedDomain + ":access:%";
+      jdbcTemplate.update(
+          "delete from roles_permissions where permission_id in (select id from permissions where lower(name) like ?)",
+          accessPattern);
+      jdbcTemplate.update("delete from permissions where lower(name) like ?", accessPattern);
       return ResponseEntity.noContent().build();
     } catch (DataAccessException ex) {
       throw new RuntimeException("Failed to drop table '" + table + "': " + ex.getMessage(), ex);

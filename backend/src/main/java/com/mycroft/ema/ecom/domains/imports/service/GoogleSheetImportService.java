@@ -6,8 +6,8 @@ import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetMetadataResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
 import com.mycroft.ema.ecom.domains.imports.util.MemoryMultipartFile;
-import com.mycroft.ema.ecom.integration.google.GoogleSheetsClient;
-import com.mycroft.ema.ecom.integration.google.GoogleSheetsProperties;
+import com.mycroft.ema.ecom.integration.google.service.GoogleSheetsClient;
+import com.mycroft.ema.ecom.integration.google.config.GoogleSheetsProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

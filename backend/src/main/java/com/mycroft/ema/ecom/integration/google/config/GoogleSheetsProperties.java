@@ -1,4 +1,4 @@
-package com.mycroft.ema.ecom.integration.google;
+package com.mycroft.ema.ecom.integration.google.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;

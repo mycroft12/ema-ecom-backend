@@ -5,7 +5,7 @@ import com.mycroft.ema.ecom.auth.repo.UserRepository;
 import com.mycroft.ema.ecom.auth.service.JwtService;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetSyncRequest;
 import com.mycroft.ema.ecom.domains.imports.service.GoogleSheetSyncService;
-import com.mycroft.ema.ecom.integration.google.GoogleSheetsProperties;
+import com.mycroft.ema.ecom.integration.google.config.GoogleSheetsProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

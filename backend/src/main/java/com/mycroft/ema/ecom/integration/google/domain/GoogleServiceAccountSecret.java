@@ -1,4 +1,4 @@
-package com.mycroft.ema.ecom.integration.google;
+package com.mycroft.ema.ecom.integration.google.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

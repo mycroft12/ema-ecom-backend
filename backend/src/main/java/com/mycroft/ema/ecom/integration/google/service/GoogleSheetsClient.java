@@ -1,4 +1,4 @@
-package com.mycroft.ema.ecom.integration.google;
+package com.mycroft.ema.ecom.integration.google.service;
 
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -10,6 +10,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetMetadataResponse;
+import com.mycroft.ema.ecom.integration.google.config.GoogleSheetsProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,6 @@ import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

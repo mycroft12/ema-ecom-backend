@@ -47,8 +47,7 @@ export class HybridSchemaConfigurationComponent {
   private readonly translationPrefix = inject(HYBRID_TRANSLATION_PREFIX);
 
   navigateToImport(): void {
-    const domain = this.schemaService.entityTypeName || 'products';
-    this.router.navigate(['/import'], { queryParams: { domain } });
+    this.router.navigate(['/import']);
   }
 
   readonly translationNamespace = this.schemaService.translationNamespace || this.translationPrefix;

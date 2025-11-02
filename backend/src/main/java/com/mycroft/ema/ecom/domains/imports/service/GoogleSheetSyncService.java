@@ -85,9 +85,7 @@ public class GoogleSheetSyncService {
         .orElse("UPSERT");
 
     UUID rowId = resolveRowId(sanitizedRow);
-    if (!sanitizedRow.containsKey("id")) {
-      sanitizedRow.put("id", rowId);
-    }
+    sanitizedRow.put("id", rowId);
 
     if ("DELETE".equals(action)) {
       deleteRow(table, rowId);
@@ -174,13 +172,15 @@ public class GoogleSheetSyncService {
 
   private UUID resolveRowId(Map<String, Object> row) {
     Object idValue = row.get("id");
-    if (idValue == null || idValue.toString().isBlank()) {
-      UUID generated = UUID.randomUUID();
-      row.put("id", generated);
-      return generated;
+    if (idValue == null) {
+      throw new IllegalArgumentException("id column is required for Google Sheet sync updates.");
+    }
+    String raw = idValue.toString().trim();
+    if (raw.isEmpty()) {
+      throw new IllegalArgumentException("id column must contain a non-empty UUID value.");
     }
     try {
-      UUID uuid = UUID.fromString(idValue.toString().trim());
+      UUID uuid = UUID.fromString(raw);
       row.put("id", uuid);
       return uuid;
     } catch (IllegalArgumentException ex) {

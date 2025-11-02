@@ -1,7 +1,10 @@
-package com.mycroft.ema.ecom.integration.google;
+package com.mycroft.ema.ecom.integration.google.web;
 
+import com.mycroft.ema.ecom.integration.google.service.GoogleSheetsClient;
+import com.mycroft.ema.ecom.integration.google.config.GoogleSheetsProperties;
 import com.mycroft.ema.ecom.integration.google.dto.GoogleSheetTestRequest;
 import com.mycroft.ema.ecom.integration.google.dto.GoogleSheetTestResponse;
+import com.mycroft.ema.ecom.integration.google.service.GoogleServiceAccountCredentialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
