@@ -852,7 +852,7 @@ export class ImportTemplatePageComponent implements OnInit {
       },
       error: (err) => {
         this.googleLoading = false;
-        const detail = err?.error?.message || err?.error?.detail || this.translate.instant('import.google.connectError');
+        const detail = this.resolveGoogleConnectErrorMessage(err, targetDomain);
         this.googleErrorMessage = detail;
         this.messageService.add({
           severity: 'error',
@@ -998,6 +998,43 @@ export class ImportTemplatePageComponent implements OnInit {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  private resolveGoogleConnectErrorMessage(err: any, domain: DomainKey): string {
+    const raw = (err?.error?.message ?? err?.error?.detail ?? '').toString();
+    const normalized = raw.toLowerCase();
+    const domainLabelKey = domain ? this.getDomainDisplayName(domain) : '';
+    const domainLabel = domainLabelKey ? this.translate.instant(domainLabelKey) : '';
+    const domainDisplay = domainLabel || domain || this.translate.instant('import.domainPlaceholder');
+    const normalizedDomain = (domain ?? '').toLowerCase();
+
+    if (normalized.includes('not connected to google sheets')) {
+      const match = /domain ['\"]?([a-z0-9_-]+)['\"]?/i.exec(normalized);
+      const reportedDomain = match?.[1] ?? '';
+      if (reportedDomain && normalizedDomain && reportedDomain !== normalizedDomain) {
+        return this.translate.instant('import.google.duplicateSheetError');
+      }
+      return this.translate.instant('import.google.domainNotConnected', { domain: domainDisplay });
+    }
+
+    const duplicateIndicators = [
+      'already connected',
+      'already linked',
+      'already assigned',
+      'already configured',
+      'already used',
+      'duplicate sheet',
+      'same google sheet',
+      'duplicate key value',
+      'unique constraint',
+      'uk_google_import_sheet',
+      'already exists'
+    ];
+    if (duplicateIndicators.some(indicator => normalized.includes(indicator))) {
+      return this.translate.instant('import.google.duplicateSheetError');
+    }
+
+    return raw || this.translate.instant('import.google.connectError');
   }
 
   private extractFilename(cd: string | null): string | null {

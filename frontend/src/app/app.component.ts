@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { AuthService } from './core/auth.service';
@@ -21,15 +21,19 @@ import { NotificationMenuComponent } from './shared/notification-menu.component'
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   selectedLang: LangCode;
 
   constructor(public auth: AuthService,
               private router: Router,
               public lang: LanguageService,
-              upsertListener: HybridUpsertListenerService) {
+              private upsertListener: HybridUpsertListenerService) {
     this.selectedLang = this.lang.current();
-    upsertListener.start();
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.auth.initAutoSession();
+    void this.upsertListener.start();
   }
   get isLoginPage(): boolean { return this.router.url.startsWith('/login'); }
   logout(){ this.auth.logout(); }

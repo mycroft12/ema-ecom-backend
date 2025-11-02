@@ -99,9 +99,6 @@
     "replaceImage": "استبدال الصورة",
     "viewImage": "عرض الصورة بحجم أكبر",
     "previewImage": "معاينة الصورة",
-    "previewImage": "معاينة الصورة",
-    "previewImage": "معاينة الصورة",
-    "previewImage": "معاينة الصورة",
     "noResults": "لا توجد منتجات",
     "anyOption": "أي",
     "selectOneOption": "اختر واحدًا",
@@ -248,7 +245,9 @@
       "testConnectionError": "تعذر قراءة الجدول. تحقق من أذونات المشاركة واسم الورقة.",
       "testResultSummary": "تم العثور على {{ rows }} صفاً من البيانات.",
       "headers": "عناوين الأعمدة",
-      "types": "الأنواع"
+      "types": "الأنواع",
+      "domainNotConnected": "{{ domain }} غير مرتبط حاليًا بـGoogle Sheets.",
+      "duplicateSheetError": "لا يمكنك ربط جدول بيانات Google نفسه مرتين."
     },
     "adminOnly": "خيارات المسؤول",
     "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",

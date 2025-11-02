@@ -1,9 +1,9 @@
 import { Injectable, NgZone, Signal, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, firstValueFrom, of } from 'rxjs';
+import { catchError, map, timeout } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 interface LoginRequest { username: string; password: string; }
@@ -15,6 +15,8 @@ export class AuthService {
   private tokenKey = 'ema_token';
   private refreshTokenKey = 'ema_refresh_token';
   private logoutMessageKey = 'ema_logout_message';
+  private readonly refreshTimestampKey = 'ema_refresh_timestamp';
+  readonly STALE_MAX_AGE_MS = 5 * 60 * 1000;
   private refreshTokenSnapshot: string | null = null;
   private readonly permissionsSig = signal<string[]>([]);
 
@@ -30,6 +32,7 @@ export class AuthService {
   saveLoginResponse(response: LoginResponse) {
     this.saveToken(response.accessToken);
     this.saveRefreshToken(response.refreshToken);
+    this.markRefreshed();
   }
 
   saveToken(token: string){
@@ -49,6 +52,94 @@ export class AuthService {
   saveRefreshToken(token: string){
     localStorage.setItem(this.refreshTokenKey, token);
     this.refreshTokenSnapshot = token;
+  }
+  getLastRefreshTimestamp(): number {
+    try {
+      const raw = localStorage.getItem(this.refreshTimestampKey);
+      if (!raw) {
+        return 0;
+      }
+      const parsed = Number(raw);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    } catch {
+      return 0;
+    }
+  }
+  private markRefreshed(timestamp: number = Date.now()): void {
+    try {
+      localStorage.setItem(this.refreshTimestampKey, String(timestamp));
+    } catch {
+      /* ignore */
+    }
+  }
+  private clearRefreshTimestamp(): void {
+    try {
+      localStorage.removeItem(this.refreshTimestampKey);
+    } catch {
+      /* ignore */
+    }
+  }
+  isRefreshStale(): boolean {
+    const ts = this.getLastRefreshTimestamp();
+    if (!ts) {
+      return true;
+    }
+    return Date.now() - ts > this.STALE_MAX_AGE_MS;
+  }
+  async initAutoSession(): Promise<void> {
+    const refreshToken = this.peekRefreshToken();
+    const accessToken = this.peekToken();
+    if (!refreshToken) {
+      if (!accessToken) {
+        this.clearRefreshTimestamp();
+      }
+      return;
+    }
+
+    let needsRefresh = false;
+    if (!accessToken) {
+      needsRefresh = true;
+    } else {
+      try {
+        const payload = jwtDecode<JwtPayload>(accessToken);
+        if (!payload || this.isExpired(payload)) {
+          needsRefresh = true;
+        }
+      } catch {
+        needsRefresh = true;
+      }
+    }
+    if (!needsRefresh && this.isRefreshStale()) {
+      needsRefresh = true;
+    }
+    if (!needsRefresh) {
+      return;
+    }
+    const refreshed = await this.tryRefreshWithTimeout();
+    if (!refreshed) {
+      this.forceLogoutToLogin('auth.errors.reconnect');
+    }
+  }
+  async tryRefreshWithTimeout(timeoutMs = 5000): Promise<boolean> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return false;
+    }
+    try {
+      const response = await firstValueFrom(this.refreshAccessToken().pipe(timeout(timeoutMs)));
+      this.saveLoginResponse(response);
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+  forceLogoutToLogin(messageKey: string = 'auth.errors.reconnect'): void {
+    this.logout(messageKey);
+  }
+  handleTransportError(error: HttpErrorResponse): void {
+    if (error.status === 0 && this.isAuthenticated() && this.isRefreshStale()) {
+      this.forceLogoutToLogin('auth.errors.reconnect');
+    }
   }
   private peekRefreshToken(): string | null {
     try {
@@ -131,6 +222,7 @@ export class AuthService {
     }
     localStorage.removeItem(this.tokenKey); 
     localStorage.removeItem(this.refreshTokenKey);
+    this.clearRefreshTimestamp();
     this.refreshTokenSnapshot = null;
     this.permissionsSig.set([]);
     const navigate = () => this.router.navigateByUrl('/login').catch(() => { window.location.href = '/login'; });

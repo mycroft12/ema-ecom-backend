@@ -56,9 +56,6 @@
     "replaceImage": "Replace image",
     "viewImage": "View image in a larger window",
     "previewImage": "Preview image",
-    "previewImage": "Preview image",
-    "previewImage": "Preview image",
-    "previewImage": "Preview image",
     "noResults": "No orders found",
     "anyOption": "Any",
     "selectOneOption": "Select one",
@@ -487,7 +484,9 @@
       "testConnectionError": "Failed to read the sheet. Verify sharing permissions and the tab name.",
       "testResultSummary": "Sampled {{ rows }} data rows.",
       "headers": "Headers",
-      "types": "Types"
+      "types": "Types",
+      "domainNotConnected": "{{ domain }} is not connected to Google Sheets yet.",
+      "duplicateSheetError": "You can't link the same Google Sheet twice."
     },
     "adminOnly": "Admin Options",
     "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",

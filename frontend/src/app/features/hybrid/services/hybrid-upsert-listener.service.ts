@@ -4,6 +4,7 @@ import { AuthService } from '../../../core/auth.service';
 import { HybridSchemaService } from './hybrid-schema.service';
 import { MessageService } from 'primeng/api';
 import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class HybridUpsertListenerService implements OnDestroy {
@@ -18,9 +19,23 @@ export class HybridUpsertListenerService implements OnDestroy {
               private messageService: MessageService,
               private translate: TranslateService) {}
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.eventSource) {
       return;
+    }
+    const ensured = await firstValueFrom(this.auth.ensureAuthenticated()).catch(() => false);
+    if (!ensured) {
+      if (this.auth.isAuthenticated() && this.auth.isRefreshStale()) {
+        this.auth.forceLogoutToLogin('auth.errors.reconnect');
+      }
+      return;
+    }
+    if (this.auth.isAuthenticated() && this.auth.isRefreshStale()) {
+      const refreshed = await this.auth.tryRefreshWithTimeout(3000);
+      if (!refreshed) {
+        this.auth.forceLogoutToLogin('auth.errors.reconnect');
+        return;
+      }
     }
     const token = this.auth.getToken();
     if (!token) {
@@ -67,7 +82,7 @@ export class HybridUpsertListenerService implements OnDestroy {
     }
     this.retryHandle = setTimeout(() => {
       this.retryHandle = undefined;
-      this.start();
+      void this.start();
     }, 5000);
   }
 

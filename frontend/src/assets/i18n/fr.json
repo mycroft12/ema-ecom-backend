@@ -102,7 +102,6 @@
     "replaceImage": "Remplacer l'image",
     "viewImage": "Afficher l'image en grand",
     "previewImage": "Prévisualiser l'image",
-    "previewImage": "Prévisualiser l'image",
     "noResults": "Aucun produit trouvé",
     "anyOption": "Tous",
     "selectOneOption": "Sélectionner",
@@ -476,7 +475,9 @@
       "testConnectionError": "Impossible de lire la feuille. Vérifiez le partage et le nom de l'onglet.",
       "testResultSummary": "{{ rows }} ligne(s) de données détectée(s).",
       "headers": "En-têtes",
-      "types": "Types"
+      "types": "Types",
+      "domainNotConnected": "{{ domain }} n'est pas encore relié à Google Sheets.",
+      "duplicateSheetError": "Vous ne pouvez pas lier la même feuille Google deux fois."
     },
     "adminOnly": "Options d'administrateur",
     "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",

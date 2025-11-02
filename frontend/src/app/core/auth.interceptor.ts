@@ -54,13 +54,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(refreshError => {
             // If refresh fails, log out the user
-            auth.logout('auth.errors.reconnect');
+            auth.forceLogoutToLogin('auth.errors.reconnect');
             return throwError(() => refreshError);
           })
         );
       }
 
       // If not 401 or refresh failed, just pass through the error
+      auth.handleTransportError(error);
       return throwError(() => error);
     })
   );

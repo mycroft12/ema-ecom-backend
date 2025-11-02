@@ -145,6 +145,43 @@
   border-color: var(--red-400, #f87171);
 }
 
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: nowrap;
+}
+
+.phone-country-select {
+  min-width: 9.5rem;
+  flex: 0 0 auto;
+}
+
+.phone-option {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.phone-option img.flag {
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+:host ::ng-deep .phone-input-group .p-select {
+  flex: 0 0 auto;
+}
+
+:host ::ng-deep .phone-input-group .p-inputmask {
+  flex: 1 1 auto;
+}
+
+:host ::ng-deep .phone-input-group .p-inputmask input {
+  width: 100%;
+}
+
 .field-disabled {
   opacity: .85;
 }
