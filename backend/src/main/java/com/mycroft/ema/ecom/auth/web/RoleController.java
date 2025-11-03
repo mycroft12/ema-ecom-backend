@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Role management endpoints for CRUD operations and permission assignments.
+ */
 @RestController
 @RequestMapping("/api/roles")
 @Tag(name = "Roles", description = "Manage roles and their permissions")

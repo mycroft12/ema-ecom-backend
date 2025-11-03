@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Structured representation of a MINIO image field, carrying uploaded items and the constraint metadata that governs them.
+ */
 public final class MinioImagePayload {
   public static final String TYPE = "MINIO_IMAGE";
   private final List<Item> items;
@@ -233,6 +236,9 @@ public final class MinioImagePayload {
     return new MinioImagePayload(truncated, maxImages, maxFileSizeBytes, allowedMimeTypes, extras);
   }
 
+  /**
+   * Individual object entry within a MINIO image payload, storing URL metadata and lifecycle data.
+   */
   public record Item(String key, String url, Instant expiresAt, String contentType, Long sizeBytes) {
     public boolean isEmpty() {
       return !StringUtils.hasText(key) && !StringUtils.hasText(url);

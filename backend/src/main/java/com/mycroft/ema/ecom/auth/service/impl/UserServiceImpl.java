@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * JPA-backed implementation of {@link com.mycroft.ema.ecom.auth.service.UserService}.
+ */
 @Service
 public class UserServiceImpl implements UserService {
   private final UserRepository users;

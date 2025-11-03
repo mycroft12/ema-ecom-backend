@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
+/**
+ * Configures the message source used for internationalized validation and error messages.
+ */
 @Configuration
 public class MessageSourceConfig {
   @Bean

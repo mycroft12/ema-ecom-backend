@@ -1,5 +1,8 @@
 package com.mycroft.ema.ecom.domains.imports.dto;
 
+/**
+ * Descriptor for a column inferred from templates, containing both logical metadata and generated SQL definitions.
+ */
 public class ColumnInfo {
   private String excelName; // header as in the Excel file
   private String name;      // normalized snake_case name

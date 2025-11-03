@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Persistence-aware implementation of {@link com.mycroft.ema.ecom.auth.service.PermissionService}.
+ */
 @Service
 public class PermissionServiceImpl implements PermissionService {
   private final PermissionRepository perms;

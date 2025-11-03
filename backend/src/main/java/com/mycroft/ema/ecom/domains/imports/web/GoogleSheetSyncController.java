@@ -21,6 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Webhook endpoint that authorizes and processes incremental row syncs coming from Google Sheets automations.
+ */
 @RestController
 @RequestMapping("/api/import/google")
 public class GoogleSheetSyncController {

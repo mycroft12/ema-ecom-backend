@@ -5,5 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
+/**
+ * Repository abstraction for persisting and querying {@link NotificationLog} entries.
+ */
 public interface NotificationLogRepository extends JpaRepository<NotificationLog, UUID> {
 }

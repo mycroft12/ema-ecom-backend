@@ -5,6 +5,9 @@ import com.mycroft.ema.ecom.auth.domain.User;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service contract for administering application users and their role assignments.
+ */
 public interface UserService {
   List<User> findAll();
   User get(UUID id);

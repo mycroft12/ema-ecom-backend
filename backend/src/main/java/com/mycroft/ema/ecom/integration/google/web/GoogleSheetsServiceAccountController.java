@@ -22,6 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * REST API exposing endpoints to manage Google Sheets credentials and run connectivity smoke tests.
+ */
 @RestController
 @RequestMapping("/api/integrations/google/sheets")
 @Tag(name = "Google Sheets Integration", description = "Manage Google Sheets service account and configuration")

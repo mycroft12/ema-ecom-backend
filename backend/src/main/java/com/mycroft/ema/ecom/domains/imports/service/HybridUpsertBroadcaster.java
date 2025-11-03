@@ -12,12 +12,18 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Server-sent events broadcaster that notifies connected clients about hybrid entity upsert activity.
+ */
 @Component
 public class HybridUpsertBroadcaster {
 
   private static final Logger log = LoggerFactory.getLogger(HybridUpsertBroadcaster.class);
   private static final long DEFAULT_TIMEOUT = Duration.ofMinutes(30).toMillis();
 
+  /**
+   * Internal registration representing a subscribed SSE emitter scoped to a domain.
+   */
   private record Registration(String domain, SseEmitter emitter) {}
 
   private final List<Registration> emitters = new CopyOnWriteArrayList<>();

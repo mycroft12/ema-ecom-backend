@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST controller surfacing the notification log for consumption by the frontend.
+ */
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {

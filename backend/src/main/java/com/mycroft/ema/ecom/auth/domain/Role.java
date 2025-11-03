@@ -6,6 +6,9 @@ import lombok.Getter; import lombok.Setter;
 
 import java.util.Set;
 
+/**
+ * Role aggregate representing a named collection of permissions assigned to users.
+ */
 @Entity
 @Table(name="roles")
 @Getter @Setter

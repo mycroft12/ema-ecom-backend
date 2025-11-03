@@ -8,6 +8,9 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository for issuing, revoking and querying {@link RefreshToken} records.
+ */
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
     Optional<RefreshToken> findByToken(String token);
     long deleteByUser(User user);

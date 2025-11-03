@@ -14,6 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.Date;
 
+/**
+ * Generates and validates JWT access tokens while enforcing refresh-token presence.
+ */
 @Service
 public class JwtService {
 

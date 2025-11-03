@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+/**
+ * REST controller exposing user administration endpoints.
+ */
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "Users", description = "Manage application users")

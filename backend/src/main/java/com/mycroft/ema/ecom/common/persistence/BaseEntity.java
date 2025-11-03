@@ -7,6 +7,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Base JPA entity that supplies an immutable identifier together with automatic creation and update timestamps.
+ */
 @MappedSuperclass
 @Getter
 public abstract class BaseEntity {

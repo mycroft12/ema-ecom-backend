@@ -2,6 +2,9 @@ package com.mycroft.ema.ecom.domains.imports.dto;
 
 import java.util.List;
 
+/**
+ * Result of analyzing an import template, including inferred schema, generated DDL and warnings.
+ */
 public class TemplateAnalysisResponse {
   private String tableName;
   private List<ColumnInfo> columns;

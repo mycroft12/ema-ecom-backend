@@ -21,6 +21,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
+/**
+ * Processes webhook-style row sync events from Google Sheets, applying inserts/updates/deletes to dynamic tables.
+ */
 @Slf4j
 @Service
 public class GoogleSheetSyncService {
@@ -350,6 +353,9 @@ public class GoogleSheetSyncService {
     }
   }
 
+  /**
+   * Lightweight parser result representing how a MINIO image cell should be handled during sync.
+   */
   private record MinioImagePayload(boolean clearRequested, String existingJson) {
 
     static MinioImagePayload from(Object raw) {

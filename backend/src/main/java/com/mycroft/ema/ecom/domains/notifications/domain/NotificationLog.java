@@ -9,6 +9,9 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Entity capturing audit notifications emitted for changes to dynamic domain rows.
+ */
 @Entity
 @Table(name = "notification_logs")
 public class NotificationLog {

@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter; import lombok.Setter;
 import java.util.Set;
 
+/**
+ * User entity capturing login credentials, contact information and granted roles.
+ */
 @Entity @Table(name="users")
 @Getter @Setter
 public class User extends BaseEntity {

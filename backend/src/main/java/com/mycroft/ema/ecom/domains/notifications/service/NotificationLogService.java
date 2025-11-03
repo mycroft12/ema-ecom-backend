@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service responsible for recording, querying and updating notification log entries.
+ */
 @Service
 public class NotificationLogService {
 

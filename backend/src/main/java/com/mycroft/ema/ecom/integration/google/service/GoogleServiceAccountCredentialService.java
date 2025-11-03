@@ -16,6 +16,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Coordinates secure storage, retrieval and validation of Google Sheets service account credentials.
+ */
 @Service
 public class GoogleServiceAccountCredentialService {
 
@@ -140,7 +143,13 @@ public class GoogleServiceAccountCredentialService {
     }
   }
 
+  /**
+   * Descriptor summarizing whether service account credentials are configured and relevant metadata.
+   */
   public record ServiceAccountStatus(boolean configured, String clientEmail, String projectId, Instant updatedAt) {}
 
+  /**
+   * Container holding decrypted service account JSON for internal reuse.
+   */
   public record StoredServiceAccount(byte[] jsonBytes, String clientEmail, String projectId, Instant updatedAt) {}
 }

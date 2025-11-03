@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * REST endpoints for initiating Google Sheet-based imports and handling webhook callbacks.
+ */
 @RestController
 @RequestMapping("/api/import/google")
 @Tag(name = "Google Sheet Import", description = "Integrate Google Sheets with dynamic component configuration")

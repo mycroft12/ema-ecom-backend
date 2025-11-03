@@ -24,6 +24,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException; import java.util.Collection;
 
+/**
+ * Central Spring Security configuration wiring stateless JWT authentication and endpoint authorization rules.
+ */
 @Configuration
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
 public class SecurityConfig {
@@ -50,6 +53,9 @@ public class SecurityConfig {
     return new JwtAuthenticationFilter(jwt, users, ac);
   }
 
+  /**
+   * Lightweight {@link org.springframework.security.core.Authentication} carrying the authenticated user and authorities.
+   */
   static class JwtAuthenticationToken extends AbstractAuthenticationToken {
     private final User principal;
 
@@ -67,6 +73,9 @@ public class SecurityConfig {
 
   }
 
+  /**
+   * Servlet filter that extracts bearer tokens, validates them and populates the Spring Security context.
+   */
   static class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwt;
     private final UserRepository users;

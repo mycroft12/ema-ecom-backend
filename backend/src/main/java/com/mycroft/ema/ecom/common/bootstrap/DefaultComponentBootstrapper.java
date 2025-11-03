@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Application runner that seeds default domain components, configures column metadata and inserts sample records when needed.
+ */
 @Component
 public class DefaultComponentBootstrapper implements ApplicationRunner {
 

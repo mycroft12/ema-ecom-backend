@@ -8,6 +8,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * In-memory {@link MultipartFile} implementation used to reuse the file processing pipeline with generated data.
+ */
 public class MemoryMultipartFile implements MultipartFile {
 
   private final String name;

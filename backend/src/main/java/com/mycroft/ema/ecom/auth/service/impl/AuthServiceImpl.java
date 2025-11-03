@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Default authentication workflow implementation backed by JWTs and persistent refresh tokens.
+ */
 @Service
 public class AuthServiceImpl implements AuthService {
 

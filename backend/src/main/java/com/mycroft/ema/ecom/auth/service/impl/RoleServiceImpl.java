@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Business logic for maintaining roles and their permission memberships.
+ */
 @Service
 public class RoleServiceImpl implements RoleService {
   private final RoleRepository roles;

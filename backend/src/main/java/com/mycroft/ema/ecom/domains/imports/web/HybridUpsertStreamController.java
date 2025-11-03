@@ -16,6 +16,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Establishes server-sent event streams so clients can react to hybrid entity upsert notifications in real time.
+ */
 @RestController
 public class HybridUpsertStreamController {
 

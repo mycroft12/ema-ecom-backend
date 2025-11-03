@@ -12,6 +12,9 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+/**
+ * Stateless component that encrypts and decrypts sensitive secrets using AES-256-GCM and an application master key.
+ */
 @Component
 public class AesGcmSecretEncryptor {
 
@@ -67,5 +70,8 @@ public class AesGcmSecretEncryptor {
     }
   }
 
+  /**
+   * Holder for the initialization vector and cipher text produced by an encryption operation.
+   */
   public record EncryptionResult(byte[] iv, byte[] cipherText) {}
 }

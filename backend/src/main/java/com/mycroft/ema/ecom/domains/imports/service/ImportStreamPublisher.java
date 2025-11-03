@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+/**
+ * Placeholder publisher that would stream import events to downstream systems; currently logs sanitized payloads.
+ */
 @Component
 public class ImportStreamPublisher {
 

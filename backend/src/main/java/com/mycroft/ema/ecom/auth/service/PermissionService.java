@@ -5,6 +5,9 @@ import com.mycroft.ema.ecom.auth.domain.Permission;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Contract for managing lifecycle operations on {@link com.mycroft.ema.ecom.auth.domain.Permission}.
+ */
 public interface PermissionService {
   List<Permission> findAll();
   Permission create(Permission p);

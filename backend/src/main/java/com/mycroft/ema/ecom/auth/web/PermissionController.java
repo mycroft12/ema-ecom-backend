@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.web.bind.annotation.*;
 import java.util.List; import java.util.UUID;
 
+/**
+ * REST API for administrating permission definitions.
+ */
 @RestController
 @RequestMapping("/api/permissions")
 @Tag(name = "Permissions", description = "Manage granular permissions")

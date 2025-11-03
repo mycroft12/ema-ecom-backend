@@ -6,6 +6,9 @@ import lombok.Getter; import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * Refresh token issued during authentication to support session renewal and revocation workflows.
+ */
 @Entity @Table(name="refresh_tokens")
 @Getter @Setter
 public class RefreshToken extends BaseEntity {

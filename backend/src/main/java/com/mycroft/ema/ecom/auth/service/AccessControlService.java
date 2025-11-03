@@ -5,6 +5,9 @@ import com.mycroft.ema.ecom.auth.domain.User;
 import org.springframework.stereotype.Service;
 import java.util.Set; import java.util.stream.Collectors;
 
+/**
+ * Utility service that flattens role assignments into a unique set of permission strings.
+ */
 @Service
 public class AccessControlService {
   public Set<String> permissions(User u) {

@@ -25,6 +25,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Analyzes Excel and CSV templates to infer column definitions, generate DDL and populate component tables.
+ */
 @Service
 public class ExcelTemplateService {
 

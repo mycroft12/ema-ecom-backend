@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Lightweight summary describing the structure of a Google Sheet sample, used for configuration feedback.
+ */
 public record GoogleSheetTestResponse(
     List<String> headers,
     List<String> typeRow,

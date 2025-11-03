@@ -4,6 +4,9 @@ import com.mycroft.ema.ecom.common.persistence.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter; import lombok.Setter;
 
+/**
+ * Permission entity representing a granular capability such as `product:create`.
+ */
 @Entity
 @Table(name="permissions")
 @Getter

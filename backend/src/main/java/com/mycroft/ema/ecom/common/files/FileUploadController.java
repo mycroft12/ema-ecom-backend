@@ -16,6 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * REST controller that handles MinIO uploads, validating payloads against semantic constraints before issuing presigned URLs.
+ */
 @RestController
 @RequestMapping("/api/files")
 @Tag(name = "Files", description = "Upload files to MinIO and get public URLs")

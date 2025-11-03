@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.modulith.Modulithic;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * Spring Boot entry point for the EMA E-commerce backend, enabling Modulith boundaries and scheduled tasks.
+ */
 @SpringBootApplication
 @Modulithic(sharedModules = "common")
 @EnableScheduling

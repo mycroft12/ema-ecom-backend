@@ -25,6 +25,9 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Lazily-initialized Google Sheets client that reuses service-account credentials and caches the Sheets service instance.
+ */
 @Component
 public class GoogleSheetsClient {
 

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Immutable value object describing the semantic configuration for a dynamic column, including constraints and metadata.
+ */
 public final class ColumnSemantics {
   private final String domain;
   private final String tableName;

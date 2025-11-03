@@ -7,6 +7,9 @@ import com.mycroft.ema.ecom.domains.notifications.domain.NotificationLog;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Mapper that converts {@link NotificationLog} entities into DTOs and handles JSON column parsing.
+ */
 public class NotificationLogMapper {
 
   private final ObjectMapper mapper;

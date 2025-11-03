@@ -10,6 +10,9 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Entity that stores the encrypted Google service account credentials required for Sheets operations.
+ */
 @Entity
 @Table(name = "google_service_account_secret")
 public class GoogleServiceAccountSecret {

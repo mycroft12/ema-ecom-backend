@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository abstraction providing access to {@link Role} aggregates.
+ */
 public interface RoleRepository extends JpaRepository<Role, UUID> {
     Optional<Role> findByName(String name);
 }

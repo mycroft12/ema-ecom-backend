@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * Handles one-off imports from Google Sheets by transforming sheet data into the existing template ingestion pipeline.
+ */
 @Service
 public class GoogleSheetImportService {
 

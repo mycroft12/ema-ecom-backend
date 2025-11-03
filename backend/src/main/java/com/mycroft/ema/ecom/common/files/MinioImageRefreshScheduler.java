@@ -20,6 +20,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Scheduled job that scans MINIO_IMAGE columns and refreshes presigned URLs before they expire.
+ */
 @Component
 @ConditionalOnBean(MinioFileStorageService.class)
 public class MinioImageRefreshScheduler {

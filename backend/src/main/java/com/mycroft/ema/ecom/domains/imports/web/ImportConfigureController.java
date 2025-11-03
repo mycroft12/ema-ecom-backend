@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Administrative API used to configure domain schemas from uploaded templates and manage generated tables.
+ */
 @RestController
 @RequestMapping("/api/import/configure")
 @Tag(name = "Import Configure", description = "Upload a completed template to configure a domain schema and create backing table")
@@ -91,6 +94,9 @@ public class ImportConfigureController {
   }
 
   // --- Admin utilities: list and drop configured domain tables ---
+  /**
+   * DTO describing an existing domain table and its current population/source.
+   */
   public record DomainTableInfo(String domain, String tableName, long rowCount, String source) {}
 
   private String tableForDomain(String domain){

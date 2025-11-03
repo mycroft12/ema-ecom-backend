@@ -9,6 +9,9 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Centralized controller advice that maps authentication and validation failures to localized HTTP responses.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

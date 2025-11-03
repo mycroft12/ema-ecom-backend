@@ -17,6 +17,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Service that loads and persists {@link ColumnSemantics} definitions backed by the column_semantics table.
+ * Provides query helpers for domain/table combinations and safely serializes metadata payloads.
+ */
 @Service
 public class ColumnSemanticsService {
 

@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Orchestrates domain configuration from uploaded templates, creating tables, permissions and column semantics.
+ */
 @Service
 public class DomainImportService {
 

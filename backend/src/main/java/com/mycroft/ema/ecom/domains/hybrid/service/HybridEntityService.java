@@ -11,6 +11,9 @@ import org.springframework.util.MultiValueMap;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Facade for CRUD and search operations over dynamically configured hybrid entities.
+ */
 public interface HybridEntityService {
   Page<HybridViewDto> search(String entityType, String q, MultiValueMap<String, String> filters, Pageable pageable);
   List<HybridResponseDto.ColumnDto> listColumns(String entityType);

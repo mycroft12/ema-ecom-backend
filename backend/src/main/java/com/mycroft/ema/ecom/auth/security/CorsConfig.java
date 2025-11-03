@@ -10,6 +10,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Configures CORS rules for the backend API, including allowed origins, headers and methods.
+ */
 @Configuration
 public class CorsConfig {
 

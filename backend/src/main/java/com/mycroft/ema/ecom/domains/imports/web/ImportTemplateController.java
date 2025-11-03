@@ -11,6 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Provides endpoints to analyze import templates and download pre-built examples for supported domains.
+ */
 @RestController
 @RequestMapping("/api/import/template")
 @Tag(name = "Import Template", description = "Analyze Excel template to generate table DDL and download example templates")

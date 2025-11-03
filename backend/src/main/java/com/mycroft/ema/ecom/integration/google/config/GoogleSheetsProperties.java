@@ -3,6 +3,9 @@ package com.mycroft.ema.ecom.integration.google.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
+/**
+ * Configuration properties backing the Google Sheets integration, including credential sources and default ranges.
+ */
 @ConfigurationProperties(prefix = "google.sheets")
 public record GoogleSheetsProperties(
     @DefaultValue("classpath:google/service-account.json") String credentialsPath,

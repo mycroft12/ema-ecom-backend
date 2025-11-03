@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST controller exposing CRUD and search endpoints for dynamically defined hybrid entity types.
+ */
 @RestController
 @RequestMapping("/api/hybrid/{entityType}")
 @Tag(name = "Hybrid Entities", description = "Dynamic entity management endpoint")

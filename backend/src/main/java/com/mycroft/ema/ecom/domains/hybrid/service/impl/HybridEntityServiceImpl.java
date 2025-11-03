@@ -37,6 +37,10 @@ import java.util.*;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+/**
+ * JDBC-backed implementation of {@link com.mycroft.ema.ecom.domains.hybrid.service.HybridEntityService}
+ * that dynamically routes operations to configured domain tables while enforcing column semantics.
+ */
 @Service
 @Transactional(readOnly = true)
 public class HybridEntityServiceImpl implements HybridEntityService {
@@ -600,7 +604,14 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         .collect(Collectors.joining(" "));
   }
 
+  /**
+   * Metadata holder describing the database column backing a dynamic attribute.
+   */
   private record ColumnMeta(String name, String dataType, ColumnSemantics semantics) {}
+
+  /**
+   * Parsed representation of a client-provided filter parameter.
+   */
   private record FilterCriterion(String field, String matchMode, String value, String type) {}
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

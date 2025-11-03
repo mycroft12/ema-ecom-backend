@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Authentication endpoints exposing login, refresh and logout operations.
+ */
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Auth", description = "Authentication APIs: login, refresh, logout")

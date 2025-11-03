@@ -16,6 +16,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Service facade over the MinIO Java client responsible for uploading content and issuing presigned download URLs.
+ */
 @Service
 @ConditionalOnBean(MinioClient.class)
 public class MinioFileStorageService {
@@ -152,5 +155,8 @@ public class MinioFileStorageService {
     return Duration.ofSeconds(seconds);
   }
 
+  /**
+   * Response payload returned after uploading or refreshing an object stored in MinIO.
+   */
   public record UploadResponse(String key, String url, Instant expiresAt, String contentType, Long sizeBytes) {}
 }

@@ -6,6 +6,9 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Configuration entity that tracks how a domain is connected to a Google Sheet, including headers and progress.
+ */
 @Entity
 @Table(name = "google_import_config",
     uniqueConstraints = {

@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Declares the {@link io.minio.MinioClient} bean when MinIO connection properties are supplied.
+ */
 @Configuration
 public class MinioConfig {
 

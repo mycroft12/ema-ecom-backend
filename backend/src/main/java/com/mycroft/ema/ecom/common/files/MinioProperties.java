@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Strongly typed application properties that drive the MinIO integration, covering credentials, bucket usage and upload constraints.
+ */
 @Component
 @ConfigurationProperties(prefix = "app.minio")
 public class MinioProperties {

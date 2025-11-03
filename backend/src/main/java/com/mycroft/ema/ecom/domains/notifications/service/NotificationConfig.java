@@ -5,6 +5,9 @@ import com.mycroft.ema.ecom.domains.notifications.dto.NotificationLogMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Spring configuration wiring notification infrastructure beans.
+ */
 @Configuration
 public class NotificationConfig {
 

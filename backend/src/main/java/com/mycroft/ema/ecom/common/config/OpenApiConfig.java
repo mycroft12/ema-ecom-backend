@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.springdoc.core.models.GroupedOpenApi;
 
+/**
+ * Declares the OpenAPI description exposed through springdoc for interactive API documentation.
+ */
 @Configuration
 public class OpenApiConfig {
   @Bean
