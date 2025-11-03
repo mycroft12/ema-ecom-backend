@@ -78,6 +78,12 @@ public class DomainImportService {
       return;
     }
     for (ColumnInfo column : columns) {
+      if (column == null) {
+        continue;
+      }
+      if ("id".equalsIgnoreCase(column.getName())) {
+        continue;
+      }
       if (column.getSemanticType() == null || column.getSemanticType().isBlank()) {
         continue;
       }
@@ -164,6 +170,9 @@ public class DomainImportService {
     analysis.getColumns().forEach(column -> {
       String columnName = column.getName();
       if (columnName == null || columnName.isBlank()) {
+        return;
+      }
+      if ("id".equalsIgnoreCase(columnName)) {
         return;
       }
       String permissionName = prefix + ":access:" + columnName.toLowerCase(Locale.ROOT);
