@@ -21,8 +21,6 @@ import {
   Permission,
   Role,
   User,
-  CreatePermissionPayload,
-  UpdatePermissionPayload,
   CreateRolePayload,
   UpdateRolePayload,
   CreateUserPayload,
@@ -77,13 +75,6 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
   permissionsLoading = false;
   rolesLoading = false;
   usersLoading = false;
-
-  // Permission dialog state
-  permissionDialogVisible = false;
-  permissionForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-  });
-  editingPermission: Permission | null = null;
 
   // Role dialog state
   roleDialogVisible = false;
@@ -169,87 +160,6 @@ export class RolesPageComponent implements OnInit, AfterViewInit {
         },
         error: () => this.showError(this.translate.instant('rolesPage.users.errors.load')),
       });
-  }
-
-  // --- Permissions ---
-  openPermissionDialog(permission?: Permission): void {
-    this.permissionForm.reset({ name: permission?.name ?? '' });
-    this.editingPermission = permission ?? null;
-    this.permissionDialogVisible = true;
-  }
-
-  savePermission(): void {
-    if (this.permissionForm.invalid) {
-      this.permissionForm.markAllAsTouched();
-      return;
-    }
-    const isEdit = !!this.editingPermission;
-    const payload: CreatePermissionPayload | UpdatePermissionPayload = {
-      name: this.permissionForm.value.name,
-    };
-    const request$ = this.editingPermission
-      ? this.service.updatePermission(this.editingPermission.id, payload)
-      : this.service.createPermission(payload);
-
-    request$.subscribe({
-      next: () => {
-        const key = isEdit ? 'rolesPage.permissions.toastUpdated' : 'rolesPage.permissions.toastCreated';
-        this.showSuccess(this.translate.instant(key));
-        this.permissionDialogVisible = false;
-        this.editingPermission = null;
-        this.loadPermissions();
-        this.loadRoles(); // ensure updated relationships
-      },
-      error: () => {
-        const key = isEdit ? 'rolesPage.permissions.errors.update' : 'rolesPage.permissions.errors.create';
-        this.showError(this.translate.instant(key));
-      },
-    });
-  }
-
-  confirmDeletePermission(permission: Permission): void {
-    this.confirm.confirm({
-      header: this.translate.instant('rolesPage.permissions.confirmDelete.header'),
-      message: this.translate.instant('rolesPage.permissions.confirmDelete.message', { name: permission.name }),
-      acceptLabel: this.translate.instant('rolesPage.permissions.confirmDelete.accept'),
-      rejectLabel: this.translate.instant('rolesPage.permissions.confirmDelete.reject'),
-      acceptButtonStyleClass: 'p-button-danger',
-      rejectButtonStyleClass: 'p-button-text',
-      icon: 'pi pi-exclamation-triangle',
-      key: 'dangerConfirm',
-      accept: () => this.executePermissionDelete(permission, false),
-    });
-  }
-
-  private executePermissionDelete(permission: Permission, force: boolean): void {
-    this.service.deletePermission(permission.id, force).subscribe({
-      next: () => {
-        this.showSuccess(this.translate.instant('rolesPage.permissions.toastDeleted'));
-        this.loadPermissions();
-        this.loadRoles();
-      },
-      error: (err) => {
-        const code = err?.error?.message ?? err?.error ?? err?.message;
-        if (!force && code === 'permission.assigned') {
-          this.confirm.confirm({
-            header: this.translate.instant('rolesPage.permissions.forceDeleteTitle'),
-            message: this.translate.instant('rolesPage.permissions.forceDeleteMessage', { name: permission.name }),
-            acceptLabel: this.translate.instant('rolesPage.common.forceDelete'),
-            rejectLabel: this.translate.instant('rolesPage.common.cancel'),
-            acceptButtonStyleClass: 'p-button-danger',
-            rejectButtonStyleClass: 'p-button-text',
-            icon: 'pi pi-exclamation-triangle',
-            key: 'forceConfirm',
-            accept: () => this.executePermissionDelete(permission, true),
-          });
-          return;
-        }
-        const key = code === 'permission.assigned'
-          ? 'rolesPage.permissions.errors.deleteAssigned'
-          : 'rolesPage.permissions.errors.delete';
-        this.showError(this.translate.instant(key));
-      },
-    });
   }
 
   // --- Roles ---

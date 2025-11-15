@@ -12,7 +12,6 @@
             [(ngModel)]="permissionFilterValue"
             (input)="applyPermissionFilter(permissionFilterValue)"
           />
-          <button pButton type="button" icon="pi pi-plus" [label]="'rolesPage.permissions.add' | translate" (click)="openPermissionDialog()"></button>
         </div>
         <p-table
           #permissionsTable
@@ -27,33 +26,16 @@
           <ng-template pTemplate="header">
             <tr>
               <th>{{ 'rolesPage.permissions.columns.name' | translate }}</th>
-              <th style="width: 7rem;">{{ 'rolesPage.common.actions' | translate }}</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-permission>
             <tr>
               <td>{{ permission.name }}</td>
-              <td class="actions-column">
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-text"
-                  (click)="openPermissionDialog(permission)"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-text p-button-danger"
-                  (click)="confirmDeletePermission(permission)"
-                ></button>
-              </td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="2">{{ 'rolesPage.permissions.empty' | translate }}</td>
+              <td>{{ 'rolesPage.permissions.empty' | translate }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -245,32 +227,6 @@
     </div>
   </div>
 </div>
-
-<!-- Permission dialog -->
-<p-dialog
-  [header]="(editingPermission ? 'rolesPage.permissions.dialogs.editTitle' : 'rolesPage.permissions.dialogs.createTitle') | translate"
-  [(visible)]="permissionDialogVisible"
-  [modal]="true"
-  [style]="{ width: '25rem' }"
-  [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
->
-  <form [formGroup]="permissionForm" class="form-grid">
-    <div class="form-field">
-      <label class="field-label" for="permissionName">
-        {{ 'rolesPage.permissions.form.nameLabel' | translate }}
-        <span class="required-indicator">*</span>
-      </label>
-      <input pInputText id="permissionName" formControlName="name" />
-    </div>
-    <small class="error" *ngIf="permissionForm.controls['name'].invalid && permissionForm.controls['name'].touched">
-      {{ 'rolesPage.permissions.form.nameRequired' | translate }}
-    </small>
-  </form>
-  <ng-template pTemplate="footer">
-    <button pButton type="button" [label]="'rolesPage.common.cancel' | translate" class="p-button-text" (click)="permissionDialogVisible = false"></button>
-    <button pButton type="button" [label]="'rolesPage.common.save' | translate" (click)="savePermission()"></button>
-  </ng-template>
-</p-dialog>
 
 <!-- Role dialog -->
 <p-dialog
