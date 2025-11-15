@@ -264,6 +264,26 @@
                         <td class="actions-cell text-center sticky-action">
                             <div class="flex justify-content-center gap-2">
                                 <button
+                                        *ngIf="canManageAssignments"
+                                        pButton
+                                        type="button"
+                                        icon="pi pi-user-edit"
+                                        class="p-button-rounded p-button-text"
+                                        [title]="'orders.actionMenu.assignAgent' | translate"
+                                        (click)="openAssignmentDialog(record)"
+                                        [disabled]="!record?.id"
+                                ></button>
+                                <button
+                                        *ngIf="canAddNotes"
+                                        pButton
+                                        type="button"
+                                        icon="pi pi-comment"
+                                        class="p-button-rounded p-button-text"
+                                        [title]="'orders.actionMenu.addNote' | translate"
+                                        (click)="openNoteDialog(record)"
+                                        [disabled]="!record?.id"
+                                ></button>
+                                <button
                                         *ngIf="canEdit"
                                         pButton
                                         type="button"
@@ -604,7 +624,61 @@
                 </button>
             </div>
         </ng-template>
-    </app-shared-dialog>
+</app-shared-dialog>
+
+<p-dialog
+        [(visible)]="assignmentDialogVisible"
+        [modal]="true"
+        [style]="{ width: '25rem' }"
+        [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+        [header]="'orders.actionMenu.assignDialogTitle' | translate">
+    <div class="flex flex-column gap-3">
+        <p-select
+                [options]="orderAgents"
+                optionLabel="username"
+                optionValue="id"
+                [(ngModel)]="selectedAgentId"
+                [loading]="agentsLoading"
+                [placeholder]="'orders.actionMenu.assignPlaceholder' | translate">
+            <ng-template pTemplate="selectedItem" let-value>
+                <div *ngIf="value">{{ value.username }}</div>
+            </ng-template>
+            <ng-template pTemplate="item" let-option>
+                <div class="flex flex-column">
+                    <span class="font-medium">{{ option.username }}</span>
+                    <small class="text-500" *ngIf="option.email">{{ option.email }}</small>
+                </div>
+            </ng-template>
+        </p-select>
+        <p-message *ngIf="!orderAgents.length && !agentsLoading" severity="info" [text]="'orders.actionMenu.assignNoAgents' | translate"></p-message>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton type="button" class="p-button-text" [label]="'common.cancel' | translate" (click)="assignmentDialogVisible = false"></button>
+        <button pButton type="button" [label]="'orders.actionMenu.assignSubmit' | translate" (click)="submitAssignment()" [loading]="assigningAgent"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog
+        [(visible)]="notesDialogVisible"
+        [modal]="true"
+        [style]="{ width: '25rem' }"
+        [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+        [header]="'orders.actionMenu.noteDialogTitle' | translate">
+    <div class="flex flex-column gap-2">
+        <label for="orderNoteField">{{ 'orders.actionMenu.noteLabel' | translate }}</label>
+        <textarea
+                id="orderNoteField"
+                pInputTextarea
+                rows="5"
+                [(ngModel)]="noteValue"
+                [placeholder]="'orders.actionMenu.notePlaceholder' | translate">
+        </textarea>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton type="button" class="p-button-text" [label]="'common.cancel' | translate" (click)="notesDialogVisible = false"></button>
+        <button pButton type="button" [label]="'common.save' | translate" (click)="saveNote()" [loading]="noteSaving"></button>
+    </ng-template>
+</p-dialog>
 </div>
 
 <p-confirmDialog></p-confirmDialog>

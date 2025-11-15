@@ -104,6 +104,25 @@
     "dialog": {
       "subtitle": "Fill in the details to manage {{component}}.",
       "noFields": "No fields are available for {{component}} yet."
+    },
+    "actionMenu": {
+      "assignAgent": "Assign agent",
+      "addNote": "Add note",
+      "assignDialogTitle": "Assign confirmation agent",
+      "assignPlaceholder": "Select an agent",
+      "assignNoAgents": "No confirmation agents available.",
+      "assignSubmit": "Assign",
+      "assignLoadError": "Failed to load agents.",
+      "assignValidation": "Select an agent to continue.",
+      "assignSuccessTitle": "Assignment updated",
+      "assignSuccess": "The order was assigned successfully.",
+      "assignError": "Failed to assign the agent.",
+      "noteDialogTitle": "Order note",
+      "noteLabel": "Note",
+      "notePlaceholder": "Enter an internal note...",
+      "noteSuccessTitle": "Note saved",
+      "noteSuccess": "The note was stored successfully.",
+      "noteError": "Failed to save the note."
     }
   },
   "expenses": {
@@ -391,6 +410,7 @@
     "tabs": {
       "dynamic": "Dynamic Configuration",
       "google": "Google Sheet Connector",
+      "orderConfig": "Order Configuration",
       "configured": "Configured Components"
     },
     "domainLabel": "Component",
@@ -423,6 +443,33 @@
     "resetError": "Failed to reset table",
     "configuredDomains": "Configured Components",
     "configuredEmpty": "No components are configured yet.",
+    "orderStatus": {
+      "title": "Order status values",
+      "description": "Manage the stages an order can take.",
+      "add": "Add status",
+      "columns": {
+        "name": "Name",
+        "order": "Order",
+        "actions": "Actions"
+      },
+      "empty": "No statuses defined.",
+      "loadError": "Failed to load order statuses.",
+      "nameRequired": "Status name is required.",
+      "saveSuccess": "Order status saved.",
+      "saveError": "Failed to save the order status.",
+      "deleteTitle": "Delete status",
+      "deleteMessage": "Delete status \"{{name}}\"?",
+      "deleteSuccess": "Order status deleted.",
+      "deleteError": "Failed to delete the status.",
+      "deleteInUse": "You can't delete this status because it's used by existing orders.",
+      "duplicate": "A status with this name already exists.",
+      "dialogCreateTitle": "Add status",
+      "dialogEditTitle": "Edit status",
+      "form": {
+        "nameLabel": "Status name",
+        "orderLabel": "Display order"
+      }
+    },
     "fetchTablesError": "Failed to load configured components.",
     "domainConfigured": "The {{domain}} component is configured and ready to use.",
     "domainConfiguredSource": "The {{domain}} component is configured and ready to use ({{source}}).",

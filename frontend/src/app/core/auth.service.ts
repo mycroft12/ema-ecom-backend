@@ -19,6 +19,7 @@ export class AuthService {
   readonly STALE_MAX_AGE_MS = 5 * 60 * 1000;
   private refreshTokenSnapshot: string | null = null;
   private readonly permissionsSig = signal<string[]>([]);
+  private readonly rolesSig = signal<string[]>([]);
 
   constructor(private http: HttpClient, private router: Router, private zone: NgZone) {
     this.refreshTokenSnapshot = this.peekRefreshToken();
@@ -277,7 +278,19 @@ export class AuthService {
     return messageKey;
   }
 
-  hasAny(perms: string[]): boolean { 
+  roles(): string[] {
+    return this.rolesSig();
+  }
+
+  hasRole(role: string | string[]): boolean {
+    const roles = this.rolesSig().map(r => r.toLowerCase());
+    if (Array.isArray(role)) {
+      return role.some(r => roles.includes(r.toLowerCase()));
+    }
+    return roles.includes(role.toLowerCase());
+  }
+
+  hasAny(perms: string[]): boolean {
     const p = this.permissionsSig(); 
     const result = perms.some(x => p.includes(x));
     return result; 
@@ -286,14 +299,18 @@ export class AuthService {
   private updatePermissionsFromToken(token: string | null): void {
     if (!token) {
       this.permissionsSig.set([]);
+       this.rolesSig.set([]);
       return;
     }
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       const perms = decoded.permissions ? Array.from(new Set(decoded.permissions)) : [];
       this.permissionsSig.set(perms);
+      const roles = decoded.roles ? Array.from(new Set(decoded.roles)) : [];
+      this.rolesSig.set(roles);
     } catch {
       this.permissionsSig.set([]);
+      this.rolesSig.set([]);
     }
   }
 }

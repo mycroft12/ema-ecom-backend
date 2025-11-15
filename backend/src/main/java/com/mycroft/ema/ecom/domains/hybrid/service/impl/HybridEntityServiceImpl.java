@@ -2,6 +2,9 @@ package com.mycroft.ema.ecom.domains.hybrid.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mycroft.ema.ecom.auth.service.CurrentUserService;
+import com.mycroft.ema.ecom.auth.domain.User;
+import com.mycroft.ema.ecom.auth.service.CurrentUserService;
 import com.mycroft.ema.ecom.common.error.BadRequestException;
 import com.mycroft.ema.ecom.common.error.NotFoundException;
 import com.mycroft.ema.ecom.common.files.MinioFileStorageService;
@@ -52,17 +55,20 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   private final ColumnSemanticsService semanticsService;
   private final MinioFileStorageService minioStorage;
   private final MinioProperties minioProperties;
+  private final CurrentUserService currentUserService;
 
   public HybridEntityServiceImpl(JdbcTemplate jdbc,
                                  DomainImportService domainImportService,
                                  ColumnSemanticsService semanticsService,
                                  ObjectProvider<MinioFileStorageService> minioProvider,
-                                 MinioProperties minioProperties) {
+                                 MinioProperties minioProperties,
+                                 CurrentUserService currentUserService) {
     this.jdbc = jdbc;
     this.domainImportService = domainImportService;
     this.semanticsService = semanticsService;
     this.minioStorage = minioProvider == null ? null : minioProvider.getIfAvailable();
     this.minioProperties = minioProperties;
+    this.currentUserService = currentUserService;
   }
 
   @Override
@@ -99,6 +105,8 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       Optional<String> clause = buildColumnFilterClause(table, meta, criterion, filterArgs);
       clause.ifPresent(whereParts::add);
     }
+
+    applyOrderAgentRestriction(entityType, columnLookup, whereParts, filterArgs);
 
     String whereClause = whereParts.isEmpty() ? "" : " where " + String.join(" and ", whereParts);
 
@@ -378,6 +386,32 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     }
 
     return Optional.empty();
+  }
+
+  private void applyOrderAgentRestriction(String entityType,
+                                          Map<String, ColumnMeta> columnLookup,
+                                          List<String> whereParts,
+                                          List<Object> args) {
+    if (!"orders".equalsIgnoreCase(entityType)) {
+      return;
+    }
+    if (!currentUserService.hasRole("CONFIRMATION_AGENT")) {
+      return;
+    }
+    if (currentUserService.hasAnyRole("ADMIN", "SUPERVISOR")) {
+      return;
+    }
+    if (!columnLookup.containsKey("assigned_agent")) {
+      return;
+    }
+    String username = currentUserService.getCurrentUser()
+        .map(User::getUsername)
+        .orElse(null);
+    if (!StringUtils.hasText(username)) {
+      return;
+    }
+    whereParts.add("lower(assigned_agent) = ?");
+    args.add(username.trim().toLowerCase(Locale.ROOT));
   }
 
   private List<FilterCriterion> extractFilterCriteria(MultiValueMap<String, String> filters) {

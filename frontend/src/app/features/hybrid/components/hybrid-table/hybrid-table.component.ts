@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
-import {CommonModule, DOCUMENT} from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -23,6 +23,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { DatePicker } from 'primeng/datepicker';
 import { InputMaskModule } from 'primeng/inputmask';
+import { DialogModule } from 'primeng/dialog';
 import { SharedDialogComponent } from '@shared/ui/dialog';
 
 import { HybridTableDataService, HybridMinioUploadResponse } from '../../services/hybrid-table-data.service';
@@ -33,6 +34,7 @@ import { AuthService } from '../../../../core/auth.service';
 import { Subject } from 'rxjs';
 import { finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { HybridBadgeService, HybridUpsertEvent } from '../../services/hybrid-badge.service';
+import { OrderAgent, OrderManagementService } from '../../../orders/order-management.service';
 
 const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
 
@@ -75,6 +77,7 @@ interface PhoneInputOption {
     InputSwitchModule,
     DatePicker,
     InputMaskModule,
+    DialogModule,
     InputTextarea,
     SharedDialogComponent
   ],
@@ -94,6 +97,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   readonly translate = inject(TranslateService);
   private readonly auth = inject(AuthService);
   private readonly badgeService = inject(HybridBadgeService);
+  private readonly orderService = inject(OrderManagementService);
   private readonly imageUploadBusy: Record<string, boolean> = {};
   readonly translationPrefix = this.schemaService.translationNamespace;
 
@@ -192,6 +196,16 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   ];
   phoneFieldSelections: Record<string, string> = {};
   private dialogInitialPhoneSelections: Record<string, string> = {};
+  assignmentDialogVisible = false;
+  assigningOrderId: string | null = null;
+  selectedAgentId: string | null = null;
+  orderAgents: OrderAgent[] = [];
+  agentsLoading = false;
+  notesDialogVisible = false;
+  noteOrderId: string | null = null;
+  noteValue = '';
+  assigningAgent = false;
+  noteSaving = false;
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -223,6 +237,18 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   get canDelete(): boolean { return this.permissionsState.delete; }
   get canExport(): boolean { return this.permissionsState.export; }
   get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
+  get isOrdersContext(): boolean {
+    return (this.schemaService.entityTypeName ?? '').toLowerCase() === 'orders';
+  }
+  get canManageAssignments(): boolean {
+    if (!this.isOrdersContext || !this.canEdit) {
+      return false;
+    }
+    return !this.auth.hasRole('CONFIRMATION_AGENT');
+  }
+  get canAddNotes(): boolean {
+    return this.isOrdersContext && this.canEdit;
+  }
   get dialogTitle(): string {
     const key = this.dialogMode === 'create' ? 'common.dialog.addTitle' : 'common.dialog.updateTitle';
     return this.translate.instant(key, { component: this.componentDisplayName });
@@ -1228,6 +1254,14 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  private showWarn(detail: string): void {
+    this.messageService.add({
+      severity: 'warn',
+      summary: this.translate.instant(`${this.translationPrefix}.toastError`),
+      detail
+    });
+  }
+
   /* ===========================
      FILTER HELPERS / MAPPERS
      =========================== */
@@ -1640,6 +1674,87 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       default:
         return undefined;
     }
+  }
+
+  openAssignmentDialog(record: Record<string, any>): void {
+    if (!this.canManageAssignments) {
+      return;
+    }
+    const orderId = record?.['id'];
+    if (!orderId) {
+      return;
+    }
+    this.assigningOrderId = orderId;
+    this.selectedAgentId = null;
+    this.assignmentDialogVisible = true;
+    if (!this.orderAgents.length) {
+      this.loadAgents();
+    }
+  }
+
+  private loadAgents(): void {
+    if (this.agentsLoading) {
+      return;
+    }
+    this.agentsLoading = true;
+    this.orderService.listAgents().pipe(finalize(() => (this.agentsLoading = false))).subscribe({
+      next: agents => {
+        this.orderAgents = agents ?? [];
+      },
+      error: () => this.showError(this.translate.instant('orders.actionMenu.assignLoadError'))
+    });
+  }
+
+  submitAssignment(): void {
+    if (!this.assigningOrderId || !this.selectedAgentId) {
+      this.showWarn(this.translate.instant('orders.actionMenu.assignValidation'));
+      return;
+    }
+    this.assigningAgent = true;
+    this.orderService.assignAgent(this.assigningOrderId, this.selectedAgentId).pipe(finalize(() => (this.assigningAgent = false))).subscribe({
+      next: () => {
+        this.assignmentDialogVisible = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('orders.actionMenu.assignSuccessTitle'),
+          detail: this.translate.instant('orders.actionMenu.assignSuccess')
+        });
+        this.reloadTable();
+      },
+      error: () => this.showError(this.translate.instant('orders.actionMenu.assignError'))
+    });
+  }
+
+  openNoteDialog(record: Record<string, any>): void {
+    if (!this.canAddNotes) {
+      return;
+    }
+    const id = record?.['id'];
+    if (!id) {
+      return;
+    }
+    this.noteOrderId = id;
+    this.noteValue = record?.['notes'] ?? '';
+    this.notesDialogVisible = true;
+  }
+
+  saveNote(): void {
+    if (!this.noteOrderId) {
+      return;
+    }
+    this.noteSaving = true;
+    this.dataService.updateRecord(this.noteOrderId, { notes: this.noteValue ?? '' }).pipe(finalize(() => (this.noteSaving = false))).subscribe({
+      next: () => {
+        this.notesDialogVisible = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('orders.actionMenu.noteSuccessTitle'),
+          detail: this.translate.instant('orders.actionMenu.noteSuccess')
+        });
+        this.reloadTable();
+      },
+      error: () => this.showError(this.translate.instant('orders.actionMenu.noteError'))
+    });
   }
 
   protected readonly HTMLInputElement = HTMLInputElement;

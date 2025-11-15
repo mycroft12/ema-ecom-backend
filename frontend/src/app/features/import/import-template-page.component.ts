@@ -16,7 +16,9 @@ import { StepperModule } from 'primeng/stepper';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 import { AuthService } from '../../core/auth.service';
+import { OrderManagementService, OrderStatus } from '../orders/order-management.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type DomainKey = 'product' | 'orders' | 'expenses' | 'ads' | '';
@@ -78,7 +80,8 @@ interface GoogleSheetTestResponseDto {
     StepperModule,
     InputTextModule,
     MessageModule,
-    DialogModule
+    DialogModule,
+    TableModule
   ],
   providers: [ConfirmationService, MessageService],
   styles: [
@@ -400,6 +403,68 @@ interface GoogleSheetTestResponseDto {
           </p-stepper>
         </p-card>
       </p-tabPanel>
+      <p-tabPanel [header]="'import.tabs.orderConfig' | translate">
+        <p-card>
+          <div class="flex flex-column gap-3">
+            <div class="flex align-items-center justify-content-between flex-wrap gap-3">
+              <div>
+                <div class="font-bold text-lg">{{ 'import.orderStatus.title' | translate }}</div>
+                <div class="text-600">{{ 'import.orderStatus.description' | translate }}</div>
+              </div>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                [label]="'import.orderStatus.add' | translate"
+                (click)="openOrderStatusDialog()"
+                [disabled]="!canManageOrderStatuses"
+              ></button>
+            </div>
+            <p-table
+              [value]="orderStatuses"
+              [loading]="orderStatusLoading"
+              responsiveLayout="scroll"
+              [rows]="6"
+              [paginator]="orderStatuses.length > 6"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>{{ 'import.orderStatus.columns.name' | translate }}</th>
+                  <th style="width: 8rem;">{{ 'import.orderStatus.columns.order' | translate }}</th>
+                  <th style="width: 8rem;" *ngIf="canManageOrderStatuses">{{ 'import.orderStatus.columns.actions' | translate }}</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-status>
+                <tr>
+                  <td>{{ status.name }}</td>
+                  <td>{{ status.displayOrder }}</td>
+                  <td *ngIf="canManageOrderStatuses" class="actions-column">
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-pencil"
+                      class="p-button-rounded p-button-text"
+                      (click)="openOrderStatusDialog(status)"
+                    ></button>
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-trash"
+                      class="p-button-rounded p-button-text p-button-danger"
+                      (click)="confirmDeleteOrderStatus(status)"
+                    ></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="canManageOrderStatuses ? 3 : 2">{{ 'import.orderStatus.empty' | translate }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-card>
+      </p-tabPanel>
       <p-tabPanel [header]="'import.tabs.configured' | translate">
         <div *ngIf="configuredDomainCards.length === 0" class="py-4 text-600">
           {{ 'import.configuredEmpty' | translate }}
@@ -521,6 +586,45 @@ interface GoogleSheetTestResponseDto {
         <button pButton type="button" class="p-button-text" [label]="'common.close' | translate" (click)="showApiInstructionsDialog = false"></button>
       </ng-template>
     </p-dialog>
+    <p-dialog
+      [(visible)]="orderStatusDialogVisible"
+      [modal]="true"
+      [style]="{ width: '25rem' }"
+      [breakpoints]="{'960px': '90vw', '640px': '95vw'}"
+      [header]="(editingOrderStatusId ? 'import.orderStatus.dialogEditTitle' : 'import.orderStatus.dialogCreateTitle') | translate"
+    >
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="field-label" for="orderStatusName">
+            {{ 'import.orderStatus.form.nameLabel' | translate }}
+            <span class="required-indicator">*</span>
+          </label>
+          <input
+            pInputText
+            id="orderStatusName"
+            [(ngModel)]="orderStatusForm.name"
+            name="orderStatusName"
+            autocomplete="off"
+          />
+        </div>
+        <div class="form-field">
+          <label class="field-label" for="orderStatusOrder">
+            {{ 'import.orderStatus.form.orderLabel' | translate }}
+          </label>
+          <input
+            pInputText
+            id="orderStatusOrder"
+            [(ngModel)]="orderStatusForm.displayOrder"
+            name="orderStatusOrder"
+            type="number"
+          />
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton type="button" class="p-button-text" [label]="'common.cancel' | translate" (click)="orderStatusDialogVisible = false"></button>
+        <button pButton type="button" [label]="'common.save' | translate" (click)="saveOrderStatus()" [loading]="orderStatusSaving"></button>
+      </ng-template>
+    </p-dialog>
   `
 })
 export class ImportTemplatePageComponent implements OnInit {
@@ -531,6 +635,7 @@ export class ImportTemplatePageComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly orderManagement = inject(OrderManagementService);
 
   @ViewChild('fileUpload') fileUpload!: FileUpload;
   @ViewChild('serviceAccountFile') serviceAccountFileInput?: ElementRef<HTMLInputElement>;
@@ -568,6 +673,13 @@ export class ImportTemplatePageComponent implements OnInit {
   canManageGoogleIntegration = false;
   showInstructionsDialog = false;
   showApiInstructionsDialog = false;
+  orderStatuses: OrderStatus[] = [];
+  orderStatusLoading = false;
+  orderStatusDialogVisible = false;
+  orderStatusForm: { name: string; displayOrder: number } = { name: '', displayOrder: 0 };
+  editingOrderStatusId: string | null = null;
+  orderStatusSaving = false;
+  canManageOrderStatuses = false;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
     { key: 'import.domainProduct', value: 'product' },
@@ -579,10 +691,12 @@ export class ImportTemplatePageComponent implements OnInit {
   ngOnInit(): void {
     this.isAdmin = this.auth.hasAny(['import:configure']);
     this.canManageGoogleIntegration = this.auth.hasAny(['google-sheet:access']);
+    this.canManageOrderStatuses = this.auth.hasAny(['orders:update']);
     this.fetchConfiguredTables();
     if (this.canManageGoogleIntegration) {
       this.fetchServiceAccountStatus();
     }
+    this.loadOrderStatuses();
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
@@ -1188,4 +1302,117 @@ export class ImportTemplatePageComponent implements OnInit {
     const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(cd);
     return matches && matches[1] ? matches[1].replace(/['"]/g, '') : null;
   }
- }
+
+  loadOrderStatuses(): void {
+    this.orderStatusLoading = true;
+    this.orderManagement.listStatuses().subscribe({
+      next: statuses => {
+        this.orderStatuses = statuses ?? [];
+        this.orderStatusLoading = false;
+      },
+      error: () => {
+        this.orderStatusLoading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail: this.translate.instant('import.orderStatus.loadError')
+        });
+      }
+    });
+  }
+
+  openOrderStatusDialog(status?: OrderStatus): void {
+    if (!this.canManageOrderStatuses) {
+      return;
+    }
+    this.editingOrderStatusId = status?.id ?? null;
+    this.orderStatusForm = {
+      name: status?.name ?? '',
+      displayOrder: status?.displayOrder ?? this.orderStatuses.length + 1
+    };
+    this.orderStatusDialogVisible = true;
+  }
+
+  saveOrderStatus(): void {
+    if (!this.canManageOrderStatuses) {
+      return;
+    }
+    const trimmedName = (this.orderStatusForm.name ?? '').trim();
+    if (!trimmedName) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.error'),
+        detail: this.translate.instant('import.orderStatus.nameRequired')
+      });
+      return;
+    }
+    const payload = {
+      name: trimmedName,
+      displayOrder: Number(this.orderStatusForm.displayOrder ?? 0)
+    };
+    this.orderStatusSaving = true;
+    const request$ = this.editingOrderStatusId
+      ? this.orderManagement.updateStatus(this.editingOrderStatusId, payload)
+      : this.orderManagement.createStatus(payload);
+    request$.subscribe({
+      next: () => {
+        this.orderStatusSaving = false;
+        this.orderStatusDialogVisible = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('import.success'),
+          detail: this.translate.instant('import.orderStatus.saveSuccess')
+        });
+        this.loadOrderStatuses();
+      },
+      error: (err) => {
+        this.orderStatusSaving = false;
+        this.handleOrderStatusError(err, 'import.orderStatus.saveError');
+      }
+    });
+  }
+
+  confirmDeleteOrderStatus(status: OrderStatus): void {
+    if (!this.canManageOrderStatuses) {
+      return;
+    }
+    this.confirmationService.confirm({
+      header: this.translate.instant('import.orderStatus.deleteTitle'),
+      message: this.translate.instant('import.orderStatus.deleteMessage', { name: status.name }),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.translate.instant('common.yes'),
+      rejectLabel: this.translate.instant('common.no'),
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.deleteOrderStatus(status)
+    });
+  }
+
+  private deleteOrderStatus(status: OrderStatus): void {
+    this.orderManagement.deleteStatus(status.id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('import.success'),
+          detail: this.translate.instant('import.orderStatus.deleteSuccess')
+        });
+        this.loadOrderStatuses();
+      },
+      error: (err) => this.handleOrderStatusError(err, 'import.orderStatus.deleteError')
+    });
+  }
+
+  private handleOrderStatusError(err: any, fallbackKey: string): void {
+    const code = (err?.error?.message ?? '').toString();
+    let messageKey = fallbackKey;
+    if (code === 'order-status.inUse') {
+      messageKey = 'import.orderStatus.deleteInUse';
+    } else if (code === 'order-status.alreadyExists') {
+      messageKey = 'import.orderStatus.duplicate';
+    }
+    this.messageService.add({
+      severity: 'error',
+      summary: this.translate.instant('import.error'),
+      detail: this.translate.instant(messageKey)
+    });
+  }
+}
