@@ -1,5 +1,6 @@
 package com.mycroft.ema.ecom.domains.imports.web;
 
+import com.mycroft.ema.ecom.domains.imports.dto.DomainPopulationResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import com.mycroft.ema.ecom.domains.imports.service.DomainImportService;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
@@ -62,6 +63,16 @@ public class ImportConfigureController {
 
     TemplateAnalysisResponse analysis = domainImportService.configureFromFile(domain, file);
     return analysis;
+  }
+
+  @PostMapping(value = "/populate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAuthority('import:configure')")
+  @Transactional
+  @Operation(summary = "Populate data for an existing domain", description = "Upload a CSV file whose columns match the configured component to repopulate the table.")
+  public DomainPopulationResponse populate(@RequestParam("domain") String domain,
+                                           @RequestPart("file") MultipartFile file,
+                                           @RequestParam(value = "replaceExisting", defaultValue = "true") boolean replaceExisting) {
+    return domainImportService.populateFromCsv(domain, file, replaceExisting);
   }
 
   @GetMapping(value = "/template-example")

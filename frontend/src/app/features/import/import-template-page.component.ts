@@ -27,10 +27,25 @@ interface GoogleSheetConnectResponse {
 }
 
 interface ConfiguredTableResponse {
+  domain: string;
+  tableName: string;
+  rowCount: number;
+  source?: ConfigurationSource;
+}
+
+interface ConfiguredDomainCard {
   domain: DomainKey;
   tableName: string;
   rowCount: number;
   source?: ConfigurationSource;
+}
+
+interface PopulateResponse {
+  domain: string;
+  tableName: string;
+  rowsInserted: number;
+  replacedExistingRows: boolean;
+  warnings?: string[];
 }
 
 interface GoogleServiceAccountStatus {
@@ -386,24 +401,27 @@ interface GoogleSheetTestResponseDto {
         </p-card>
       </p-tabPanel>
       <p-tabPanel [header]="'import.tabs.configured' | translate">
-        <div *ngIf="configuredTables.length === 0" class="py-4 text-600">
+        <div *ngIf="configuredDomainCards.length === 0" class="py-4 text-600">
           {{ 'import.configuredEmpty' | translate }}
         </div>
-        <div class="grid" *ngIf="configuredTables.length > 0">
-          <div *ngFor="let configuredDomain of configuredTables" class="col-12 md:col-4 mb-3">
+        <div class="grid" *ngIf="configuredDomainCards.length > 0">
+          <div *ngFor="let configuredDomain of configuredDomainCards" class="col-12 md:col-4 mb-3">
             <p-card>
               <ng-template pTemplate="header">
                 <div class="flex align-items-center p-3">
                   <i class="pi pi-check-circle text-green-500 mr-2"></i>
-                  <span class="font-bold">{{ getDomainDisplayName(configuredDomain) | translate }}</span>
+                  <span class="font-bold">{{ getDomainDisplayName(configuredDomain.domain) | translate }}</span>
                 </div>
               </ng-template>
               <div class="p-3">
                 <p>
                   {{ 'import.domainConfiguredSource' | translate: {
-                    domain: (getDomainDisplayName(configuredDomain) | translate),
-                    source: ((getConfigurationSourceKey(configuredDomain)) | translate)
+                    domain: (getDomainDisplayName(configuredDomain.domain) | translate),
+                    source: ((getConfigurationSourceKey(configuredDomain.domain)) | translate)
                   } }}
+                </p>
+                <p class="text-600 text-sm">
+                  {{ 'import.rowCountLabel' | translate:{ count: configuredDomain.rowCount } }}
                 </p>
                 <div class="mt-3 pt-3 border-top-1 surface-border">
                   <div class="flex align-items-center justify-content-between">
@@ -413,9 +431,44 @@ interface GoogleSheetTestResponseDto {
                       [label]="('import.resetTable' | translate)"
                       icon="pi pi-trash"
                       severity="danger"
-                      (click)="resetTable(configuredDomain)"
+                      (click)="resetTable(configuredDomain.domain)"
                       size="small"
                     ></button>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-top-1 surface-border">
+                  <div class="font-bold text-sm mb-2">{{ 'import.populateTitle' | translate }}</div>
+                  <p class="text-600 text-sm mb-3">{{ 'import.populateDescription' | translate }}</p>
+                  <input
+                    type="file"
+                    #populateInput
+                    style="display: none;"
+                    accept=".csv"
+                    (change)="handlePopulateFileSelected($event, configuredDomain.domain, populateInput)"
+                  />
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-upload"
+                    [label]="('import.populateButton' | translate)"
+                    (click)="triggerPopulateUpload(populateInput, configuredDomain.domain)"
+                    [loading]="isPopulating(configuredDomain.domain)"
+                    [disabled]="isPopulating(configuredDomain.domain)"
+                  ></button>
+                  <small class="text-600 block mt-2">
+                    {{ 'import.populateHint' | translate }}
+                  </small>
+                  <div class="text-sm text-green-600 mt-2" *ngIf="populateSuccessRows[configuredDomain.domain] !== undefined">
+                    {{ 'import.populateSuccessDetail' | translate:{ count: populateSuccessRows[configuredDomain.domain] || 0 } }}
+                  </div>
+                  <div class="text-sm text-red-500 mt-2" *ngIf="populateErrors[configuredDomain.domain]">
+                    {{ populateErrors[configuredDomain.domain] }}
+                  </div>
+                  <div class="text-sm text-600 mt-2" *ngIf="populateWarnings[configuredDomain.domain]?.length">
+                    <div class="font-medium mb-1">{{ 'import.populateWarningsTitle' | translate }}</div>
+                    <ul class="pl-3">
+                      <li *ngFor="let warning of populateWarnings[configuredDomain.domain]!">{{ warning }}</li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -490,6 +543,11 @@ export class ImportTemplatePageComponent implements OnInit {
   success = '';
   configuredTables: DomainKey[] = [];
   configuredSources: Record<string, ConfigurationSource> = {};
+  configuredDomainCards: ConfiguredDomainCard[] = [];
+  populateLoading: Partial<Record<DomainKey, boolean>> = {};
+  populateErrors: Partial<Record<DomainKey, string>> = {};
+  populateWarnings: Partial<Record<DomainKey, string[]>> = {};
+  populateSuccessRows: Partial<Record<DomainKey, number>> = {};
   isAdmin = false;
   activeTabIndex = 0;
   googleStep = 0;
@@ -539,18 +597,25 @@ export class ImportTemplatePageComponent implements OnInit {
   fetchConfiguredTables(): void {
     this.http.get<ConfiguredTableResponse[]>('/api/import/configure/tables').subscribe({
       next: (tables) => {
-        const domains = tables
-          .map(table => this.normalizeDomain(table.domain))
-          .filter((domain): domain is DomainKey => !!domain);
-        this.configuredTables = domains;
+        const cards = tables
+          .map(table => {
+            const domain = this.normalizeDomain(table.domain);
+            if (!domain) {
+              return null;
+            }
+            return {
+              domain,
+              tableName: table.tableName,
+              rowCount: typeof table.rowCount === 'number' ? table.rowCount : 0,
+              source: table.source === 'google' ? 'google' : 'dynamic'
+            } as ConfiguredDomainCard;
+          })
+          .filter((card): card is ConfiguredDomainCard => !!card);
+        this.configuredDomainCards = cards;
+        this.configuredTables = cards.map(card => card.domain);
         const nextSources: Record<string, ConfigurationSource> = {};
-        tables.forEach(table => {
-          const domain = this.normalizeDomain(table.domain);
-          if (!domain) {
-            return;
-          }
-          const source = (table as { source?: ConfigurationSource }).source;
-          nextSources[domain] = source === 'google' ? 'google' : 'dynamic';
+        cards.forEach(card => {
+          nextSources[card.domain] = card.source ?? 'dynamic';
         });
         this.configuredSources = nextSources;
       },
@@ -928,6 +993,18 @@ export class ImportTemplatePageComponent implements OnInit {
             const updatedSources = { ...this.configuredSources };
             delete updatedSources[domain];
             this.configuredSources = updatedSources;
+            const nextLoading = { ...this.populateLoading };
+            delete nextLoading[domain];
+            this.populateLoading = nextLoading;
+            const nextErrors = { ...this.populateErrors };
+            delete nextErrors[domain];
+            this.populateErrors = nextErrors;
+            const nextWarnings = { ...this.populateWarnings };
+            delete nextWarnings[domain];
+            this.populateWarnings = nextWarnings;
+            const nextRows = { ...this.populateSuccessRows };
+            delete nextRows[domain];
+            this.populateSuccessRows = nextRows;
             this.fetchConfiguredTables();
           },
           error: (err) => {
@@ -937,6 +1014,75 @@ export class ImportTemplatePageComponent implements OnInit {
               detail: err?.error?.message || this.translate.instant('import.resetError') 
             });
           }
+        });
+      }
+    });
+  }
+
+  triggerPopulateUpload(input: HTMLInputElement, domain: DomainKey): void {
+    if (!domain) {
+      return;
+    }
+    input.value = '';
+    input.click();
+  }
+
+  handlePopulateFileSelected(event: Event, domain: DomainKey, input: HTMLInputElement): void {
+    const target = event.target as HTMLInputElement | null;
+    const file = target?.files?.[0];
+    input.value = '';
+    if (!domain || !file) {
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.error'),
+        detail: this.translate.instant('import.populateInvalidType')
+      });
+      return;
+    }
+    this.uploadPopulateFile(domain, file);
+  }
+
+  isPopulating(domain: DomainKey): boolean {
+    return !!(domain && this.populateLoading[domain]);
+  }
+
+  private uploadPopulateFile(domain: DomainKey, file: File): void {
+    if (!domain) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('domain', domain);
+    formData.append('file', file, file.name);
+
+    this.populateLoading = { ...this.populateLoading, [domain]: true };
+    this.populateErrors = { ...this.populateErrors, [domain]: '' };
+    this.populateWarnings = { ...this.populateWarnings, [domain]: [] };
+
+    this.http.post<PopulateResponse>('/api/import/configure/populate', formData).subscribe({
+      next: (response) => {
+        this.populateLoading = { ...this.populateLoading, [domain]: false };
+        const rows = response?.rowsInserted ?? 0;
+        this.populateSuccessRows = { ...this.populateSuccessRows, [domain]: rows };
+        this.populateWarnings = { ...this.populateWarnings, [domain]: response?.warnings ?? [] };
+        this.populateErrors = { ...this.populateErrors, [domain]: '' };
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('import.success'),
+          detail: this.translate.instant('import.populateSuccessToast', { count: rows })
+        });
+        this.fetchConfiguredTables();
+      },
+      error: (err) => {
+        this.populateLoading = { ...this.populateLoading, [domain]: false };
+        const detail = err?.error?.message || this.translate.instant('import.populateError');
+        this.populateErrors = { ...this.populateErrors, [domain]: detail };
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail
         });
       }
     });

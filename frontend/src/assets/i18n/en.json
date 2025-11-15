@@ -423,12 +423,23 @@
     "resetError": "Failed to reset table",
     "configuredDomains": "Configured Components",
     "configuredEmpty": "No components are configured yet.",
+    "fetchTablesError": "Failed to load configured components.",
     "domainConfigured": "The {{domain}} component is configured and ready to use.",
     "domainConfiguredSource": "The {{domain}} component is configured and ready to use ({{source}}).",
     "configuredSource": {
       "dynamic": "Dynamically configured",
       "google": "Google Sheet"
     },
+    "rowCountLabel": "Rows in table: {{count}}",
+    "populateTitle": "Populate data",
+    "populateDescription": "Upload a CSV file that matches the configured template to replace the component data.",
+    "populateHint": "Only CSV files following the original headers (and optional type row) are accepted. This action replaces all existing rows.",
+    "populateButton": "Upload CSV",
+    "populateSuccessDetail": "Last upload saved {{count}} row(s).",
+    "populateSuccessToast": "{{count}} row(s) imported successfully.",
+    "populateWarningsTitle": "Warnings",
+    "populateInvalidType": "Select a CSV file before uploading.",
+    "populateError": "Failed to populate the table. Please try again.",
     "google": {
       "intro": "Connect a Google Sheet to automatically configure and populate a component.",
       "step1Title": "Select Component",

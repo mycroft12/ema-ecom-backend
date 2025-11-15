@@ -1,11 +1,12 @@
 package com.mycroft.ema.ecom.domains.imports.service;
 
+import com.mycroft.ema.ecom.auth.domain.Permission;
+import com.mycroft.ema.ecom.auth.repo.RoleRepository;
+import com.mycroft.ema.ecom.auth.service.PermissionService;
 import com.mycroft.ema.ecom.common.metadata.ColumnSemanticsService;
 import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
+import com.mycroft.ema.ecom.domains.imports.dto.DomainPopulationResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
-import com.mycroft.ema.ecom.auth.service.PermissionService;
-import com.mycroft.ema.ecom.auth.repo.RoleRepository;
-import com.mycroft.ema.ecom.auth.domain.Permission;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,9 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Orchestrates domain configuration from uploaded templates, creating tables, permissions and column semantics.
@@ -60,6 +63,51 @@ public class DomainImportService {
     persistColumnSemantics(domain, table, analysis.getColumns());
     createColumnPermissions(domain, analysis);
     return analysis;
+  }
+
+  public DomainPopulationResponse populateFromCsv(String domain, MultipartFile file, boolean replaceExistingRows) {
+    String normalizedDomain = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
+    if (normalizedDomain.isEmpty()) {
+      throw new IllegalArgumentException("Domain is required");
+    }
+    if (file == null || file.isEmpty()) {
+      throw new IllegalArgumentException("Please upload a non-empty CSV file");
+    }
+    String filename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
+    String contentType = Optional.ofNullable(file.getContentType()).orElse("");
+    boolean isCsv = filename.toLowerCase(Locale.ROOT).endsWith(".csv")
+        || "text/csv".equalsIgnoreCase(contentType)
+        || "application/csv".equalsIgnoreCase(contentType);
+    if (!isCsv) {
+      throw new IllegalArgumentException("Only CSV files are supported when populating data");
+    }
+
+    String table = tableForDomain(domain);
+    if (!tableExists(table)) {
+      throw new IllegalStateException("The " + normalizedDomain + " component is not configured yet");
+    }
+
+    TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
+    if (analysis.getColumns() == null || analysis.getColumns().isEmpty()) {
+      throw new IllegalArgumentException("Unable to detect any columns in the uploaded CSV file");
+    }
+
+    validateColumnAlignment(table, analysis.getColumns());
+    if (replaceExistingRows) {
+      clearTable(table);
+    }
+
+    int inserted = templateService.populateData(file, analysis);
+    List<String> warnings = analysis.getWarnings() == null
+        ? List.of()
+        : List.copyOf(analysis.getWarnings());
+    return new DomainPopulationResponse(
+        normalizedDomain,
+        table,
+        inserted,
+        replaceExistingRows,
+        warnings
+    );
   }
 
   public boolean ensureDefaultComponent(String domain, List<ColumnInfo> columns) {
@@ -127,6 +175,37 @@ public class DomainImportService {
         "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
         Boolean.class, table);
     return Boolean.TRUE.equals(exists);
+  }
+
+  private void clearTable(String table) {
+    try {
+      jdbcTemplate.update("DELETE FROM " + table);
+    } catch (DataAccessException ex) {
+      throw new RuntimeException("Failed to clear data in table '" + table + "': " + ex.getMessage(), ex);
+    }
+  }
+
+  private void validateColumnAlignment(String table, List<ColumnInfo> uploadedColumns) {
+    List<String> expected = describeExistingColumns(table);
+    List<String> provided = uploadedColumns.stream()
+        .map(ColumnInfo::getName)
+        .map(name -> name == null ? "" : name.trim().toLowerCase(Locale.ROOT))
+        .collect(Collectors.toList());
+    if (!expected.equals(provided)) {
+      throw new IllegalArgumentException(
+          "Uploaded CSV columns do not match the configured schema. Expected " + expected + " but received " + provided);
+    }
+  }
+
+  private List<String> describeExistingColumns(String table) {
+    return jdbcTemplate.query(
+        "select column_name from information_schema.columns where table_schema = current_schema() and table_name = ? order by ordinal_position",
+        (rs, rowNum) -> {
+          String name = rs.getString("column_name");
+          return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+        },
+        table
+    );
   }
 
   private void executeDdl(String ddl) {

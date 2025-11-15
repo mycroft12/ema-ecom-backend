@@ -520,7 +520,7 @@ public class ExcelTemplateService {
     }
   }
 
-  public void populateData(MultipartFile file, TemplateAnalysisResponse analysis) {
+  public int populateData(MultipartFile file, TemplateAnalysisResponse analysis) {
     if (file == null) {
       throw new IllegalArgumentException("File is required to populate data");
     }
@@ -530,7 +530,7 @@ public class ExcelTemplateService {
 
     List<ColumnInfo> columns = Optional.ofNullable(analysis.getColumns()).orElse(Collections.emptyList());
     if (columns.isEmpty()) {
-      return; // Nothing to insert
+      return 0; // Nothing to insert
     }
 
     String table = Optional.ofNullable(analysis.getTableName()).map(String::trim).orElse("");
@@ -558,7 +558,7 @@ public class ExcelTemplateService {
     }
 
     if (rawBatch.isEmpty()) {
-      return;
+      return 0;
     }
 
     List<Object[]> batch = new ArrayList<>(rawBatch.size());
@@ -579,7 +579,16 @@ public class ExcelTemplateService {
     }
 
     try {
-      jdbcTemplate.batchUpdate(sql, batch);
+      int[] result = jdbcTemplate.batchUpdate(sql, batch);
+      int inserted = 0;
+      if (result != null) {
+        for (int count : result) {
+          if (count > 0) {
+            inserted += count;
+          }
+        }
+      }
+      return inserted;
     } catch (Exception e) {
       throw new RuntimeException("Failed to insert data into table '" + table + "': " + e.getMessage(), e);
     }
