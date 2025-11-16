@@ -43,7 +43,6 @@ public class OrderAssignmentService {
     attributes.put("assigned_agent", agent.getUsername());
     return hybridEntityService.update("orders", orderId, new HybridUpdateDto(attributes));
   }
-
   private boolean isAssignableAgent(User user) {
     if (user == null || !user.isEnabled()) {
       return false;

@@ -7,6 +7,8 @@ import com.mycroft.ema.ecom.common.metadata.ColumnSemanticsService;
 import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
 import com.mycroft.ema.ecom.domains.imports.dto.DomainPopulationResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DomainImportService {
+  private static final Logger log = LoggerFactory.getLogger(DomainImportService.class);
 
   private final ExcelTemplateService templateService;
   private final JdbcTemplate jdbcTemplate;
@@ -58,6 +61,7 @@ public class DomainImportService {
     String table = tableForDomain(domain);
     TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
     executeDdl(analysis.getCreateTableSql());
+    ensureSystemColumns(domain, table);
     ensureDomainBasePermissions(domain);
     templateService.populateData(file, analysis);
     persistColumnSemantics(domain, table, analysis.getColumns());
@@ -346,5 +350,45 @@ public class DomainImportService {
       role.setPermissions(new HashSet<>(permissionService.findAll()));
       roleRepository.save(role);
     });
+  }
+
+  private void ensureSystemColumns(String domain, String table) {
+    if (table == null || table.isBlank()) {
+      return;
+    }
+    String normalized = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
+    if ("orders".equals(normalized)) {
+      ensureColumnExists(table, "assigned_agent", "text");
+    }
+  }
+
+  private void ensureColumnExists(String table, String columnName, String sqlType) {
+    if (table == null || columnName == null || table.isBlank() || columnName.isBlank()) {
+      return;
+    }
+    Boolean exists = jdbcTemplate.queryForObject(
+        """
+            select exists (
+              select 1 from information_schema.columns
+              where table_schema = current_schema()
+                and table_name = ?
+                and column_name = ?
+            )
+            """,
+        Boolean.class,
+        table,
+        columnName
+    );
+    if (Boolean.TRUE.equals(exists)) {
+      return;
+    }
+    try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+      conn.setAutoCommit(true);
+      try (Statement stmt = conn.createStatement()) {
+        stmt.execute("alter table " + table + " add column if not exists " + columnName + " " + sqlType);
+      }
+    } catch (Exception ex) {
+      log.warn("Failed to ensure column '{}' on table '{}': {}", columnName, table, ex.getMessage());
+    }
   }
 }

@@ -168,9 +168,9 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     if (tableHasRows("orders_config")) {
       return;
     }
-    jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, assigned_agent, total_price, created_at, product_summary, notes) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, now(), ?, ?)",
-        "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", "Agent A", new BigDecimal("89.90"),
+    jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes) " +
+        "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?)",
+        "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", new BigDecimal("89.90"),
         "2 x Starter Pack", "Call customer tomorrow morning");
   }
 
