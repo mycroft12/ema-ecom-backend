@@ -629,7 +629,8 @@
 <p-dialog
         [(visible)]="assignmentDialogVisible"
         [modal]="true"
-        [style]="{ width: '25rem' }"
+        [style]="{ width: '25rem', height: '22rem' }"
+        [contentStyle]="{ 'height': '100%', 'overflow': 'auto' }"
         [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
         [header]="'orders.actionMenu.assignDialogTitle' | translate">
     <div class="flex flex-column gap-3">
