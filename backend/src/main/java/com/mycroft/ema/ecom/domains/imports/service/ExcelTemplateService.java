@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 
 /**
@@ -33,6 +35,26 @@ public class ExcelTemplateService {
 
   private static final int SAMPLE_ROWS = 100;
   private static final Pattern SNAKE_CASE_NON_ALNUM = Pattern.compile("[^a-z0-9_]");
+  private static final DateTimeFormatter FLEXIBLE_MDY_SLASH = new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .parseLenient()
+      .appendPattern("M/d/uuuu HH:mm:ss")
+      .toFormatter(Locale.US);
+  private static final DateTimeFormatter FLEXIBLE_MDY_DASH = new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .parseLenient()
+      .appendPattern("M-d-uuuu HH:mm:ss")
+      .toFormatter(Locale.US);
+  private static final DateTimeFormatter[] FLEXIBLE_DATE_TIME_FORMATS = new DateTimeFormatter[]{
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+      DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
+      DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"),
+      DateTimeFormatter.ofPattern("dd-MM/yyyy HH:mm:ss"),
+      DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"),
+      DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss"),
+      FLEXIBLE_MDY_SLASH,
+      FLEXIBLE_MDY_DASH
+  };
   private final JdbcTemplate jdbcTemplate;
   private final MinioProperties minioProperties;
 
@@ -184,7 +206,17 @@ public class ExcelTemplateService {
     if (value instanceof Number num) {
       return new BigDecimal(num.toString());
     }
-    return new BigDecimal(value.toString());
+    String str = value.toString().trim();
+    if (str.isEmpty()) {
+      return null;
+    }
+    // normalize localized decimal separators (e.g., "1,25" -> "1.25")
+    if (str.indexOf(',') >= 0 && str.indexOf('.') < 0) {
+      str = str.replace(',', '.');
+    }
+    // remove grouping spaces or non-breaking spaces
+    str = str.replace("\u00A0", "").replace(" ", "");
+    return new BigDecimal(str);
   }
 
   private Boolean toBoolean(Object value) {
@@ -248,11 +280,30 @@ public class ExcelTemplateService {
     try {
       return LocalDate.parse(s).atStartOfDay();
     } catch (DateTimeParseException ignored) {}
+    for (DateTimeFormatter formatter : FLEXIBLE_DATE_TIME_FORMATS) {
+      try {
+        return LocalDateTime.parse(s, formatter);
+      } catch (DateTimeParseException ignored) {}
+    }
+    try {
+      double numeric = Double.parseDouble(s);
+      return LocalDateTime.ofInstant(excelSerialToInstant(numeric), ZoneId.systemDefault());
+    } catch (NumberFormatException ignored) {}
     if (warnings != null) {
       warnings.add("Row " + rowNumber + ", column '" + columnName + "': unable to parse date value '" +
           s + "'. Stored as text.");
     }
     return s;
+  }
+
+  private static Instant excelSerialToInstant(double serial) {
+    double adjusted = serial > 59 ? serial - 1 : serial;
+    LocalDate baseDate = LocalDate.of(1899, 12, 30);
+    int wholeDays = (int) Math.floor(adjusted);
+    double fractionalDay = adjusted - wholeDays;
+    long seconds = Math.round(fractionalDay * 24 * 60 * 60);
+    LocalDate date = baseDate.plusDays(wholeDays);
+    return date.atStartOfDay(ZoneId.systemDefault()).toInstant().plusSeconds(seconds);
   }
 
   private boolean isNullOrBlank(Object value) {
@@ -590,7 +641,11 @@ public class ExcelTemplateService {
       }
       return inserted;
     } catch (Exception e) {
-      throw new RuntimeException("Failed to insert data into table '" + table + "': " + e.getMessage(), e);
+      String rootMessage = e.getMessage();
+      if (e instanceof org.springframework.dao.DataAccessException dae && dae.getMostSpecificCause() != null) {
+        rootMessage = dae.getMostSpecificCause().getMessage();
+      }
+      throw new RuntimeException("Failed to insert data into table '" + table + "': " + rootMessage, e);
     }
   }
 
