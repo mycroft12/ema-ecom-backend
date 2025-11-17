@@ -499,80 +499,22 @@
                                                     [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
                                             </textarea>
                                             <ng-template #defaultTextInput>
-                                                <div *ngIf="isPhoneField(column); else plainTextInput" class="phone-input-group">
-                                                    <p-select
-                                                            class="phone-country-select"
-                                                            [options]="phoneOptions"
-                                                            optionLabel="label"
-                                                            optionValue="id"
-                                                            [(ngModel)]="phoneFieldSelections[column.name]"
-                                                            [ngModelOptions]="{ standalone: true }"
-                                                            (onChange)="onPhoneOptionChange(column.name, $event.value)">
-                                                        <ng-template pTemplate="selectedItem" let-option>
-                                                            <div class="phone-option" *ngIf="option">
-                                                                <ng-container *ngIf="option.flagClass; else phoneSelectedIcon">
-                                                                    <img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
-                                                                         [class]="'flag flag-' + option.flagClass"
-                                                                         alt=""
-                                                                         aria-hidden="true" />
-                                                                </ng-container>
-                                                                <ng-template #phoneSelectedIcon>
-                                                                    <i class="pi pi-globe text-sm" aria-hidden="true"></i>
-                                                                </ng-template>
-                                                                <span>{{ option.label }}</span>
-                                                            </div>
-                                                        </ng-template>
-                                                        <ng-template pTemplate="item" let-option>
-                                                            <div class="phone-option">
-                                                                <ng-container *ngIf="option.flagClass; else phoneOptionIcon">
-                                                                    <img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
-                                                                         [class]="'flag flag-' + option.flagClass"
-                                                                         alt=""
-                                                                         aria-hidden="true" />
-                                                                </ng-container>
-                                                                <ng-template #phoneOptionIcon>
-                                                                    <i class="pi pi-globe text-sm" aria-hidden="true"></i>
-                                                                </ng-template>
-                                                                <span>{{ option.label }}</span>
-                                                            </div>
-                                                        </ng-template>
-                                                    </p-select>
-                                                    <p-inputMask
-                                                            [inputId]="'field-' + column.name"
-                                                            [name]="'field-' + column.name"
-                                                            [(ngModel)]="formModel[column.name]"
-                                                            (ngModelChange)="onFieldChange(column.name)"
-                                                            [required]="column.required"
-                                                            [readonly]="isColumnReadOnly(column)"
-                                                            [disabled]="isColumnDisabled(column)"
-                                                            [mask]="getPhoneMask(column.name)"
-                                                            [placeholder]="getPhonePlaceholder(column.name)"
-                                                            [unmask]="true"
-                                                            [slotChar]="'_'"
-                                                            [autoClear]="true"
-                                                            [styleClass]="getPhoneInputClass(model)"
-                                                            [inputProps]="getPhoneInputProps(column, model)"
-                                                            #model="ngModel">
-                                                    </p-inputMask>
-                                                </div>
-                                                <ng-template #plainTextInput>
-                                                    <input
-                                                            pInputText
-                                                            type="text"
-                                                            [name]="'field-' + column.name"
-                                                            [id]="'field-' + column.name"
-                                                            [(ngModel)]="formModel[column.name]"
-                                                            (ngModelChange)="onFieldChange(column.name)"
-                                                            [required]="column.required"
-                                                            [readonly]="isColumnReadOnly(column)"
-                                                            [disabled]="isColumnDisabled(column)"
-                                                            [attr.maxLength]="column.maxLength || null"
-                                                            [attr.pattern]="getPatternRule(column)"
-                                                            #model="ngModel"
-                                                            [class.p-invalid]="isFieldInvalid(model)"
-                                                            [attr.aria-invalid]="isFieldInvalid(model)"
-                                                            [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
-                                                </ng-template>
+                                                <input
+                                                        pInputText
+                                                        type="text"
+                                                        [name]="'field-' + column.name"
+                                                        [id]="'field-' + column.name"
+                                                        [(ngModel)]="formModel[column.name]"
+                                                        (ngModelChange)="onFieldChange(column.name)"
+                                                        [required]="column.required"
+                                                        [readonly]="isColumnReadOnly(column)"
+                                                        [disabled]="isColumnDisabled(column)"
+                                                        [attr.maxLength]="column.maxLength || null"
+                                                        [attr.pattern]="getPatternRule(column)"
+                                                        #model="ngModel"
+                                                        [class.p-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
                                             </ng-template>
                                         </ng-container>
                                     </ng-container>

@@ -22,7 +22,6 @@ import { MessageModule } from 'primeng/message';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { DatePicker } from 'primeng/datepicker';
-import { InputMaskModule } from 'primeng/inputmask';
 import { DialogModule } from 'primeng/dialog';
 import { SharedDialogComponent } from '@shared/ui/dialog';
 
@@ -37,19 +36,6 @@ import { HybridBadgeService, HybridUpsertEvent } from '../../services/hybrid-bad
 import { OrderAgent, OrderManagementService } from '../../../orders/order-management.service';
 
 const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
-
-interface PhoneInputOption {
-  id: string;
-  label: string;
-  mask: string;
-  placeholder: string;
-  flagClass?: string;
-  numericPrefix: string;
-  storagePrefix: string;
-  length: number;
-  pattern?: string;
-  matcher: (raw: string, digits: string) => boolean;
-}
 
 @Component({
   selector: 'app-hybrid-table',
@@ -76,7 +62,6 @@ interface PhoneInputOption {
     InputNumberModule,
     InputSwitchModule,
     DatePicker,
-    InputMaskModule,
     DialogModule,
     InputTextarea,
     SharedDialogComponent
@@ -129,73 +114,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       this.handleRealtimeUpdate(realtimeEvent);
     }
   });
-  private readonly phoneKeywords = ['phone', 'telephone', 'phone number', 'mobile'];
-  readonly phoneOptions: PhoneInputOption[] = [
-    {
-      id: 'ma-intl',
-      label: 'Morocco (+212)',
-      mask: '+212 9 99 99 99 99',
-      placeholder: '+212 6 12 34 56 78',
-      flagClass: 'ma',
-      numericPrefix: '212',
-      storagePrefix: '+212',
-      length: 9,
-      pattern: '^\\+212 [67]\\d(?: \\d{2}){4}$',
-      matcher: (raw, digits) => {
-        const normalized = raw.replace(/\s+/g, '');
-        if (normalized.startsWith('+212') || normalized.startsWith('212')) {
-          return true;
-        }
-        return digits.startsWith('2126') || digits.startsWith('2127');
-      }
-    },
-    {
-      id: 'ma-local',
-      label: 'Morocco (0)',
-      mask: '0 9 99 99 99 99',
-      placeholder: '0 6 12 34 56 78',
-      flagClass: 'ma',
-      numericPrefix: '0',
-      storagePrefix: '0',
-      length: 9,
-      pattern: '^0 [67]\\d(?: \\d{2}){4}$',
-      matcher: (raw, digits) => {
-        const normalized = raw.replace(/\s+/g, '');
-        if (normalized.startsWith('0')) {
-          const secondDigit = digits.charAt(1);
-          return secondDigit === '6' || secondDigit === '7';
-        }
-        return digits.length === 9 && (digits.startsWith('6') || digits.startsWith('7'));
-      }
-    },
-    {
-      id: 'intl-plus',
-      label: 'International (+)',
-      mask: '+999 999 999 999',
-      placeholder: '+44 7123 456 789',
-      numericPrefix: '',
-      storagePrefix: '+',
-      length: 12,
-      pattern: '^\\+\\d[\\d ]{5,}$',
-      matcher: (raw, _digits) => {
-        const normalized = raw.trim();
-        return normalized.startsWith('+') || normalized.startsWith('00');
-      }
-    },
-    {
-      id: 'generic-local',
-      label: 'Local',
-      mask: '999 999 999 999',
-      placeholder: '0612345678',
-      numericPrefix: '',
-      storagePrefix: '',
-      length: 12,
-      pattern: '^\\d[\\d ]{5,}$',
-      matcher: (_raw, digits) => digits.length > 0
-    }
-  ];
-  phoneFieldSelections: Record<string, string> = {};
-  private dialogInitialPhoneSelections: Record<string, string> = {};
   assignmentDialogVisible = false;
   assigningOrderId: string | null = null;
   selectedAgentId: string | null = null;
@@ -454,7 +372,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.editingRecordId = null;
     this.dialogErrorMessage = null;
     this.dialogLoading = false;
-    this.resetPhoneSelections();
     this.formModel = this.buildInitialFormModel();
     this.setInitialFormState();
     this.formSubmitted = false;
@@ -472,7 +389,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     }
     this.dialogMode = 'edit';
     this.editingRecordId = recordId;
-    this.resetPhoneSelections();
     this.formModel = this.buildInitialFormModel();
     this.formSubmitted = false;
     this.dialogErrorMessage = null;
@@ -481,7 +397,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.displayDialog = true;
     this.dataService.getRecord(recordId).subscribe({
       next: product => {
-        this.resetPhoneSelections();
         this.formModel = this.buildInitialFormModel(product);
         this.dialogLoading = false;
         this.setInitialFormState();
@@ -701,26 +616,16 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.dialogErrorMessage = null;
     this.formModel = {};
     this.dialogInitialModel = {};
-    this.resetPhoneSelections();
-    this.dialogInitialPhoneSelections = {};
     this.clearPendingFocus();
-  }
-
-  private resetPhoneSelections(): void {
-    this.phoneFieldSelections = {};
   }
 
   private setInitialFormState(): void {
     this.dialogInitialModel = this.cloneModel(this.formModel);
     this.dialogErrorMessage = null;
-    this.dialogInitialPhoneSelections = { ...this.phoneFieldSelections };
   }
 
   private isDialogDirty(): boolean {
-    if (JSON.stringify(this.formModel ?? {}) !== JSON.stringify(this.dialogInitialModel ?? {})) {
-      return true;
-    }
-    return JSON.stringify(this.phoneFieldSelections ?? {}) !== JSON.stringify(this.dialogInitialPhoneSelections ?? {});
+    return JSON.stringify(this.formModel ?? {}) !== JSON.stringify(this.dialogInitialModel ?? {});
   }
 
   private cloneModel(model: Record<string, any>): Record<string, any> {
@@ -969,11 +874,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     const columns = this.schemaService.visibleColumns();
     columns.forEach(column => {
       const rawValue = initial ? initial[column.name] : undefined;
-      if (this.isPhoneField(column)) {
-        model[column.name] = this.preparePhoneFieldValue(column, rawValue);
-      } else {
-        model[column.name] = this.normalizeValueForInput(column, rawValue);
-      }
+      model[column.name] = this.normalizeValueForInput(column, rawValue);
     });
     return model;
   }
@@ -1013,181 +914,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       default:
         return '';
     }
-  }
-
-  private preparePhoneFieldValue(column: HybridColumnDefinition, rawValue: any): string {
-    const baseValue = typeof rawValue === 'string'
-      ? rawValue
-      : rawValue !== null && rawValue !== undefined
-        ? String(rawValue)
-        : '';
-    const trimmed = baseValue.trim();
-    const digits = this.extractDigits(trimmed);
-    const option = this.detectPhoneOption(trimmed, digits) ?? this.getDefaultPhoneOption();
-    this.phoneFieldSelections[column.name] = option.id;
-    if (!digits) {
-      return '';
-    }
-    const withoutPrefix = this.stripNumericPrefix(digits, option.numericPrefix);
-    if (option.length > 0 && withoutPrefix.length > option.length) {
-      return withoutPrefix.slice(0, option.length);
-    }
-    return withoutPrefix;
-  }
-
-  private getDefaultPhoneOption(): PhoneInputOption {
-    return this.phoneOptions[0];
-  }
-
-  private getActivePhoneOption(columnName: string): PhoneInputOption {
-    const selectedId = this.phoneFieldSelections[columnName];
-    if (selectedId) {
-      const match = this.phoneOptions.find(option => option.id === selectedId);
-      if (match) {
-        return match;
-      }
-    }
-    return this.getDefaultPhoneOption();
-  }
-
-  private detectPhoneOption(raw: string, digits: string): PhoneInputOption | null {
-    if (!digits) {
-      return null;
-    }
-    for (const option of this.phoneOptions) {
-      if (option.matcher(raw, digits)) {
-        return option;
-      }
-    }
-    return null;
-  }
-
-  private extractDigits(value: string): string {
-    return value.replace(/\D+/g, '');
-  }
-
-  private sanitizePhoneDigits(value: unknown): string {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    if (typeof value === 'string') {
-      return this.extractDigits(value);
-    }
-    if (typeof value === 'number') {
-      return this.extractDigits(String(value));
-    }
-    return this.extractDigits(String(value));
-  }
-
-  private stripNumericPrefix(digits: string, prefix: string): string {
-    if (!prefix) {
-      return digits;
-    }
-    return digits.startsWith(prefix) ? digits.slice(prefix.length) : digits;
-  }
-
-  private getPhoneMaskDigitCount(option: PhoneInputOption): number {
-    return option.length;
-  }
-
-  getPhoneMask(columnName: string): string {
-    return this.getActivePhoneOption(columnName).mask;
-  }
-
-  getPhonePlaceholder(columnName: string): string {
-    return this.getActivePhoneOption(columnName).placeholder;
-  }
-
-  getPhoneInputClass(control: NgModel | null): string {
-    const invalid = control ? this.isFieldInvalid(control) : false;
-    return `w-full${invalid ? ' p-invalid' : ''}`;
-  }
-
-  getPhoneInputProps(column: HybridColumnDefinition, control: NgModel | null): Record<string, string> {
-    const props: Record<string, string> = {};
-    const describedBy = this.getFieldAriaDescribedBy(column.name, control);
-    if (describedBy) {
-      props['aria-describedby'] = describedBy;
-    }
-    if (control && this.isFieldInvalid(control)) {
-      props['aria-invalid'] = 'true';
-    }
-    const pattern = this.getPhonePattern(column);
-    if (pattern) {
-      props['pattern'] = pattern;
-    }
-    return props;
-  }
-
-  getPhonePattern(column: HybridColumnDefinition): string | null {
-    const columnPattern = this.getPatternRule(column);
-    if (columnPattern) {
-      return columnPattern;
-    }
-    const option = this.getActivePhoneOption(column.name);
-    return option.pattern ?? null;
-  }
-
-  onPhoneOptionChange(columnName: string, optionId: string): void {
-    this.phoneFieldSelections[columnName] = optionId;
-    const option = this.getActivePhoneOption(columnName);
-    const digits = this.sanitizePhoneDigits(this.formModel[columnName]);
-    const withoutPrefix = this.stripNumericPrefix(digits, option.numericPrefix);
-    const expectedLength = this.getPhoneMaskDigitCount(option);
-    const nextValue = expectedLength > 0 ? withoutPrefix.slice(0, expectedLength) : withoutPrefix;
-    this.formModel[columnName] = nextValue;
-    this.markDialogDirty();
-  }
-
-  private normalizePhoneValueForSave(column: HybridColumnDefinition, value: any): string | null | undefined {
-    const digits = this.sanitizePhoneDigits(value);
-    if (!digits) {
-      return column.required ? null : undefined;
-    }
-    const option = this.getActivePhoneOption(column.name);
-    const expectedLength = this.getPhoneMaskDigitCount(option);
-    const trimmedDigits = expectedLength > 0 ? digits.slice(0, expectedLength) : digits;
-    if (expectedLength > 0 && trimmedDigits.length < expectedLength) {
-      return column.required ? null : undefined;
-    }
-    const prefix = option.storagePrefix ?? '';
-    return prefix ? `${prefix}${trimmedDigits}` : trimmedDigits;
-  }
-
-  isPhoneField(column: HybridColumnDefinition): boolean {
-    if (!column) {
-      return false;
-    }
-    if (typeof column.semanticType === 'string' && column.semanticType.toLowerCase() === 'phone') {
-      return true;
-    }
-    if (this.matchesPhoneKeyword(column.displayName)) {
-      return true;
-    }
-    if (this.matchesPhoneKeyword(column.name)) {
-      return true;
-    }
-    if (this.matchesPhoneKeyword(column.labelKey)) {
-      return true;
-    }
-    const metadata = column.metadata ?? {};
-    if (this.matchesPhoneKeyword(metadata['label']) || this.matchesPhoneKeyword(metadata['name'])) {
-      return true;
-    }
-    const metaType = typeof metadata['type'] === 'string' ? metadata['type'].toLowerCase() : '';
-    const metaInput = typeof metadata['input'] === 'string' ? metadata['input'].toLowerCase() : '';
-    if (metaType === 'phone' || metaInput === 'phone') {
-      return true;
-    }
-    return false;
-  }
-
-  private matchesPhoneKeyword(value: unknown): boolean {
-    if (typeof value !== 'string') {
-      return false;
-    }
-    const normalized = value.replace(/[_-]/g, ' ').toLowerCase();
-    return this.phoneKeywords.some(keyword => normalized.includes(keyword));
   }
 
   private collectAttributesFromFormModel(): Record<string, any> {
@@ -1231,9 +957,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       case HybridColumnType.MINIO_IMAGE:
         return this.normalizeMinioPayloadForSave(value, column);
       default:
-        if (this.isPhoneField(column)) {
-          return this.normalizePhoneValueForSave(column, value);
-        }
         return value;
     }
   }
