@@ -49,16 +49,17 @@ src/app
     - Uses Angular `DestroyRef + takeUntilDestroyed` for subscription cleanup.
 - **Roles**:
   - `RolesPageComponent` (and subcomponents) manage role CRUD, permission assignment matrix via PrimeNG tables.
-- **Home**:
-  - `HomeComponent`: layout shell with responsive sidenav and header.
-  - `HomeContentComponent`: dashboard placeholder with quick links/status.
+- **Dashboard**:
+  - `DashboardComponent`: layout shell with responsive sidenav and header.
+  - `DashboardContentComponent`: dashboard placeholder with quick links/status.
+  - `/dashboard` is guarded by `permissionGuard` and the `dashboard:view` permission so only authorized users hit the landing tiles.
 
 ### 2.3 Shared Modules
 - `shared/` contains reusable presentation components, utility pipes, and translation keys. PrimeNG modules are imported per feature (standalone component style).
 
 ## 3. Routing & Navigation
 - Routes defined in `app.routes.ts` use standalone components.
-- Authenticated area is wrapped by `HomeComponent`. Each feature route sets permissions and entity metadata (e.g., `entityType`, `translationPrefix`) consumed by hybrid services.
+- Authenticated area is wrapped by `DashboardComponent`. The `/dashboard` landing page enforces the `dashboard:view` permission before rendering the quick links and feature tiles, while each feature route sets its own entity metadata (`entityType`, `translationPrefix`, etc.).
 - `LoginComponent` is the unauthenticated entry point. On successful login, navigation service builds the menu based on available permissions.
 
 ## 4. State & Data Flow

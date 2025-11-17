@@ -40,7 +40,7 @@ import { NotificationMenuComponent } from '../shared/notification-menu.component
       <p-menubar>
         <ng-template pTemplate="start">
           <button type="button" pButton icon="pi pi-bars" class="p-button-text mr-2" (click)="toggleSidebar()" aria-label="Toggle Menu"></button>
-          <a routerLink="/home" class="flex align-items-center gap-2 no-underline text-color">
+          <a routerLink="/dashboard" class="flex align-items-center gap-2 no-underline text-color">
             <i class="pi pi-shopping-bag text-2xl" aria-hidden="true"></i>
             <span class="font-bold">{{ 'app.title' | translate }}</span>
           </a>
@@ -69,7 +69,7 @@ import { NotificationMenuComponent } from '../shared/notification-menu.component
                 <a 
                   [routerLink]="item.routerLink" 
                   routerLinkActive="nav-link-active"
-                  [routerLinkActiveOptions]="{exact: item.routerLink === '/home'}"
+                  [routerLinkActiveOptions]="{exact: item.routerLink === '/dashboard'}"
                   class="nav-link flex align-items-center gap-2 p-2 border-round cursor-pointer no-underline text-color transition-colors transition-duration-150">
                   <i [class]="item.icon" *ngIf="item.icon" aria-hidden="true"></i>
                   <span>{{ item.label }}</span>
@@ -126,7 +126,7 @@ export class AppLayoutComponent {
 
   onProfileUpdate(){
     // Placeholder for profile update navigation/modal
-    this.router.navigateByUrl('/home');
+    this.router.navigateByUrl('/dashboard');
   }
 
   private buildProfileItems(){

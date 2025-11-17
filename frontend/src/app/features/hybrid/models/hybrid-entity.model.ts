@@ -64,6 +64,12 @@ export interface HybridTableSchema {
   updatedAt?: Date;
 }
 
+export interface HybridSchema {
+  entityType: string;
+  displayName: string;
+  columns: HybridColumnDefinition[];
+}
+
 export interface HybridSchemaConfigurationRequest {
   file: File;
   displayName: string;

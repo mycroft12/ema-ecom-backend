@@ -27,7 +27,7 @@ export class NavService {
 
   private allItems(): NavItem[] {
     return [
-      { labelKey: 'menu.home', icon: 'pi pi-home', route: '/home' },
+      { labelKey: 'menu.dashboard', icon: 'pi pi-home', route: '/dashboard', permissions: DASHBOARD_FEATURE_PERMISSIONS },
       { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: PRODUCT_FEATURE_PERMISSIONS },
       { labelKey: 'menu.orders', icon: 'pi pi-shopping-bag', route: '/orders', permissions: ORDERS_FEATURE_PERMISSIONS },
       { labelKey: 'menu.expenses', icon: 'pi pi-chart-line', route: '/expenses', permissions: EXPENSES_FEATURE_PERMISSIONS },
@@ -105,3 +105,4 @@ const PRODUCT_FEATURE_PERMISSIONS = ['product:read','product:create','product:up
 const ORDERS_FEATURE_PERMISSIONS = ['orders:read','orders:create','orders:update','orders:delete'];
 const EXPENSES_FEATURE_PERMISSIONS = ['expenses:read','expenses:create','expenses:update','expenses:delete'];
 const ADS_FEATURE_PERMISSIONS = ['ads:read','ads:create','ads:update','ads:delete'];
+const DASHBOARD_FEATURE_PERMISSIONS = ['dashboard:view'];

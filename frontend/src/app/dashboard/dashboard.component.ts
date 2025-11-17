@@ -8,7 +8,7 @@ import { NavService } from '../core/navigation/nav.service';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, PanelMenuModule, TranslateModule, BadgeModule],
   template: `
@@ -21,7 +21,7 @@ import { Subscription } from 'rxjs';
               <a 
                 [routerLink]="item.routerLink" 
                 routerLinkActive="nav-link-active"
-                [routerLinkActiveOptions]="{exact: item.routerLink === '/home'}"
+                [routerLinkActiveOptions]="{exact: item.routerLink === '/dashboard'}"
                 class="nav-link flex align-items-center gap-2 p-2 border-round cursor-pointer no-underline text-color transition-colors transition-duration-150">
                 <i [class]="item.icon" *ngIf="item.icon" aria-hidden="true"></i>
                 <span class="flex align-items-center gap-2">
@@ -43,7 +43,7 @@ import { Subscription } from 'rxjs';
     </div>
   `
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy {
   menu = this.nav.menuItems();
   private sub?: Subscription;
   constructor(private nav: NavService, private translate: TranslateService) {}

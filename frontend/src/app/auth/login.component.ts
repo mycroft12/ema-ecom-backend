@@ -11,6 +11,7 @@ import { MessagesModule } from 'primeng/messages';
 import { MessageModule } from 'primeng/message';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageSwitcherComponent } from '../shared/language-switcher.component';
+import { NavService } from '../core/navigation/nav.service';
 
 @Component({
   selector: 'app-login',
@@ -54,7 +55,7 @@ export class LoginComponent implements OnInit {
   error = '';
   loading = false;
   submitted = false;
-  constructor(private auth: AuthService, private router: Router, private translate: TranslateService) {}
+  constructor(private auth: AuthService, private router: Router, private translate: TranslateService, private nav: NavService) {}
 
 
    ngOnInit(){
@@ -64,7 +65,7 @@ export class LoginComponent implements OnInit {
       this.error = translated && translated !== logoutMessageKey ? translated : logoutMessageKey;
     }
     if (this.auth.isAuthenticated()) {
-      this.router.navigateByUrl('/home');
+      this.router.navigateByUrl(this.defaultPostLoginRoute());
     }
   }
 
@@ -79,7 +80,7 @@ export class LoginComponent implements OnInit {
       next: (res) => {
         this.auth.saveLoginResponse(res);
         this.loading = false;
-        this.router.navigateByUrl('/home');
+        this.router.navigateByUrl(this.defaultPostLoginRoute());
       },
       error: (err) => {
         this.loading = false;
@@ -95,5 +96,17 @@ export class LoginComponent implements OnInit {
         else this.error = this.translate.instant('auth.errors.unexpected');
       }
     });
+  }
+
+  private defaultPostLoginRoute(): string {
+    if (this.auth.hasAny(['dashboard:view'])) {
+      return '/dashboard';
+    }
+    const menuItems = this.nav.menuItems()();
+    const fallback = menuItems.find((item) => {
+      const link = item.routerLink as string | undefined;
+      return link && link !== '/dashboard';
+    })?.routerLink as string | undefined;
+    return fallback || '/login';
   }
 }

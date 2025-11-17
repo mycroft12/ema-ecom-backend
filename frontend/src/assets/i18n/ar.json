@@ -34,10 +34,26 @@
     "logout": "تسجيل الخروج"
   },
   "menu": {
-    "home": "الرئيسية",
+    "dashboard": "لوحة القيادة",
     "products": "المنتجات",
     "roles": "الأدوار",
     "import": "الإعدادات"
+  },
+  "dashboardPage": {
+    "title": "لوحة القيادة",
+    "subtitle": "لوحة EMA للتجارة الإلكترونية",
+    "stats": {
+      "products": "المنتجات المتبعة",
+      "productsDetail": "سجلات المنتجات النشطة",
+      "orders": "الطلبات",
+      "ordersDetail": "سجلات الطلبات في النظام",
+      "expenses": "النفقات والعمولات",
+      "expensesDetail": "سجل النفقات المتاح",
+      "ads": "الإعلانات",
+      "adsDetail": "سجلات أداء الإعلانات",
+      "loading": "جارٍ تحميل المؤشرات...",
+      "updated": "تم تحديث المؤشرات"
+    }
   },
   "notifications": {
     "title": "الإشعارات",

@@ -98,7 +98,8 @@ public class DevAdminInitializer implements CommandLineRunner {
             "orders:read","orders:create","orders:update","orders:delete","orders:export:excel",
             "expenses:read","expenses:create","expenses:update","expenses:delete","expenses:export:excel",
             "ads:read","ads:create","ads:update","ads:delete","ads:export:excel",
-            "import:template","import:configure"
+            "import:template","import:configure",
+            "dashboard:view"
         };
         for (String p : basePerms){
             jdbc.update("INSERT INTO permissions(id, name) VALUES (?, ?) ON CONFLICT (name) DO NOTHING", UUID.randomUUID(), p);

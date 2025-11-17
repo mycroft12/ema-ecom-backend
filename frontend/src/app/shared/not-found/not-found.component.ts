@@ -14,9 +14,9 @@ import { TranslateModule } from '@ngx-translate/core';
         <h1 class="mt-3">404</h1>
         <h2 class="mt-0">Page not found</h2>
         <p class="text-600 mb-4">The page you are looking for might have been removed, had its name changed or is temporarily unavailable.</p>
-        <a routerLink="/home" class="p-button p-component">
+        <a routerLink="/dashboard" class="p-button p-component">
           <span class="p-button-icon pi pi-home mr-2" aria-hidden="true"></span>
-          <span class="p-button-label">Go to Home</span>
+          <span class="p-button-label">Go to Dashboard</span>
         </a>
       </div>
     </div>

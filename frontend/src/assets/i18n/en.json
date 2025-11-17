@@ -285,13 +285,29 @@
     "logout": "Logout"
   },
   "menu": {
-    "home": "Home",
+    "dashboard": "Dashboard",
     "products": "Products",
     "orders": "Orders",
     "expenses": "Expenses & Commissions",
     "ads": "Advertising",
     "roles": "Roles",
     "import": "Configuration"
+  },
+  "dashboardPage": {
+    "title": "Dashboard",
+    "subtitle": "EMA E-Commerce Panel",
+    "stats": {
+      "products": "Products tracked",
+      "productsDetail": "Active product records from the catalog",
+      "orders": "Orders processed",
+      "ordersDetail": "Orders stored in the system",
+      "expenses": "Expenses & commissions",
+      "expensesDetail": "Expense entries available for review",
+      "ads": "Advertising campaigns",
+      "adsDetail": "Advertising performance entries",
+      "loading": "Loading metrics...",
+      "updated": "Metrics updated"
+    }
   },
   "notifications": {
     "title": "Notifications",

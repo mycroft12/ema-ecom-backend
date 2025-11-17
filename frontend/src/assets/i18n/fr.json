@@ -34,13 +34,29 @@
     "logout": "Déconnexion"
   },
   "menu": {
-    "home": "Accueil",
+    "dashboard": "Tableau de bord",
     "products": "Produits",
     "orders": "Commandes",
     "expenses": "Dépenses et commissions",
     "ads": "Publicité",
     "roles": "Rôles",
     "import": "Configuration"
+  },
+  "dashboardPage": {
+    "title": "Tableau de bord",
+    "subtitle": "EMA E-Commerce Panel",
+    "stats": {
+      "products": "Produits suivis",
+      "productsDetail": "Fiches produits actives",
+      "orders": "Commandes traitées",
+      "ordersDetail": "Enregistrements de commandes",
+      "expenses": "Dépenses et commissions",
+      "expensesDetail": "Historique des dépenses",
+      "ads": "Publicité",
+      "adsDetail": "Performances publicitaires",
+      "loading": "Chargement des indicateurs...",
+      "updated": "Indicateurs mis à jour"
+    }
   },
   "notifications": {
     "title": "Notifications",

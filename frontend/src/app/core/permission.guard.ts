@@ -32,7 +32,7 @@ export const permissionGuard: CanActivateFn = (route) => {
           return true;
         }
 
-        router.navigateByUrl('/home');
+        router.navigateByUrl('/login');
         return false;
       })
   );
