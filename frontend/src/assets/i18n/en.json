@@ -448,13 +448,13 @@
       "description": "Manage the stages an order can take.",
       "add": "Add status",
       "columns": {
-        "name": "Name",
+        "name": "Labels (FR / EN)",
         "order": "Order",
         "actions": "Actions"
       },
       "empty": "No statuses defined.",
       "loadError": "Failed to load order statuses.",
-      "nameRequired": "Status name is required.",
+      "nameRequired": "French and English labels are required.",
       "saveSuccess": "Order status saved.",
       "saveError": "Failed to save the order status.",
       "deleteTitle": "Delete status",
@@ -466,7 +466,8 @@
       "dialogCreateTitle": "Add status",
       "dialogEditTitle": "Edit status",
       "form": {
-        "nameLabel": "Status name",
+        "nameFrLabel": "Status name (French)",
+        "nameEnLabel": "Status name (English)",
         "orderLabel": "Display order"
       }
     },

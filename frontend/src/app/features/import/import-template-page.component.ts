@@ -42,14 +42,6 @@ interface ConfiguredDomainCard {
   source?: ConfigurationSource;
 }
 
-interface PopulateResponse {
-  domain: string;
-  tableName: string;
-  rowsInserted: number;
-  replacedExistingRows: boolean;
-  warnings?: string[];
-}
-
 interface GoogleServiceAccountStatus {
   configured: boolean;
   clientEmail?: string;
@@ -125,11 +117,20 @@ interface GoogleSheetTestResponseDto {
           color: #dc2626;
           margin-left: 0.25rem;
         }
+
+        .required-indicator {
+          color: #dc2626;
+          margin-left: 0.25rem;
+        }
       }`
   ],
   template: `
     <p-tabView [(activeIndex)]="activeTabIndex">
-      <p-tabPanel [header]="'import.tabs.dynamic' | translate">
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          <i class="pi pi-sync mr-2"></i>
+          {{ 'import.tabs.dynamic' | translate }}
+        </ng-template>
         <p-card [header]="('import.title' | translate)">
           <p class="mb-4">{{ 'import.description' | translate }}</p>
 
@@ -206,7 +207,11 @@ interface GoogleSheetTestResponseDto {
           </p>
         </p-card>
       </p-tabPanel>
-      <p-tabPanel [header]="'import.tabs.google' | translate">
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          <i class="pi pi-cloud mr-2"></i>
+          {{ 'import.tabs.google' | translate }}
+        </ng-template>
         <p-card>
           <p class="mb-4">{{ 'import.google.intro' | translate }}</p>
 
@@ -403,69 +408,11 @@ interface GoogleSheetTestResponseDto {
           </p-stepper>
         </p-card>
       </p-tabPanel>
-      <p-tabPanel [header]="'import.tabs.orderConfig' | translate">
-        <p-card>
-          <div class="flex flex-column gap-3">
-            <div class="flex align-items-center justify-content-between flex-wrap gap-3">
-              <div>
-                <div class="font-bold text-lg">{{ 'import.orderStatus.title' | translate }}</div>
-                <div class="text-600">{{ 'import.orderStatus.description' | translate }}</div>
-              </div>
-              <button
-                pButton
-                type="button"
-                icon="pi pi-plus"
-                [label]="'import.orderStatus.add' | translate"
-                (click)="openOrderStatusDialog()"
-                [disabled]="!canManageOrderStatuses"
-              ></button>
-            </div>
-            <p-table
-              [value]="orderStatuses"
-              [loading]="orderStatusLoading"
-              responsiveLayout="scroll"
-              [rows]="6"
-              [paginator]="orderStatuses.length > 6"
-            >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>{{ 'import.orderStatus.columns.name' | translate }}</th>
-                  <th style="width: 8rem;">{{ 'import.orderStatus.columns.order' | translate }}</th>
-                  <th style="width: 8rem;" *ngIf="canManageOrderStatuses">{{ 'import.orderStatus.columns.actions' | translate }}</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-status>
-                <tr>
-                  <td>{{ status.name }}</td>
-                  <td>{{ status.displayOrder }}</td>
-                  <td *ngIf="canManageOrderStatuses" class="actions-column">
-                    <button
-                      pButton
-                      type="button"
-                      icon="pi pi-pencil"
-                      class="p-button-rounded p-button-text"
-                      (click)="openOrderStatusDialog(status)"
-                    ></button>
-                    <button
-                      pButton
-                      type="button"
-                      icon="pi pi-trash"
-                      class="p-button-rounded p-button-text p-button-danger"
-                      (click)="confirmDeleteOrderStatus(status)"
-                    ></button>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td [attr.colspan]="canManageOrderStatuses ? 3 : 2">{{ 'import.orderStatus.empty' | translate }}</td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-        </p-card>
-      </p-tabPanel>
-      <p-tabPanel [header]="'import.tabs.configured' | translate">
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          <i class="pi pi-list mr-2"></i>
+          {{ 'import.tabs.configured' | translate }}
+        </ng-template>
         <div *ngIf="configuredDomainCards.length === 0" class="py-4 text-600">
           {{ 'import.configuredEmpty' | translate }}
         </div>
@@ -501,45 +448,79 @@ interface GoogleSheetTestResponseDto {
                     ></button>
                   </div>
                 </div>
-                <div class="mt-3 pt-3 border-top-1 surface-border">
-                  <div class="font-bold text-sm mb-2">{{ 'import.populateTitle' | translate }}</div>
-                  <p class="text-600 text-sm mb-3">{{ 'import.populateDescription' | translate }}</p>
-                  <input
-                    type="file"
-                    #populateInput
-                    style="display: none;"
-                    accept=".csv"
-                    (change)="handlePopulateFileSelected($event, configuredDomain.domain, populateInput)"
-                  />
-                  <button
-                    pButton
-                    type="button"
-                    icon="pi pi-upload"
-                    [label]="('import.populateButton' | translate)"
-                    (click)="triggerPopulateUpload(populateInput, configuredDomain.domain)"
-                    [loading]="isPopulating(configuredDomain.domain)"
-                    [disabled]="isPopulating(configuredDomain.domain)"
-                  ></button>
-                  <small class="text-600 block mt-2">
-                    {{ 'import.populateHint' | translate }}
-                  </small>
-                  <div class="text-sm text-green-600 mt-2" *ngIf="populateSuccessRows[configuredDomain.domain] !== undefined">
-                    {{ 'import.populateSuccessDetail' | translate:{ count: populateSuccessRows[configuredDomain.domain] || 0 } }}
-                  </div>
-                  <div class="text-sm text-red-500 mt-2" *ngIf="populateErrors[configuredDomain.domain]">
-                    {{ populateErrors[configuredDomain.domain] }}
-                  </div>
-                  <div class="text-sm text-600 mt-2" *ngIf="populateWarnings[configuredDomain.domain]?.length">
-                    <div class="font-medium mb-1">{{ 'import.populateWarningsTitle' | translate }}</div>
-                    <ul class="pl-3">
-                      <li *ngFor="let warning of populateWarnings[configuredDomain.domain]!">{{ warning }}</li>
-                    </ul>
-                  </div>
-                </div>
               </div>
             </p-card>
           </div>
         </div>
+      </p-tabPanel>
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          <i class="pi pi-cog mr-2"></i>
+          {{ 'import.tabs.orderConfig' | translate }}
+        </ng-template>
+        <p-card>
+          <div class="flex flex-column gap-3">
+            <div class="flex align-items-center justify-content-between flex-wrap gap-3">
+              <div>
+                <div class="font-bold text-lg">{{ 'import.orderStatus.title' | translate }}</div>
+                <div class="text-600">{{ 'import.orderStatus.description' | translate }}</div>
+              </div>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                [label]="'import.orderStatus.add' | translate"
+                (click)="openOrderStatusDialog()"
+                [disabled]="!canManageOrderStatuses"
+              ></button>
+            </div>
+            <p-table
+              [value]="orderStatuses"
+              [loading]="orderStatusLoading"
+              responsiveLayout="scroll"
+              [rows]="6"
+              [paginator]="orderStatuses.length > 6"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>{{ 'import.orderStatus.columns.name' | translate }}</th>
+                  <th style="width: 8rem;">{{ 'import.orderStatus.columns.order' | translate }}</th>
+                  <th style="width: 8rem;" *ngIf="canManageOrderStatuses">{{ 'import.orderStatus.columns.actions' | translate }}</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-status>
+                <tr>
+                  <td>
+                    <div class="font-medium">{{ status.labelFr }}</div>
+                    <div class="text-600 text-sm">{{ status.labelEn }}</div>
+                  </td>
+                  <td>{{ status.displayOrder }}</td>
+                  <td *ngIf="canManageOrderStatuses" class="actions-column">
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-pencil"
+                      class="p-button-rounded p-button-text"
+                      (click)="openOrderStatusDialog(status)"
+                    ></button>
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-trash"
+                      class="p-button-rounded p-button-text p-button-danger"
+                      (click)="confirmDeleteOrderStatus(status)"
+                    ></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="canManageOrderStatuses ? 3 : 2">{{ 'import.orderStatus.empty' | translate }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-card>
       </p-tabPanel>
     </p-tabView>
 
@@ -593,17 +574,32 @@ interface GoogleSheetTestResponseDto {
       [breakpoints]="{'960px': '90vw', '640px': '95vw'}"
       [header]="(editingOrderStatusId ? 'import.orderStatus.dialogEditTitle' : 'import.orderStatus.dialogCreateTitle') | translate"
     >
-      <div class="form-grid">
+      <div class="form-grid flex flex-column gap-3">
         <div class="form-field">
-          <label class="field-label" for="orderStatusName">
-            {{ 'import.orderStatus.form.nameLabel' | translate }}
+          <label class="field-label" for="orderStatusNameFr">
+            {{ 'import.orderStatus.form.nameFrLabel' | translate }}
             <span class="required-indicator">*</span>
           </label>
           <input
             pInputText
-            id="orderStatusName"
-            [(ngModel)]="orderStatusForm.name"
-            name="orderStatusName"
+            class="w-full"
+            id="orderStatusNameFr"
+            [(ngModel)]="orderStatusForm.labelFr"
+            name="orderStatusNameFr"
+            autocomplete="off"
+          />
+        </div>
+        <div class="form-field">
+          <label class="field-label" for="orderStatusNameEn">
+            {{ 'import.orderStatus.form.nameEnLabel' | translate }}
+            <span class="required-indicator">*</span>
+          </label>
+          <input
+            pInputText
+            class="w-full"
+            id="orderStatusNameEn"
+            [(ngModel)]="orderStatusForm.labelEn"
+            name="orderStatusNameEn"
             autocomplete="off"
           />
         </div>
@@ -613,6 +609,7 @@ interface GoogleSheetTestResponseDto {
           </label>
           <input
             pInputText
+            class="w-full"
             id="orderStatusOrder"
             [(ngModel)]="orderStatusForm.displayOrder"
             name="orderStatusOrder"
@@ -649,10 +646,6 @@ export class ImportTemplatePageComponent implements OnInit {
   configuredTables: DomainKey[] = [];
   configuredSources: Record<string, ConfigurationSource> = {};
   configuredDomainCards: ConfiguredDomainCard[] = [];
-  populateLoading: Partial<Record<DomainKey, boolean>> = {};
-  populateErrors: Partial<Record<DomainKey, string>> = {};
-  populateWarnings: Partial<Record<DomainKey, string[]>> = {};
-  populateSuccessRows: Partial<Record<DomainKey, number>> = {};
   isAdmin = false;
   activeTabIndex = 0;
   googleStep = 0;
@@ -676,7 +669,11 @@ export class ImportTemplatePageComponent implements OnInit {
   orderStatuses: OrderStatus[] = [];
   orderStatusLoading = false;
   orderStatusDialogVisible = false;
-  orderStatusForm: { name: string; displayOrder: number } = { name: '', displayOrder: 0 };
+  orderStatusForm: { labelFr: string; labelEn: string; displayOrder: number } = {
+    labelFr: '',
+    labelEn: '',
+    displayOrder: 0
+  };
   editingOrderStatusId: string | null = null;
   orderStatusSaving = false;
   canManageOrderStatuses = false;
@@ -1107,18 +1104,6 @@ export class ImportTemplatePageComponent implements OnInit {
             const updatedSources = { ...this.configuredSources };
             delete updatedSources[domain];
             this.configuredSources = updatedSources;
-            const nextLoading = { ...this.populateLoading };
-            delete nextLoading[domain];
-            this.populateLoading = nextLoading;
-            const nextErrors = { ...this.populateErrors };
-            delete nextErrors[domain];
-            this.populateErrors = nextErrors;
-            const nextWarnings = { ...this.populateWarnings };
-            delete nextWarnings[domain];
-            this.populateWarnings = nextWarnings;
-            const nextRows = { ...this.populateSuccessRows };
-            delete nextRows[domain];
-            this.populateSuccessRows = nextRows;
             this.fetchConfiguredTables();
           },
           error: (err) => {
@@ -1133,74 +1118,6 @@ export class ImportTemplatePageComponent implements OnInit {
     });
   }
 
-  triggerPopulateUpload(input: HTMLInputElement, domain: DomainKey): void {
-    if (!domain) {
-      return;
-    }
-    input.value = '';
-    input.click();
-  }
-
-  handlePopulateFileSelected(event: Event, domain: DomainKey, input: HTMLInputElement): void {
-    const target = event.target as HTMLInputElement | null;
-    const file = target?.files?.[0];
-    input.value = '';
-    if (!domain || !file) {
-      return;
-    }
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: this.translate.instant('import.error'),
-        detail: this.translate.instant('import.populateInvalidType')
-      });
-      return;
-    }
-    this.uploadPopulateFile(domain, file);
-  }
-
-  isPopulating(domain: DomainKey): boolean {
-    return !!(domain && this.populateLoading[domain]);
-  }
-
-  private uploadPopulateFile(domain: DomainKey, file: File): void {
-    if (!domain) {
-      return;
-    }
-    const formData = new FormData();
-    formData.append('domain', domain);
-    formData.append('file', file, file.name);
-
-    this.populateLoading = { ...this.populateLoading, [domain]: true };
-    this.populateErrors = { ...this.populateErrors, [domain]: '' };
-    this.populateWarnings = { ...this.populateWarnings, [domain]: [] };
-
-    this.http.post<PopulateResponse>('/api/import/configure/populate', formData).subscribe({
-      next: (response) => {
-        this.populateLoading = { ...this.populateLoading, [domain]: false };
-        const rows = response?.rowsInserted ?? 0;
-        this.populateSuccessRows = { ...this.populateSuccessRows, [domain]: rows };
-        this.populateWarnings = { ...this.populateWarnings, [domain]: response?.warnings ?? [] };
-        this.populateErrors = { ...this.populateErrors, [domain]: '' };
-        this.messageService.add({
-          severity: 'success',
-          summary: this.translate.instant('import.success'),
-          detail: this.translate.instant('import.populateSuccessToast', { count: rows })
-        });
-        this.fetchConfiguredTables();
-      },
-      error: (err) => {
-        this.populateLoading = { ...this.populateLoading, [domain]: false };
-        const detail = err?.error?.message || this.translate.instant('import.populateError');
-        this.populateErrors = { ...this.populateErrors, [domain]: detail };
-        this.messageService.add({
-          severity: 'error',
-          summary: this.translate.instant('import.error'),
-          detail
-        });
-      }
-    });
-  }
 
   getDomainDisplayName(domain: DomainKey): string {
     const option = this.componentOptions.find(opt => opt.value === domain);
@@ -1327,7 +1244,8 @@ export class ImportTemplatePageComponent implements OnInit {
     }
     this.editingOrderStatusId = status?.id ?? null;
     this.orderStatusForm = {
-      name: status?.name ?? '',
+      labelFr: status?.labelFr ?? '',
+      labelEn: status?.labelEn ?? '',
       displayOrder: status?.displayOrder ?? this.orderStatuses.length + 1
     };
     this.orderStatusDialogVisible = true;
@@ -1337,8 +1255,9 @@ export class ImportTemplatePageComponent implements OnInit {
     if (!this.canManageOrderStatuses) {
       return;
     }
-    const trimmedName = (this.orderStatusForm.name ?? '').trim();
-    if (!trimmedName) {
+    const trimmedFr = (this.orderStatusForm.labelFr ?? '').trim();
+    const trimmedEn = (this.orderStatusForm.labelEn ?? '').trim();
+    if (!trimmedFr || !trimmedEn) {
       this.messageService.add({
         severity: 'warn',
         summary: this.translate.instant('import.error'),
@@ -1347,7 +1266,8 @@ export class ImportTemplatePageComponent implements OnInit {
       return;
     }
     const payload = {
-      name: trimmedName,
+      labelFr: trimmedFr,
+      labelEn: trimmedEn,
       displayOrder: Number(this.orderStatusForm.displayOrder ?? 0)
     };
     this.orderStatusSaving = true;
@@ -1378,7 +1298,7 @@ export class ImportTemplatePageComponent implements OnInit {
     }
     this.confirmationService.confirm({
       header: this.translate.instant('import.orderStatus.deleteTitle'),
-      message: this.translate.instant('import.orderStatus.deleteMessage', { name: status.name }),
+      message: this.translate.instant('import.orderStatus.deleteMessage', { name: status.labelFr }),
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: this.translate.instant('common.yes'),
       rejectLabel: this.translate.instant('common.no'),

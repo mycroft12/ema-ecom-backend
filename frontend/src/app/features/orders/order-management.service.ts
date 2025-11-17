@@ -14,6 +14,8 @@ export interface OrderStatus {
   id: string;
   name: string;
   displayOrder: number;
+  labelEn: string;
+  labelFr: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,11 +35,11 @@ export class OrderManagementService {
     return this.http.get<OrderStatus[]>(`${this.apiBase}/api/orders/statuses`);
   }
 
-  createStatus(payload: { name: string; displayOrder: number }): Observable<OrderStatus> {
+  createStatus(payload: { labelFr: string; labelEn: string; displayOrder: number }): Observable<OrderStatus> {
     return this.http.post<OrderStatus>(`${this.apiBase}/api/orders/statuses`, payload);
   }
 
-  updateStatus(id: string, payload: { name: string; displayOrder: number }): Observable<OrderStatus> {
+  updateStatus(id: string, payload: { labelFr: string; labelEn: string; displayOrder: number }): Observable<OrderStatus> {
     return this.http.put<OrderStatus>(`${this.apiBase}/api/orders/statuses/${id}`, payload);
   }
 

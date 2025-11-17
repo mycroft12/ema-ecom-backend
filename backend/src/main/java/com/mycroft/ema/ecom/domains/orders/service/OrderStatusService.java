@@ -8,7 +8,9 @@ import com.mycroft.ema.ecom.domains.orders.repo.OrderStatusRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -33,11 +35,20 @@ public class OrderStatusService {
 
   @Transactional
   public OrderStatusDto create(OrderStatusRequest request) {
-    if (repository.existsByNameIgnoreCase(request.name())) {
+    String code = generateCode(request.labelEn());
+    if (!StringUtils.hasText(code)) {
+      code = generateCode(request.labelFr());
+    }
+    if (!StringUtils.hasText(code)) {
+      code = "status_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8);
+    }
+    if (repository.existsByNameIgnoreCase(code)) {
       throw new BadRequestException("order-status.alreadyExists");
     }
     OrderStatus status = new OrderStatus();
-    status.setName(request.name().trim());
+    status.setName(code);
+    status.setLabelEn(request.labelEn().trim());
+    status.setLabelFr(request.labelFr().trim());
     status.setDisplayOrder(normalizeOrder(request.displayOrder()));
     return toDto(repository.save(status));
   }
@@ -46,13 +57,8 @@ public class OrderStatusService {
   public OrderStatusDto update(UUID id, OrderStatusRequest request) {
     OrderStatus existing = repository.findById(id)
         .orElseThrow(() -> new BadRequestException("order-status.notFound"));
-    String normalizedName = request.name().trim();
-    repository.findByNameIgnoreCase(normalizedName)
-        .filter(other -> !other.getId().equals(id))
-        .ifPresent(other -> {
-          throw new BadRequestException("order-status.alreadyExists");
-        });
-    existing.setName(normalizedName);
+    existing.setLabelEn(request.labelEn().trim());
+    existing.setLabelFr(request.labelFr().trim());
     existing.setDisplayOrder(normalizeOrder(request.displayOrder()));
     return toDto(repository.save(existing));
   }
@@ -88,6 +94,18 @@ public class OrderStatusService {
   }
 
   private OrderStatusDto toDto(OrderStatus entity) {
-    return new OrderStatusDto(entity.getId(), entity.getName(), entity.getDisplayOrder());
+    return new OrderStatusDto(entity.getId(), entity.getName(), entity.getDisplayOrder(), entity.getLabelEn(), entity.getLabelFr());
+  }
+
+  private String generateCode(String label) {
+    if (!StringUtils.hasText(label)) {
+      return "";
+    }
+    String normalized = Normalizer.normalize(label, Normalizer.Form.NFD)
+        .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+        .replaceAll("[^a-zA-Z0-9]+", "_")
+        .replaceAll("_+", "_")
+        .toLowerCase(Locale.ROOT);
+    return normalized.replaceAll("^_+|_+$", "");
   }
 }

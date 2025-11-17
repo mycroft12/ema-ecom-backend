@@ -21,4 +21,10 @@ public class OrderStatus extends BaseEntity {
 
   @Column(name = "display_order", nullable = false)
   private Integer displayOrder = 0;
+
+  @Column(name = "label_en", nullable = false, length = 150)
+  private String labelEn;
+
+  @Column(name = "label_fr", nullable = false, length = 150)
+  private String labelFr;
 }
