@@ -30,7 +30,6 @@ export class NavService {
       { labelKey: 'menu.dashboard', icon: 'pi pi-home', route: '/dashboard', permissions: DASHBOARD_FEATURE_PERMISSIONS },
       { labelKey: 'menu.products', icon: 'pi pi-box', route: '/products', permissions: PRODUCT_FEATURE_PERMISSIONS },
       { labelKey: 'menu.orders', icon: 'pi pi-shopping-bag', route: '/orders', permissions: ORDERS_FEATURE_PERMISSIONS },
-      { labelKey: 'menu.expenses', icon: 'pi pi-chart-line', route: '/expenses', permissions: EXPENSES_FEATURE_PERMISSIONS },
       { labelKey: 'menu.ads', icon: 'pi pi-megaphone', route: '/ads', permissions: ADS_FEATURE_PERMISSIONS },
       { labelKey: 'menu.roles', icon: 'pi pi-id-card', route: '/roles', permissions: ['role:read'] },
       { labelKey: 'menu.import', icon: 'pi pi-spin pi-cog', route: '/import', permissions: ['import:configure'] },
@@ -103,6 +102,5 @@ export class NavService {
 }
 const PRODUCT_FEATURE_PERMISSIONS = ['product:read','product:create','product:update','product:delete'];
 const ORDERS_FEATURE_PERMISSIONS = ['orders:read','orders:create','orders:update','orders:delete'];
-const EXPENSES_FEATURE_PERMISSIONS = ['expenses:read','expenses:create','expenses:update','expenses:delete'];
 const ADS_FEATURE_PERMISSIONS = ['ads:read','ads:create','ads:update','ads:delete'];
 const DASHBOARD_FEATURE_PERMISSIONS = ['dashboard:view'];

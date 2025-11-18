@@ -37,7 +37,6 @@
     "dashboard": "Tableau de bord",
     "products": "Produits",
     "orders": "Commandes",
-    "expenses": "Dépenses et commissions",
     "ads": "Publicité",
     "roles": "Rôles",
     "import": "Configuration"
@@ -56,6 +55,60 @@
       "adsDetail": "Performances publicitaires",
       "loading": "Chargement des indicateurs...",
       "updated": "Indicateurs mis à jour"
+    }
+    ,
+    "kpis": {
+      "title": "Indicateurs clés de performance",
+      "subtitle": "Des mesures en direct couvrant confirmation, livraison, profit et coûts.",
+      "loading": "Chargement des KPI..."
+    },
+    "kpiLabels": {
+      "confirmationRate": "Taux de confirmation",
+      "deliveryRate": "Taux de livraison",
+      "profitPerProduct": "Profit par produit",
+      "agentCommission": "Commission agent",
+      "totalRevenue": "Revenu total",
+      "totalProfit": "Profit total",
+      "avgOrderValue": "Valeur moyenne de commande",
+      "roas": "ROAS",
+      "cac": "CAC"
+    },
+    "kpiDetails": {
+      "confirmationRate": "Confirmés ÷ contacts",
+      "deliveryRate": "Livrés ÷ expédiés",
+      "profitPerProduct": "Ventes moins coûts, expéditions et pubs",
+      "agentCommission": "Commissions sur commandes confirmées/livrées",
+      "totalRevenue": "Revenu cumulé",
+      "totalProfit": "Revenu moins dépenses",
+      "avgOrderValue": "Revenu ÷ commandes",
+      "roas": "Retour sur dépenses publicitaires",
+      "cac": "Coût d’acquisition client"
+    },
+    "roles": {
+      "admin": {
+        "title": "Tableau admin",
+        "totalSales": "Total des ventes, profits, confirmations et livraisons",
+        "profitPerProduct": "Profit par produit incluant coûts, pubs et frais",
+        "commissionPerAgent": "Suivi des commissions par agent",
+        "performanceBreakdown": "Performance par produit et par plateforme"
+      },
+      "supervisor": {
+        "title": "Tableau superviseur",
+        "allOrders": "Vue consolidée de toutes les commandes",
+        "reassignOrders": "Réaffectation d’ordres entre agents",
+        "agentPerformance": "Vue d’ensemble des agents"
+      },
+      "agent": {
+        "title": "Tableau agent",
+        "personalPerformance": "Prix confirmés, taux de livraison, commission",
+        "assignedOrders": "Liste éditable des commandes assignées"
+      },
+      "media": {
+        "title": "Tableau media buyer",
+        "activeProducts": "Produits actifs avec stock disponible",
+        "adSpend": "Suivi des dépenses pub par produit/plateforme",
+        "costPerLead": "Coût par lead livré"
+      }
     }
   },
   "notifications": {
@@ -241,82 +294,6 @@
     "editItem": "Modifier la commande",
     "configuredSuccess": "Le schéma des commandes a été configuré avec succès"
   },
-  "expenses": {
-    "title": "Dépenses & Commissions",
-    "configureHeader": "Configurer les dépenses et commissions",
-    "configureSubheader": "Téléchargez un modèle Excel ou CSV pour suivre les dépenses et commissions",
-    "notConfigured": "Les dépenses et commissions ne sont pas encore configurées. Veuillez téléverser un modèle pour commencer.",
-    "needConfiguration": "Vous devez d'abord configurer le composant Dépenses & Commissions",
-    "configureNow": "Configurer maintenant",
-    "uploadTemplate": "Téléverser le modèle de configuration",
-    "displayName": "Nom d'affichage",
-    "displayNamePlaceholder": "ex. Dépenses & Commissions",
-    "validateBeforeApply": "Valider le modèle avant d'appliquer les modifications",
-    "dragDrop": "Glissez-déposez les fichiers ici ou cliquez pour parcourir",
-    "acceptedFormats": "Formats acceptés : .xlsx, .xls, .csv (Max 10 Mo)",
-    "btnChooseFile": "Choisir le modèle",
-    "btnConfigure": "Configurer les dépenses et commissions",
-    "btnDelete": "Supprimer",
-    "btnExport": "Exporter",
-    "searchPlaceholder": "Rechercher {{component}}",
-    "columnTogglePlaceholder": "Colonnes",
-    "columnToggleSelectedItems": "{0} colonne(s) sélectionnée(s)",
-    "pageReport": "Affichage de {first} à {last} sur {totalRecords} entrées",
-    "noImage": "Aucune image",
-    "uploadImage": "Téléverser l'image",
-    "replaceImage": "Remplacer l'image",
-    "viewImage": "Afficher l'image en grand",
-    "previewImage": "Prévisualiser l'image",
-    "noResults": "Aucune dépense trouvée",
-    "anyOption": "Tous",
-    "selectOneOption": "Sélectionner",
-    "dialog": {
-      "subtitle": "Renseignez les informations pour gérer {{component}}.",
-      "noFields": "Aucun champ disponible pour {{component}} pour le moment."
-    },
-    "newProduct": "Nouvelle dépense",
-    "editProduct": "Modifier la dépense",
-    "exportExcel": "Exporter Excel",
-    "exportExcelTooltip": "Exporter la vue actuelle au format Excel",
-    "actions": "Actions",
-    "downloadExamples": "Télécharger des exemples de modèles",
-    "downloadExplain": "Téléchargez un modèle pour voir le format attendu des dépenses et commissions. Le modèle inclut :",
-    "row1": "Ligne 1 :",
-    "row2": "Ligne 2 :",
-    "row3": "Lignes 3+ :",
-    "row1Text": "Noms des colonnes (ex. expense_category, expense_type, amount, incurred_on)",
-    "row2Text": "Types de colonnes (TEXT, INTEGER, DECIMAL, DATE, BOOLEAN, MINIO_IMAGE, MINIO_FILE)",
-    "row3Text": "Données d'exemple facultatives",
-    "btnDownloadBasic": "Télécharger le modèle de base",
-    "btnDownloadAllTypes": "Télécharger le modèle avec tous les types",
-    "tooltipAllTypes": "Inclut tous les types de colonnes disponibles avec des exemples",
-    "uploading": "Téléversement et traitement du modèle...",
-    "confirmBulkDeleteHeader": "Confirmer la suppression en lot",
-    "confirmBulkDeleteMessage": "Souhaitez-vous vraiment supprimer {{count}} dépense(s) ?",
-    "confirmDeleteHeader": "Supprimer la dépense",
-    "confirmDeleteMessage": "Souhaitez-vous vraiment supprimer cette dépense ?",
-    "toastSuccess": "Succès",
-    "toastError": "Erreur",
-    "toastExportInfo": "Export démarré",
-    "toastExportDetail": "Préparation du fichier...",
-    "toastDeletedMany": "{{count}} dépense(s) supprimée(s)",
-    "toastCreated": "Dépense créée avec succès",
-    "toastUpdated": "Dépense mise à jour avec succès",
-    "toastDeleted": "Dépense supprimée",
-    "errors": {
-      "loadOne": "Impossible de charger les détails de la dépense",
-      "create": "Échec de la création de la dépense",
-      "update": "Échec de la mise à jour de la dépense",
-      "delete": "Échec de la suppression de la dépense",
-      "backend": "Une erreur est survenue. Veuillez contacter l'administrateur.",
-      "maxImages": "Vous pouvez téléverser au maximum {{max}} image(s).",
-      "fileTooLarge": "L'image dépasse la limite de {{max}}.",
-      "unsupportedImageType": "Type d'image non pris en charge."
-    },
-    "newItem": "Nouvelle dépense",
-    "editItem": "Modifier la dépense",
-    "configuredSuccess": "Le schéma des dépenses a été configuré avec succès"
-  },
   "ads": {
     "title": "Performances publicitaires",
     "configureHeader": "Configurer les performances publicitaires",
@@ -393,35 +370,20 @@
     "configuredSuccess": "Le schéma publicitaire a été configuré avec succès"
   },
   "import": {
-    "title": "Importer un modèle",
-    "description": "Téléversez un fichier Excel/CSV pour analyser les colonnes et configurer une table de domaine.",
     "tabs": {
-      "dynamic": "Configuration dynamique",
       "google": "Connecteur Google Sheets",
+      "orderConfig": "Configuration des commandes",
       "configured": "Composants configurés"
     },
     "domainLabel": "Composant",
     "domainPlaceholder": "Sélectionnez un composant",
     "domainProduct": "Produits",
     "domainOrders": "Commandes",
-    "domainExpenses": "Dépenses et commissions",
     "domainAds": "Publicité",
-    "fileLabel": "Fichier modèle",
-    "chooseLabel": "Choisir le modèle",
-    "uploadLabel": "Analyser et configurer",
-    "cancelLabel": "Annuler",
-    "analyze": "Analyser et configurer",
-    "analyzing": "Analyse...",
-    "loading": "Traitement de votre modèle, veuillez patienter...",
-    "success": "Table configurée avec succès !",
-    "resultTitle": "Résultat",
-    "downloadExample": "Télécharger un exemple de modèle",
-    "selectComponentFirst": "Veuillez d'abord sélectionner un composant",
     "error": "Échec de l'analyse du modèle",
     "configured": "Configuré",
     "alreadyConfigured": "Ce composant est déjà configuré. Utilisez l'option de réinitialisation ci-dessous si vous devez le reconfigurer.",
     "alreadyConfiguredNonAdmin": "Ce composant est déjà configuré. Veuillez contacter un administrateur si vous devez le reconfigurer.",
-    "adminOptions": "Options d'administrateur",
     "resetDescription": "Attention : La réinitialisation de cette configuration supprimera la table et toutes ses données. Cette action ne peut pas être annulée.",
     "resetTable": "Réinitialiser la configuration",
     "confirmReset": "Êtes-vous sûr de vouloir réinitialiser cette configuration ? Cela supprimera la table et toutes ses données. Cette action ne peut pas être annulée.",
@@ -494,10 +456,7 @@
       "types": "Types",
       "domainNotConnected": "{{ domain }} n'est pas encore relié à Google Sheets.",
       "duplicateSheetError": "Vous ne pouvez pas lier la même feuille Google deux fois."
-    },
-    "adminOnly": "Options d'administrateur",
-    "confirmUpload": "Êtes-vous sûr de vouloir téléverser ce modèle {{domain}} ? Il n'y aura pas de retour en arrière possible.",
-    "confirmUploadHeader": "Confirmer le téléversement du modèle"
+    }
   },
   "rolesPage": {
     "permissions": {

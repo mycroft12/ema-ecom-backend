@@ -6,7 +6,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
-import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -21,7 +20,7 @@ import { AuthService } from '../../core/auth.service';
 import { OrderManagementService, OrderStatus } from '../orders/order-management.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-type DomainKey = 'product' | 'orders' | 'expenses' | 'ads' | '';
+type DomainKey = 'product' | 'orders' | 'ads' | '';
 type ConfigurationSource = 'dynamic' | 'google';
 
 interface GoogleSheetConnectResponse {
@@ -64,7 +63,6 @@ interface GoogleSheetTestResponseDto {
     TranslateModule,
     CardModule,
     DropdownModule,
-    FileUploadModule,
     ButtonModule,
     ConfirmDialogModule,
     ToastModule,
@@ -126,87 +124,6 @@ interface GoogleSheetTestResponseDto {
   ],
   template: `
     <p-tabView [(activeIndex)]="activeTabIndex">
-      <p-tabPanel>
-        <ng-template pTemplate="header">
-          <i class="pi pi-sync mr-2"></i>
-          {{ 'import.tabs.dynamic' | translate }}
-        </ng-template>
-        <p-card [header]="('import.title' | translate)">
-          <p class="mb-4">{{ 'import.description' | translate }}</p>
-
-          <div class="grid p-fluid">
-            <div class="col-12 md:col-4">
-              <label for="domain" class="block mb-2">{{ 'import.domainLabel' | translate }}</label>
-              <p-dropdown
-                id="domain"
-                [(ngModel)]="domain"
-                name="domain"
-                [options]="domainOptions"
-                optionValue="value"
-                optionDisabled="disabled"
-                [placeholder]="('import.domainPlaceholder' | translate)"
-                [showClear]="true"
-              >
-                <ng-template pTemplate="selectedItem" let-selected>
-                  <div>{{ selected?.key | translate }}</div>
-                </ng-template>
-                <ng-template pTemplate="item" let-option>
-                  <div class="flex align-items-center justify-content-between" [class.text-400]="isTableConfigured(option.value)">
-                    <span>{{ option.key | translate }}</span>
-                    <span *ngIf="isTableConfigured(option.value)" class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round">
-                      {{ 'import.configured' | translate }}
-                    </span>
-                  </div>
-                </ng-template>
-              </p-dropdown>
-            </div>
-
-            <div class="col-12 md:col-8">
-              <label class="block mb-2">{{ 'import.fileLabel' | translate }}</label>
-              <div class="mb-2">
-                <button pButton type="button" class="mr-2" [label]="('import.downloadExample' | translate)" icon="pi pi-download" severity="secondary" [outlined]="true" (click)="downloadExample()" [disabled]="!domain"></button>
-              </div>
-              <p-fileUpload
-                #fileUpload
-                mode="advanced"
-                [customUpload]="true"
-                accept=".xlsx,.xls,.csv"
-                [maxFileSize]="10000000"
-                [chooseLabel]="('import.chooseLabel' | translate)"
-                [uploadLabel]="('import.uploadLabel' | translate)"
-                [cancelLabel]="('import.cancelLabel' | translate)"
-                (uploadHandler)="onUpload($event)"
-                (onRemove)="onFileRemoved()"
-                (onClear)="onFilesCleared()"
-                [disabled]="isTableConfigured(domain)"
-              >
-              </p-fileUpload>
-              <small *ngIf="isTableConfigured(domain)" class="p-error">
-                <ng-container *ngIf="isAdmin; else nonAdminMessage">
-                  {{ 'import.alreadyConfigured' | translate }}
-                </ng-container>
-                <ng-template #nonAdminMessage>
-                  {{ 'import.alreadyConfiguredNonAdmin' | translate }}
-                </ng-template>
-              </small>
-            </div>
-          </div>
-
-          <div *ngIf="loading" class="mt-3">
-            <p class="p-text-secondary">
-              <i class="pi pi-spin pi-spinner mr-2"></i>
-              {{ 'import.loading' | translate }}
-            </p>
-          </div>
-
-          <p class="p-error" *ngIf="error">{{ error | translate }}</p>
-
-          <p *ngIf="success" class="mt-3" style="color: var(--green-500);">
-            <i class="pi pi-check-circle mr-2"></i>
-            {{ success | translate }}
-          </p>
-        </p-card>
-      </p-tabPanel>
       <p-tabPanel>
         <ng-template pTemplate="header">
           <i class="pi pi-cloud mr-2"></i>
@@ -634,15 +551,9 @@ export class ImportTemplatePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly orderManagement = inject(OrderManagementService);
 
-  @ViewChild('fileUpload') fileUpload!: FileUpload;
   @ViewChild('serviceAccountFile') serviceAccountFileInput?: ElementRef<HTMLInputElement>;
 
-  domain: DomainKey = '';
   googleDomain: DomainKey = '';
-  result: unknown;
-  loading = false;
-  error = '';
-  success = '';
   configuredTables: DomainKey[] = [];
   configuredSources: Record<string, ConfigurationSource> = {};
   configuredDomainCards: ConfiguredDomainCard[] = [];
@@ -681,7 +592,6 @@ export class ImportTemplatePageComponent implements OnInit {
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
     { key: 'import.domainProduct', value: 'product' },
     { key: 'import.domainOrders', value: 'orders' },
-    { key: 'import.domainExpenses', value: 'expenses' },
     { key: 'import.domainAds', value: 'ads' }
   ];
 
@@ -698,8 +608,8 @@ export class ImportTemplatePageComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
         const requestedDomain = this.normalizeDomain(params.get('domain'));
-        if (requestedDomain && requestedDomain !== this.domain) {
-          this.domain = requestedDomain;
+        if (requestedDomain && requestedDomain !== this.googleDomain) {
+          this.googleDomain = requestedDomain;
           this.activeTabIndex = 0;
         }
       });
@@ -837,13 +747,6 @@ export class ImportTemplatePageComponent implements OnInit {
     });
   }
 
-  get domainOptions() {
-    return this.componentOptions.map(option => ({
-      ...option,
-      disabled: this.isTableConfigured(option.value) || !this.googleServiceAccount?.configured
-    }));
-  }
-
   get googleDomainOptions() {
     return this.componentOptions.map(option => ({
       ...option,
@@ -851,84 +754,6 @@ export class ImportTemplatePageComponent implements OnInit {
       disabled: this.isTableConfigured(option.value) || !this.googleServiceAccount?.configured
     }));
   }
-
-  downloadExample(){
-    this.error = '';
-    if (!this.domain) {
-      this.error = 'import.selectComponentFirst';
-      return;
-    }
-    this.http.get(`/api/import/configure/template-example`, { params: { domain: this.domain }, observe: 'response', responseType: 'blob' as const }).subscribe({
-      next: (res) => {
-        const blob = res.body!;
-        const cd = res.headers.get('content-disposition');
-        const filename = this.extractFilename(cd) || `${this.domain}-template-example.csv`;
-        this.download(blob, filename);
-      },
-      error: (err) => {
-        this.error = err?.error?.message || 'import.error';
-        this.messageService.add({ 
-          severity: 'error', 
-          summary: this.translate.instant('import.error'), 
-          detail: err?.error?.message || this.translate.instant('import.downloadError') 
-        });
-      }
-    });
-  }
-
-  onUpload(event: any){
-    this.error = '';
-    this.success = '';
-    const file: File | undefined = event?.files?.[0];
-    if (!file || !this.domain) {
-      this.error = !this.domain ? 'import.domainPlaceholder' : 'import.error';
-      return;
-    }
-
-    const domainDisplayName = this.translate.instant(this.getDomainDisplayName(this.domain));
-
-    this.confirmationService.confirm({
-      message: this.translate.instant('import.confirmUpload', { domain: domainDisplayName }),
-      header: this.translate.instant('import.confirmUploadHeader'),
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        const selectedDomain = this.domain;
-        const form = new FormData();
-        form.append('file', file);
-        form.append('domain', selectedDomain);
-        this.loading = true;
-        this.http.post('/api/import/configure', form).subscribe({
-          next: (res) => { 
-            this.result = res; 
-            this.loading = false; 
-            this.success = 'import.success';
-            if (!this.configuredTables.includes(selectedDomain)) {
-              this.configuredTables = [...this.configuredTables, selectedDomain];
-            }
-            this.configuredSources = { ...this.configuredSources, [selectedDomain]: 'dynamic' };
-            this.refreshSessionTokens();
-            if (this.fileUpload) {
-              this.fileUpload.clear();
-            }
-            this.domain = '';
-            this.activeTabIndex = 2;
-          },
-          error: (err) => { 
-            this.error = err?.error?.message || 'import.error'; 
-            this.loading = false; 
-            this.messageService.add({ 
-              severity: 'error', 
-              summary: this.translate.instant('import.error'), 
-              detail: err?.error?.message || this.translate.instant('import.uploadError') 
-            });
-          }
-        });
-      }
-    });
-  }
-
-  onFilesCleared(){ this.result = undefined; this.error = ''; this.success = ''; }
-  onFileRemoved(){ this.result = undefined; this.error = ''; this.success = ''; }
 
   onGoogleStepChange(step: number | undefined): void {
     this.googleStep = typeof step === 'number' ? step : 0;
@@ -1024,7 +849,7 @@ export class ImportTemplatePageComponent implements OnInit {
         this.googleTestValidated = false;
         this.googleStep = 0;
         activateCallback?.(0);
-        this.activeTabIndex = 2;
+        this.activeTabIndex = 1;
       },
       error: (err) => {
         this.googleLoading = false;
@@ -1151,12 +976,6 @@ export class ImportTemplatePageComponent implements OnInit {
       case 'order_config':
       case 'orders_config':
         return 'orders';
-      case 'expense':
-      case 'expenses':
-      case 'commission':
-      case 'commissions':
-      case 'expenses_config':
-        return 'expenses';
       case 'ad':
       case 'ads':
       case 'advertising':
@@ -1166,15 +985,6 @@ export class ImportTemplatePageComponent implements OnInit {
       default:
         return null;
     }
-  }
-
-  private download(blob: Blob, filename: string){
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   private resolveGoogleConnectErrorMessage(err: any, domain: DomainKey): string {
@@ -1212,12 +1022,6 @@ export class ImportTemplatePageComponent implements OnInit {
     }
 
     return raw || this.translate.instant('import.google.connectError');
-  }
-
-  private extractFilename(cd: string | null): string | null {
-    if (!cd) return null;
-    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(cd);
-    return matches && matches[1] ? matches[1].replace(/['"]/g, '') : null;
   }
 
   loadOrderStatuses(): void {

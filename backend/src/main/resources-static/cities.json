@@ -1,0 +1,2658 @@
+[
+  {
+    "city": "Agadir",
+    "cost": 35
+  },
+  {
+    "city": "Ait Melloul",
+    "cost": 35
+  },
+  {
+    "city": "Al Hoceima",
+    "cost": 45
+  },
+  {
+    "city": "Safi",
+    "cost": 40
+  },
+  {
+    "city": "Beni Mellal",
+    "cost": 40
+  },
+  {
+    "city": "Boujdour",
+    "cost": 45
+  },
+  {
+    "city": "Casablanca",
+    "cost": 20
+  },
+  {
+    "city": "Dakhla",
+    "cost": 45
+  },
+  {
+    "city": "El Jadida",
+    "cost": 35
+  },
+  {
+    "city": "Fes",
+    "cost": 35
+  },
+  {
+    "city": "Fnideq",
+    "cost": 45
+  },
+  {
+    "city": "Fquih Ben Salah",
+    "cost": 45
+  },
+  {
+    "city": "Inzegane",
+    "cost": 35
+  },
+  {
+    "city": "Kasba Tadla",
+    "cost": 45
+  },
+  {
+    "city": "Khouribga",
+    "cost": 40
+  },
+  {
+    "city": "Larache",
+    "cost": 40
+  },
+  {
+    "city": "M Diq",
+    "cost": 45
+  },
+  {
+    "city": "Marrakech",
+    "cost": 35
+  },
+  {
+    "city": "Martil",
+    "cost": 40
+  },
+  {
+    "city": "Meknes",
+    "cost": 35
+  },
+  {
+    "city": "Nador",
+    "cost": 45
+  },
+  {
+    "city": "Ouarzazat",
+    "cost": 45
+  },
+  {
+    "city": "Oujda",
+    "cost": 45
+  },
+  {
+    "city": "Ain Harouda",
+    "cost": 30
+  },
+  {
+    "city": "Cabo Negro",
+    "cost": 45
+  },
+  {
+    "city": "Tanger",
+    "cost": 35
+  },
+  {
+    "city": "Tetouan",
+    "cost": 35
+  },
+  {
+    "city": "AZROU-VILLE",
+    "cost": 40
+  },
+  {
+    "city": "IFRAN",
+    "cost": 45
+  },
+  {
+    "city": "IMOUZAR KANDRE",
+    "cost": 45
+  },
+  {
+    "city": "Mohammedia",
+    "cost": 35
+  },
+  {
+    "city": "ain leuh",
+    "cost": 45
+  },
+  {
+    "city": "sidi aadi - azrou",
+    "cost": 45
+  },
+  {
+    "city": "TIZNIT",
+    "cost": 40
+  },
+  {
+    "city": "Taroudant",
+    "cost": 40
+  },
+  {
+    "city": "ERRAHMA VILLE",
+    "cost": 30
+  },
+  {
+    "city": "TAMARIS",
+    "cost": 35
+  },
+  {
+    "city": "DAR BOUAZZA",
+    "cost": 35
+  },
+  {
+    "city": "BOUSKOURA",
+    "cost": 35
+  },
+  {
+    "city": "Jamaat shaim",
+    "cost": 45
+  },
+  {
+    "city": "Nouaceur",
+    "cost": 35
+  },
+  {
+    "city": "SEBT GZOULA",
+    "cost": 45
+  },
+  {
+    "city": "Souiria",
+    "cost": 45
+  },
+  {
+    "city": "SIDI KACEM",
+    "cost": 40
+  },
+  {
+    "city": "SIDI SLIMAN",
+    "cost": 45
+  },
+  {
+    "city": "BOUZNIKA",
+    "cost": 40
+  },
+  {
+    "city": "TIT MELLIL",
+    "cost": 30
+  },
+  {
+    "city": "DAROUA",
+    "cost": 35
+  },
+  {
+    "city": "Benslimane",
+    "cost": 40
+  },
+  {
+    "city": "AZEMMOUR",
+    "cost": 45
+  },
+  {
+    "city": "MOULAY ABDELLAH",
+    "cost": 40
+  },
+  {
+    "city": "MIDELT",
+    "cost": 45
+  },
+  {
+    "city": "Mediouna",
+    "cost": 40
+  },
+  {
+    "city": "Chefchaouen",
+    "cost": 45
+  },
+  {
+    "city": "Ben Guerir",
+    "cost": 45
+  },
+  {
+    "city": "ERRACHIDIA",
+    "cost": 45
+  },
+  {
+    "city": "RICHE-02",
+    "cost": 45
+  },
+  {
+    "city": "had soualem",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Rahhal",
+    "cost": 40
+  },
+  {
+    "city": "Oued Zem",
+    "cost": 45
+  },
+  {
+    "city": "BOUFKRANE",
+    "cost": 45
+  },
+  {
+    "city": "Sbaa Ayoune",
+    "cost": 45
+  },
+  {
+    "city": "MOLY DRISSE ZARHOUNE",
+    "cost": 45
+  },
+  {
+    "city": "LMHAYA",
+    "cost": 45
+  },
+  {
+    "city": "LHAJ KADOUR VILLE",
+    "cost": 45
+  },
+  {
+    "city": "TAWJTAT",
+    "cost": 45
+  },
+  {
+    "city": "Bab Berred",
+    "cost": 45
+  },
+  {
+    "city": "LAAROUI",
+    "cost": 45
+  },
+  {
+    "city": "Selouane",
+    "cost": 45
+  },
+  {
+    "city": "Segangan-nador",
+    "cost": 45
+  },
+  {
+    "city": "Beni Ensar",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Bennour",
+    "cost": 45
+  },
+  {
+    "city": "Sidi-Bibi",
+    "cost": 45
+  },
+  {
+    "city": "KELIAA",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Teima",
+    "cost": 45
+  },
+  {
+    "city": "ANZA",
+    "cost": 40
+  },
+  {
+    "city": "Walidia",
+    "cost": 45
+  },
+  {
+    "city": "Boujniba",
+    "cost": 45
+  },
+  {
+    "city": "Youssoufia-ville",
+    "cost": 45
+  },
+  {
+    "city": "Skhour Rehamna",
+    "cost": 45
+  },
+  {
+    "city": "ZAGORA",
+    "cost": 45
+  },
+  {
+    "city": "Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Zaouiat Cheikh",
+    "cost": 45
+  },
+  {
+    "city": "Echemmaia",
+    "cost": 45
+  },
+  {
+    "city": "Biougra",
+    "cost": 45
+  },
+  {
+    "city": "AIT AMIRA-AGADIR",
+    "cost": 45
+  },
+  {
+    "city": "MEHDIA",
+    "cost": 45
+  },
+  {
+    "city": "KENITRA VILLE",
+    "cost": 35
+  },
+  {
+    "city": "MEHDIA VILLE",
+    "cost": 45
+  },
+  {
+    "city": "MHamid El Ghizlane",
+    "cost": 45
+  },
+  {
+    "city": "Boumia",
+    "cost": 45
+  },
+  {
+    "city": "CHELLALAT",
+    "cost": 40
+  },
+  {
+    "city": "Bejaad",
+    "cost": 45
+  },
+  {
+    "city": "El Mansouria",
+    "cost": 40
+  },
+  {
+    "city": "RISSANI VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Erfoud VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Missour",
+    "cost": 45
+  },
+  {
+    "city": "Khemisset ville",
+    "cost": 45
+  },
+  {
+    "city": "Tiflet Ville",
+    "cost": 45
+  },
+  {
+    "city": "Goulmima-errachidia",
+    "cost": 45
+  },
+  {
+    "city": "Tinejdad Ville",
+    "cost": 45
+  },
+  {
+    "city": "OUALMES VILLE",
+    "cost": 45
+  },
+  {
+    "city": "ROMMANI VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Houara",
+    "cost": 45
+  },
+  {
+    "city": "Drarga",
+    "cost": 45
+  },
+  {
+    "city": "Belfaa",
+    "cost": 45
+  },
+  {
+    "city": "Souk Sebt Oulad Nemma",
+    "cost": 45
+  },
+  {
+    "city": "ElHajeb VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Jerada",
+    "cost": 45
+  },
+  {
+    "city": "Kelâat M Gouna-قلعة امڭونة",
+    "cost": 45
+  },
+  {
+    "city": "Layoun cherkia-العيون الشرقية",
+    "cost": 45
+  },
+  {
+    "city": "Bir Jdid",
+    "cost": 45
+  },
+  {
+    "city": "sidi hajjaj-casa",
+    "cost": 45
+  },
+  {
+    "city": "Moulay Yaâcoub",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Harazem",
+    "cost": 45
+  },
+  {
+    "city": "Ras El Ma-FES",
+    "cost": 45
+  },
+  {
+    "city": "Ain Cheggag",
+    "cost": 45
+  },
+  {
+    "city": "Kariat Ba Mohamed",
+    "cost": 45
+  },
+  {
+    "city": "Tinghir ville",
+    "cost": 45
+  },
+  {
+    "city": "imzouren",
+    "cost": 45
+  },
+  {
+    "city": "Bni Bouayach",
+    "cost": 45
+  },
+  {
+    "city": "Boumaln dads - tinghir",
+    "cost": 45
+  },
+  {
+    "city": "zayou",
+    "cost": 45
+  },
+  {
+    "city": "Aglou",
+    "cost": 45
+  },
+  {
+    "city": "Tafraoute",
+    "cost": 45
+  },
+  {
+    "city": "oulad jerrar-Tiznit",
+    "cost": 45
+  },
+  {
+    "city": "Bounaamane-TIZNIT",
+    "cost": 45
+  },
+  {
+    "city": "El Maader El Kabir-TIZNIT",
+    "cost": 45
+  },
+  {
+    "city": "Maaziz",
+    "cost": 45
+  },
+  {
+    "city": "Sebt El Guerdane",
+    "cost": 45
+  },
+  {
+    "city": "Alnif",
+    "cost": 45
+  },
+  {
+    "city": "Taghazout",
+    "cost": 45
+  },
+  {
+    "city": "Tamraght-Agadir",
+    "cost": 45
+  },
+  {
+    "city": "Aourir-Agadir",
+    "cost": 45
+  },
+  {
+    "city": "Tiztotin-NADOR",
+    "cost": 45
+  },
+  {
+    "city": "Kariat Arkman‎-Nador",
+    "cost": 45
+  },
+  {
+    "city": "Had Hrara-SAFI",
+    "cost": 45
+  },
+  {
+    "city": "TNIN EL GHIATE-SAFI",
+    "cost": 45
+  },
+  {
+    "city": "BERRECHID VILLE",
+    "cost": 35
+  },
+  {
+    "city": "Tamansourt-Marrakech",
+    "cost": 45
+  },
+  {
+    "city": "OUDAYA-Marrakech",
+    "cost": 45
+  },
+  {
+    "city": "Louizia",
+    "cost": 40
+  },
+  {
+    "city": "Ajdir-HOUCIMA",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Bouzid-EL JADIDA",
+    "cost": 45
+  },
+  {
+    "city": "Jorf Sefar",
+    "cost": 45
+  },
+  {
+    "city": "Mazagan",
+    "cost": 45
+  },
+  {
+    "city": "Msawar Raso",
+    "cost": 45
+  },
+  {
+    "city": "Lhawzia-JADIDA",
+    "cost": 45
+  },
+  {
+    "city": "Zaouit Sidi Smail",
+    "cost": 45
+  },
+  {
+    "city": "HAD WLAD FRAJ",
+    "cost": 45
+  },
+  {
+    "city": "Ain Bni Mathar",
+    "cost": 45
+  },
+  {
+    "city": "Jorf El Melha-OUZZANE",
+    "cost": 45
+  },
+  {
+    "city": "Had Kourt",
+    "cost": 45
+  },
+  {
+    "city": "Ain Dorij",
+    "cost": 45
+  },
+  {
+    "city": "Agouray - Meknes",
+    "cost": 45
+  },
+  {
+    "city": "Bouderbala-MEKNES",
+    "cost": 45
+  },
+  {
+    "city": "Temsia-agadir",
+    "cost": 45
+  },
+  {
+    "city": "tohmo agadir",
+    "cost": 45
+  },
+  {
+    "city": "Kasbah El Taher",
+    "cost": 45
+  },
+  {
+    "city": "Tamraght",
+    "cost": 45
+  },
+  {
+    "city": "Gfifat",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Dahou",
+    "cost": 45
+  },
+  {
+    "city": "Tin Mansour",
+    "cost": 45
+  },
+  {
+    "city": "Ain Seddaq",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Berhil",
+    "cost": 45
+  },
+  {
+    "city": "Ait Iaaza",
+    "cost": 45
+  },
+  {
+    "city": "Ain el Mediour",
+    "cost": 45
+  },
+  {
+    "city": "Azla",
+    "cost": 45
+  },
+  {
+    "city": "Lalla Fatna",
+    "cost": 45
+  },
+  {
+    "city": "Bdouza",
+    "cost": 45
+  },
+  {
+    "city": "Tnine Gharbia",
+    "cost": 45
+  },
+  {
+    "city": "Tleta Bouguedra",
+    "cost": 45
+  },
+  {
+    "city": "Tlat Bouaris",
+    "cost": 45
+  },
+  {
+    "city": "Aoufous",
+    "cost": 45
+  },
+  {
+    "city": "Zaida",
+    "cost": 45
+  },
+  {
+    "city": "Ait Aissa Oubrahim",
+    "cost": 45
+  },
+  {
+    "city": "ait ihya omoussa",
+    "cost": 45
+  },
+  {
+    "city": "Msemrir-Tinghir",
+    "cost": 45
+  },
+  {
+    "city": "Imgon-Tinghir",
+    "cost": 45
+  },
+  {
+    "city": "Laouamra",
+    "cost": 45
+  },
+  {
+    "city": "El Ksiba - Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Dar Ould Zidouh",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Ayad",
+    "cost": 45
+  },
+  {
+    "city": "Bradia - Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "agzirt Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "ighram laalam-beni mellal",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Aissa-Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "idi Jaber-Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Zmam - Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Afourar - Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Bni Ayat - Beni-Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Said-Beni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "CHRAFAT-Chefchaouen",
+    "cost": 45
+  },
+  {
+    "city": "jamaat fdala",
+    "cost": 40
+  },
+  {
+    "city": "Ain Tekki",
+    "cost": 45
+  },
+  {
+    "city": "Bni Yakhlef",
+    "cost": 45
+  },
+  {
+    "city": "Plage David-Bouznika",
+    "cost": 45
+  },
+  {
+    "city": "Arjat-Mohammedia",
+    "cost": 45
+  },
+  {
+    "city": "Mimosa-mohammedia",
+    "cost": 45
+  },
+  {
+    "city": "Ben ahmed-Berrchid",
+    "cost": 45
+  },
+  {
+    "city": "Sid Zouine",
+    "cost": 45
+  },
+  {
+    "city": "El Gara-Berrchid",
+    "cost": 45
+  },
+  {
+    "city": "Outat El Haj",
+    "cost": 45
+  },
+  {
+    "city": "boulemane-MIDELTE",
+    "cost": 45
+  },
+  {
+    "city": "Imouzzer Marmoucha",
+    "cost": 45
+  },
+  {
+    "city": "Ourika-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Gouassem-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Tahanaout-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Ait ourir-MARRAKECH",
+    "cost": 45
+  },
+  {
+    "city": "Tassoultant-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Belaagid",
+    "cost": 45
+  },
+  {
+    "city": "OULED BEN RAHMOUN",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Ghiat",
+    "cost": 45
+  },
+  {
+    "city": "Ouahat Sidi Brahim",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Bou Othmane-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Chouiter",
+    "cost": 45
+  },
+  {
+    "city": "Souihla-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Tamesluht- VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Chichaoua-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "imintanoute-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Tnine Chtouka el jadida",
+    "cost": 45
+  },
+  {
+    "city": "Settate",
+    "cost": 40
+  },
+  {
+    "city": "Teroual - Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Zoumi-Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Ain Dfali-Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Masmouda - Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Taibi",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Allal Tazi",
+    "cost": 45
+  },
+  {
+    "city": "Ain Jemaa-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Dkhissa-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Ain jiri-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Tamegroute-zagora",
+    "cost": 45
+  },
+  {
+    "city": "Tagounite‬-zagora",
+    "cost": 45
+  },
+  {
+    "city": "Khemis Sahel",
+    "cost": 45
+  },
+  {
+    "city": "Khenichet-SIDI KACEM",
+    "cost": 45
+  },
+  {
+    "city": "Ouled Boutabet",
+    "cost": 45
+  },
+  {
+    "city": "Douar Boumaiz",
+    "cost": 45
+  },
+  {
+    "city": "Ain Chkef",
+    "cost": 45
+  },
+  {
+    "city": "sidi el aidi-settat",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Said-settat",
+    "cost": 45
+  },
+  {
+    "city": "Guisser-settat",
+    "cost": 45
+  },
+  {
+    "city": "El Borouj-settat",
+    "cost": 45
+  },
+  {
+    "city": "marina smir",
+    "cost": 45
+  },
+  {
+    "city": "Kabila",
+    "cost": 45
+  },
+  {
+    "city": "Oued Laou",
+    "cost": 45
+  },
+  {
+    "city": "Ain Zarka",
+    "cost": 45
+  },
+  {
+    "city": "Boulanouare",
+    "cost": 45
+  },
+  {
+    "city": "targuist",
+    "cost": 45
+  },
+  {
+    "city": "Issaguen",
+    "cost": 45
+  },
+  {
+    "city": "Tata",
+    "cost": 45
+  },
+  {
+    "city": "Sid L Mokhtar",
+    "cost": 45
+  },
+  {
+    "city": "Tissint-tata",
+    "cost": 45
+  },
+  {
+    "city": "Akka-tata",
+    "cost": 45
+  },
+  {
+    "city": "Foum Zguid",
+    "cost": 45
+  },
+  {
+    "city": "Fam El Hisn-tata",
+    "cost": 45
+  },
+  {
+    "city": "Issafen-tata",
+    "cost": 45
+  },
+  {
+    "city": "Tagmout-tata",
+    "cost": 45
+  },
+  {
+    "city": "Taznakht",
+    "cost": 45
+  },
+  {
+    "city": "Bab Taza",
+    "cost": 45
+  },
+  {
+    "city": "Berkane",
+    "cost": 45
+  },
+  {
+    "city": "KHENIFRA VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Mrirte",
+    "cost": 45
+  },
+  {
+    "city": "Mzouda",
+    "cost": 45
+  },
+  {
+    "city": "Mejjat-chichaoua",
+    "cost": 45
+  },
+  {
+    "city": "dcheira",
+    "cost": 45
+  },
+  {
+    "city": "Tikiouine",
+    "cost": 45
+  },
+  {
+    "city": "Tighassaline ville",
+    "cost": 45
+  },
+  {
+    "city": "Mrirt Ville",
+    "cost": 45
+  },
+  {
+    "city": "Timahdite",
+    "cost": 45
+  },
+  {
+    "city": "Guigou-Azrou",
+    "cost": 45
+  },
+  {
+    "city": "Essaouira",
+    "cost": 45
+  },
+  {
+    "city": "Aguelmous",
+    "cost": 45
+  },
+  {
+    "city": "El Kebab-KHENIFRA",
+    "cost": 45
+  },
+  {
+    "city": "Kaf Nsour-KHENIRA",
+    "cost": 45
+  },
+  {
+    "city": "Lehri-KHENIFRA",
+    "cost": 45
+  },
+  {
+    "city": "El Borj-KHENIFRA",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Chiker",
+    "cost": 45
+  },
+  {
+    "city": "Mzoudia",
+    "cost": 45
+  },
+  {
+    "city": "Hattane-Khouribga",
+    "cost": 45
+  },
+  {
+    "city": "Tlat Loulad-fini",
+    "cost": 45
+  },
+  {
+    "city": "Bounouar-khouribga",
+    "cost": 45
+  },
+  {
+    "city": "Timoulilt-Béni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Foum Oudi-زاوية",
+    "cost": 45
+  },
+  {
+    "city": "Tanougha-Beni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Oulad M barek-Beni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Ouled Moussa-Beni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Hamdane-El Jadida",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Abbad",
+    "cost": 45
+  },
+  {
+    "city": "Sebt Saiss",
+    "cost": 45
+  },
+  {
+    "city": "Tīdās-Khemisset",
+    "cost": 45
+  },
+  {
+    "city": "Ain Sbit-Khemisset",
+    "cost": 45
+  },
+  {
+    "city": "khemis zemamra",
+    "cost": 45
+  },
+  {
+    "city": "SOUK LARBAA",
+    "cost": 45
+  },
+  {
+    "city": "BELKSIRI",
+    "cost": 45
+  },
+  {
+    "city": "Lalla Mimouna",
+    "cost": 45
+  },
+  {
+    "city": "Kelâa des Sraghna",
+    "cost": 45
+  },
+  {
+    "city": "Attaouia",
+    "cost": 45
+  },
+  {
+    "city": "Demnate",
+    "cost": 45
+  },
+  {
+    "city": "Tamellalt",
+    "cost": 45
+  },
+  {
+    "city": "Tazarine",
+    "cost": 45
+  },
+  {
+    "city": "Tamzmout zagora",
+    "cost": 45
+  },
+  {
+    "city": "NKob Zagora",
+    "cost": 45
+  },
+  {
+    "city": "AHFIR",
+    "cost": 45
+  },
+  {
+    "city": "SAAIDIA",
+    "cost": 45
+  },
+  {
+    "city": "Agdz",
+    "cost": 45
+  },
+  {
+    "city": "Amizmiz",
+    "cost": 45
+  },
+  {
+    "city": "Lalla Takerkoust",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Bouzid-SAFI",
+    "cost": 45
+  },
+  {
+    "city": "Marzouga",
+    "cost": 45
+  },
+  {
+    "city": "Taliouine",
+    "cost": 45
+  },
+  {
+    "city": "Aoulouz",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Ayache",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Abbou-Berrchid",
+    "cost": 45
+  },
+  {
+    "city": "Jamaat Riah-Berrchid",
+    "cost": 45
+  },
+  {
+    "city": "boukidan",
+    "cost": 45
+  },
+  {
+    "city": "Ait Kamra-Hoceima",
+    "cost": 45
+  },
+  {
+    "city": "mirleft",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Hajjaj-Berrchid",
+    "cost": 45
+  },
+  {
+    "city": "Jamaat foko-Berrchid",
+    "cost": 45
+  },
+  {
+    "city": "Boudnib",
+    "cost": 45
+  },
+  {
+    "city": "ITZER",
+    "cost": 45
+  },
+  {
+    "city": "Aghbalou Nserdan",
+    "cost": 45
+  },
+  {
+    "city": "Gourrama",
+    "cost": 45
+  },
+  {
+    "city": "TANTAN",
+    "cost": 45
+  },
+  {
+    "city": "El Ouatia",
+    "cost": 45
+  },
+  {
+    "city": "Essemara-السمارة",
+    "cost": 45
+  },
+  {
+    "city": "Tafoughalt",
+    "cost": 45
+  },
+  {
+    "city": "Bni Drar",
+    "cost": 45
+  },
+  {
+    "city": "SIDI KAML",
+    "cost": 45
+  },
+  {
+    "city": "SOUK LHAD ALLAL TAZI",
+    "cost": 45
+  },
+  {
+    "city": "SWASIYIN ALAL TAZI",
+    "cost": 45
+  },
+  {
+    "city": "Wlad amer ALAL TAZI",
+    "cost": 45
+  },
+  {
+    "city": "Arba Aounate-أربعاء العونات",
+    "cost": 45
+  },
+  {
+    "city": "Chaibate-el jadida",
+    "cost": 45
+  },
+  {
+    "city": "Kouassem-el jadida",
+    "cost": 45
+  },
+  {
+    "city": "Ain Bita-sefrou",
+    "cost": 45
+  },
+  {
+    "city": "Tamanar-Essaouira",
+    "cost": 45
+  },
+  {
+    "city": "Smimou - Essaouira",
+    "cost": 45
+  },
+  {
+    "city": "Skoura-Ouarzazate",
+    "cost": 45
+  },
+  {
+    "city": "Amerzgane-Ouarzazate",
+    "cost": 45
+  },
+  {
+    "city": "Ait Ben Haddou-Ouarzazate",
+    "cost": 45
+  },
+  {
+    "city": "Hadd Ouled Jelloul-TAZI",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Al Kamel-TAZI",
+    "cost": 45
+  },
+  {
+    "city": "Mograne-TAZI",
+    "cost": 45
+  },
+  {
+    "city": "Aghbal-BERKAN",
+    "cost": 45
+  },
+  {
+    "city": "ferkhana-nador",
+    "cost": 45
+  },
+  {
+    "city": "Bni Chiker",
+    "cost": 45
+  },
+  {
+    "city": "Aklim",
+    "cost": 45
+  },
+  {
+    "city": "Guelmim-ville",
+    "cost": 45
+  },
+  {
+    "city": "Akhfennir",
+    "cost": 45
+  },
+  {
+    "city": "SIDI IFNI-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Assa-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Bouizakarne-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Zag-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Laayoune-ville",
+    "cost": 45
+  },
+  {
+    "city": "LAAYOUNE-PORT",
+    "cost": 45
+  },
+  {
+    "city": "LAAYOUNE-PLAYA",
+    "cost": 45
+  },
+  {
+    "city": "Tnin beni khelloug-settat",
+    "cost": 45
+  },
+  {
+    "city": "Tarfaya ville",
+    "cost": 45
+  },
+  {
+    "city": "Cap de l’eau",
+    "cost": 45
+  },
+  {
+    "city": "Ait ishaq",
+    "cost": 45
+  },
+  {
+    "city": "Ouaoumana",
+    "cost": 45
+  },
+  {
+    "city": "Had bouhssoussen",
+    "cost": 45
+  },
+  {
+    "city": "Moulay bouazza khenifra",
+    "cost": 45
+  },
+  {
+    "city": "FIGUIG",
+    "cost": 45
+  },
+  {
+    "city": "BOUARFA",
+    "cost": 45
+  },
+  {
+    "city": "Agafay",
+    "cost": 45
+  },
+  {
+    "city": "Ras El Ma-NADOR",
+    "cost": 45
+  },
+  {
+    "city": "Mejjat-meknes",
+    "cost": 45
+  },
+  {
+    "city": "AZRO-AGADIR",
+    "cost": 40
+  },
+  {
+    "city": "Aghbala-Beni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "Dar el Amri-Sidi Sliman",
+    "cost": 45
+  },
+  {
+    "city": "Wlad Ghanem",
+    "cost": 45
+  },
+  {
+    "city": "Bni Wassine",
+    "cost": 45
+  },
+  {
+    "city": "Ain Mechlawa",
+    "cost": 45
+  },
+  {
+    "city": "El aouama-tanger",
+    "cost": 45
+  },
+  {
+    "city": "Ait Baha",
+    "cost": 45
+  },
+  {
+    "city": "Rouadi-Al Hoceima",
+    "cost": 45
+  },
+  {
+    "city": "Bni Boufrah-Al Hoceima",
+    "cost": 45
+  },
+  {
+    "city": "Bani Hadifa-Al Hoceima",
+    "cost": 45
+  },
+  {
+    "city": "Aït Hadifa-Al Hoceima",
+    "cost": 45
+  },
+  {
+    "city": "tizi nisly-Beni Mellal",
+    "cost": 45
+  },
+  {
+    "city": "sidi ouaaziz",
+    "cost": 45
+  },
+  {
+    "city": "ouzioua",
+    "cost": 45
+  },
+  {
+    "city": "Had Draa",
+    "cost": 45
+  },
+  {
+    "city": "ounagha",
+    "cost": 45
+  },
+  {
+    "city": "Bir Kouat",
+    "cost": 45
+  },
+  {
+    "city": "Talmest",
+    "cost": 45
+  },
+  {
+    "city": "TAZA-VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Guercif",
+    "cost": 45
+  },
+  {
+    "city": "Taourirt",
+    "cost": 45
+  },
+  {
+    "city": "tahla",
+    "cost": 45
+  },
+  {
+    "city": "Oued Amlil",
+    "cost": 45
+  },
+  {
+    "city": "Taddart-taza",
+    "cost": 45
+  },
+  {
+    "city": "Aknoul-taza",
+    "cost": 45
+  },
+  {
+    "city": "Tizi Ousli",
+    "cost": 45
+  },
+  {
+    "city": "Fouwarat-meknes",
+    "cost": 45
+  },
+  {
+    "city": "aine aghbal-meknes",
+    "cost": 45
+  },
+  {
+    "city": "ait ai3zam-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Boussmssad-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Souk lgor-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Nzala-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Wlad sidi yhya-meknes",
+    "cost": 45
+  },
+  {
+    "city": "wlad slim-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Kwidar-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Lozin-meknes",
+    "cost": 45
+  },
+  {
+    "city": "wislan-meknes",
+    "cost": 45
+  },
+  {
+    "city": "Oulad Salah-bouskoura",
+    "cost": 35
+  },
+  {
+    "city": "lkhyayta-had soualem",
+    "cost": 40
+  },
+  {
+    "city": "EL HALHAL MEDIOUNA",
+    "cost": 40
+  },
+  {
+    "city": "MKANSA-MEDIOUNA",
+    "cost": 35
+  },
+  {
+    "city": "Sidi Moussa El Majdoub",
+    "cost": 40
+  },
+  {
+    "city": "Sidi Moussa Ben Ali",
+    "cost": 45
+  },
+  {
+    "city": "ASILAH VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Sidi lyamani-ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Had lgharbiya-ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Tahadart - ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Brych-ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Jilaliya-ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Marghouba-ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Dghaliyn-ASILAH",
+    "cost": 45
+  },
+  {
+    "city": "Lakhssas",
+    "cost": 45
+  },
+  {
+    "city": "Tioughza",
+    "cost": 45
+  },
+  {
+    "city": "Ksar El Kebir",
+    "cost": 45
+  },
+  {
+    "city": "ARBAOUA",
+    "cost": 45
+  },
+  {
+    "city": "Had Oulad Aissa",
+    "cost": 45
+  },
+  {
+    "city": "DAR EL GADARI",
+    "cost": 45
+  },
+  {
+    "city": "sidi yahia elgharb",
+    "cost": 45
+  },
+  {
+    "city": "sefrou",
+    "cost": 45
+  },
+  {
+    "city": "taounate",
+    "cost": 45
+  },
+  {
+    "city": "Bhalil-sefrou",
+    "cost": 45
+  },
+  {
+    "city": "ksar sghir",
+    "cost": 45
+  },
+  {
+    "city": "Ghafsai",
+    "cost": 45
+  },
+  {
+    "city": "Ajdir-taza",
+    "cost": 45
+  },
+  {
+    "city": "Akchour",
+    "cost": 45
+  },
+  {
+    "city": "STEHAT-OUED LAOU",
+    "cost": 45
+  },
+  {
+    "city": "JEBHA",
+    "cost": 45
+  },
+  {
+    "city": "Beni-Hassan TETOUAN",
+    "cost": 45
+  },
+  {
+    "city": "Souk Tlata Tanquoub Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Souk al had Ouazzane",
+    "cost": 45
+  },
+  {
+    "city": "Khamis M Diq-chefchaouen",
+    "cost": 45
+  },
+  {
+    "city": "Derdara-Chefchaouen",
+    "cost": 45
+  },
+  {
+    "city": "tahar souk - TAOUNATE",
+    "cost": 45
+  },
+  {
+    "city": "Khlalfa-Taounate",
+    "cost": 45
+  },
+  {
+    "city": "kantra askar - taounate",
+    "cost": 45
+  },
+  {
+    "city": "bouhouda - taounate",
+    "cost": 45
+  },
+  {
+    "city": "beni oulid - taounate",
+    "cost": 45
+  },
+  {
+    "city": "tnin beni onjel - taounate",
+    "cost": 45
+  },
+  {
+    "city": "zrizer - taounate",
+    "cost": 45
+  },
+  {
+    "city": "ain aicha - taounate",
+    "cost": 45
+  },
+  {
+    "city": "ain mediouna - taounate",
+    "cost": 45
+  },
+  {
+    "city": "tissa - taounate",
+    "cost": 45
+  },
+  {
+    "city": "sidi el makhfi - taounate",
+    "cost": 45
+  },
+  {
+    "city": "galaz - taounate",
+    "cost": 45
+  },
+  {
+    "city": "hajria - taounate",
+    "cost": 45
+  },
+  {
+    "city": "ourtzagh - taounate",
+    "cost": 45
+  },
+  {
+    "city": "mezraoua - taounate",
+    "cost": 45
+  },
+  {
+    "city": "Bni Ahmed - chefchaouen",
+    "cost": 45
+  },
+  {
+    "city": "Tlet El Hanchane",
+    "cost": 45
+  },
+  {
+    "city": "AZILAL VILLE",
+    "cost": 45
+  },
+  {
+    "city": "TA40TE-AZILAL",
+    "cost": 45
+  },
+  {
+    "city": "ouaouizeght-AZILAL",
+    "cost": 45
+  },
+  {
+    "city": "foum jamaa-Azilal",
+    "cost": 45
+  },
+  {
+    "city": "Dlalha",
+    "cost": 45
+  },
+  {
+    "city": "moulay bousselham",
+    "cost": 45
+  },
+  {
+    "city": "Lmnar Park-ksar sghir",
+    "cost": 45
+  },
+  {
+    "city": "Nwinwich_ksar sghir",
+    "cost": 45
+  },
+  {
+    "city": "Wadalyane_ksar sghir",
+    "cost": 45
+  },
+  {
+    "city": "Diki_ksar sghir",
+    "cost": 45
+  },
+  {
+    "city": "Daliya_ksar sghir",
+    "cost": 45
+  },
+  {
+    "city": "Wad lmarssa",
+    "cost": 45
+  },
+  {
+    "city": "Souk Tlet El Gharb",
+    "cost": 45
+  },
+  {
+    "city": "ZGOUTA",
+    "cost": 45
+  },
+  {
+    "city": "Tounfite-Midelt",
+    "cost": 45
+  },
+  {
+    "city": "Agouim-Ouarzazate",
+    "cost": 45
+  },
+  {
+    "city": "ighrem Nougdal-Ouarzazate",
+    "cost": 45
+  },
+  {
+    "city": "Ait Zineb-Ouarzazate",
+    "cost": 45
+  },
+  {
+    "city": "Ezzhiliga",
+    "cost": 45
+  },
+  {
+    "city": "Ribate El Kheir",
+    "cost": 45
+  },
+  {
+    "city": "El Menzel - Sefrou",
+    "cost": 45
+  },
+  {
+    "city": "Zaouiat Bougrine",
+    "cost": 45
+  },
+  {
+    "city": "Bir Tam Tam",
+    "cost": 45
+  },
+  {
+    "city": "Ras Tabouda",
+    "cost": 45
+  },
+  {
+    "city": "Sfassif-khemisset",
+    "cost": 45
+  },
+  {
+    "city": "DRIOUCH VILLE",
+    "cost": 45
+  },
+  {
+    "city": "Midar-Driouch",
+    "cost": 45
+  },
+  {
+    "city": "Tiztotine-DRIOUCH",
+    "cost": 45
+  },
+  {
+    "city": "BEN TAYEB- DRIOUCH",
+    "cost": 45
+  },
+  {
+    "city": "DAR EL KABDANI-DRIOUCH",
+    "cost": 45
+  },
+  {
+    "city": "Tafrsit-DRIOUCH",
+    "cost": 45
+  },
+  {
+    "city": "Kasita-DRIOUCH",
+    "cost": 45
+  },
+  {
+    "city": "Azlaf-DRIOUCH",
+    "cost": 45
+  },
+  {
+    "city": "SALE",
+    "cost": 35
+  },
+  {
+    "city": "Sale El Jadida",
+    "cost": 35
+  },
+  {
+    "city": "Rabat",
+    "cost": 35
+  },
+  {
+    "city": "Youssoufia-RABAT",
+    "cost": 35
+  },
+  {
+    "city": "OUM AZZA",
+    "cost": 40
+  },
+  {
+    "city": "BOUKNADEL",
+    "cost": 45
+  },
+  {
+    "city": "kamouni",
+    "cost": 45
+  },
+  {
+    "city": "LAARJATE",
+    "cost": 40
+  },
+  {
+    "city": "MAAMORA",
+    "cost": 45
+  },
+  {
+    "city": "Sidi Allal El Bahraoui",
+    "cost": 45
+  },
+  {
+    "city": "TEMARA",
+    "cost": 35
+  },
+  {
+    "city": "TAMESNA",
+    "cost": 45
+  },
+  {
+    "city": "AIN ATTIQ",
+    "cost": 45
+  },
+  {
+    "city": "HARHOURA",
+    "cost": 45
+  },
+  {
+    "city": "SKHIRAT",
+    "cost": 35
+  },
+  {
+    "city": "Sidi Yahya Zaer",
+    "cost": 45
+  },
+  {
+    "city": "MERS EL KHIR",
+    "cost": 45
+  },
+  {
+    "city": "Ain Aouda",
+    "cost": 45
+  },
+  {
+    "city": "أكادير",
+    "cost": 40
+  },
+  {
+    "city": "آيت ملول",
+    "cost": 40
+  },
+  {
+    "city": "الحسيمة",
+    "cost": 40
+  },
+  {
+    "city": "آسفي",
+    "cost": 40
+  },
+  {
+    "city": "بني ملال",
+    "cost": 40
+  },
+  {
+    "city": "بوجدور",
+    "cost": 40
+  },
+  {
+    "city": "الدار البيضاء",
+    "cost": 40
+  },
+  {
+    "city": "الداخلة",
+    "cost": 40
+  },
+  {
+    "city": "الجديدة",
+    "cost": 40
+  },
+  {
+    "city": "فاس",
+    "cost": 40
+  },
+  {
+    "city": "الفنيدق",
+    "cost": 40
+  },
+  {
+    "city": "الفقيه بن صالح",
+    "cost": 40
+  },
+  {
+    "city": "إنزكان",
+    "cost": 40
+  },
+  {
+    "city": "القصبة تادلة",
+    "cost": 40
+  },
+  {
+    "city": "خريبكة",
+    "cost": 40
+  },
+  {
+    "city": "العرائش",
+    "cost": 40
+  },
+  {
+    "city": "المضيق",
+    "cost": 40
+  },
+  {
+    "city": "مراكش",
+    "cost": 40
+  },
+  {
+    "city": "مرتيل",
+    "cost": 40
+  },
+  {
+    "city": "مكناس",
+    "cost": 40
+  },
+  {
+    "city": "الناظور",
+    "cost": 40
+  },
+  {
+    "city": "ورزازات",
+    "cost": 40
+  },
+  {
+    "city": "وجدة",
+    "cost": 40
+  },
+  {
+    "city": "عين حرودة",
+    "cost": 40
+  },
+  {
+    "city": "كابو نيكرو",
+    "cost": 40
+  },
+  {
+    "city": "طنجة",
+    "cost": 40
+  },
+  {
+    "city": "تطوان",
+    "cost": 40
+  },
+  {
+    "city": "أزرو",
+    "cost": 40
+  },
+  {
+    "city": "إفران",
+    "cost": 40
+  },
+  {
+    "city": "إموزار كندر",
+    "cost": 40
+  },
+  {
+    "city": "المحمدية",
+    "cost": 40
+  },
+  {
+    "city": "عين اللوح",
+    "cost": 40
+  },
+  {
+    "city": "سيدي عدي - أزرو",
+    "cost": 40
+  },
+  {
+    "city": "تزنيت",
+    "cost": 40
+  },
+  {
+    "city": "تارودانت",
+    "cost": 40
+  },
+  {
+    "city": "الرحمة",
+    "cost": 40
+  },
+  {
+    "city": "طماريس",
+    "cost": 40
+  },
+  {
+    "city": "دار بوعزة",
+    "cost": 40
+  },
+  {
+    "city": "بوسكورة",
+    "cost": 40
+  },
+  {
+    "city": "جماعة شايم",
+    "cost": 40
+  },
+  {
+    "city": "النواصر",
+    "cost": 40
+  },
+  {
+    "city": "سبت جزولة",
+    "cost": 40
+  },
+  {
+    "city": "السويرة",
+    "cost": 40
+  },
+  {
+    "city": "سيدي قاسم",
+    "cost": 40
+  },
+  {
+    "city": "سيدي سليمان",
+    "cost": 40
+  },
+  {
+    "city": "بوزنيقة",
+    "cost": 40
+  },
+  {
+    "city": "تيط مليل",
+    "cost": 40
+  },
+  {
+    "city": "داروى",
+    "cost": 40
+  },
+  {
+    "city": "بنسليمان",
+    "cost": 40
+  },
+  {
+    "city": "أزمور",
+    "cost": 40
+  },
+  {
+    "city": "مولاي عبد الله",
+    "cost": 40
+  },
+  {
+    "city": "ميدلت",
+    "cost": 40
+  },
+  {
+    "city": "مديونة",
+    "cost": 40
+  },
+  {
+    "city": "شفشاون",
+    "cost": 40
+  },
+  {
+    "city": "بن جرير",
+    "cost": 40
+  },
+  {
+    "city": "الرشيدية",
+    "cost": 40
+  },
+  {
+    "city": "الريش",
+    "cost": 40
+  },
+  {
+    "city": "حد السوالم",
+    "cost": 40
+  },
+  {
+    "city": "سيدي رحال",
+    "cost": 40
+  },
+  {
+    "city": "وادي زم",
+    "cost": 40
+  },
+  {
+    "city": "بوكران",
+    "cost": 40
+  },
+  {
+    "city": "سبع عيون",
+    "cost": 40
+  },
+  {
+    "city": "مولاي دريس زرهون",
+    "cost": 40
+  },
+  {
+    "city": "المحايا",
+    "cost": 40
+  },
+  {
+    "city": "الحاج قدور",
+    "cost": 40
+  },
+  {
+    "city": "تاوجطات",
+    "cost": 40
+  },
+  {
+    "city": "باب برد",
+    "cost": 40
+  },
+  {
+    "city": "العروي",
+    "cost": 40
+  },
+  {
+    "city": "سلوان",
+    "cost": 40
+  },
+  {
+    "city": "سلوان الناظور",
+    "cost": 40
+  },
+  {
+    "city": "بني انصار",
+    "cost": 40
+  },
+  {
+    "city": "سيدي بنور",
+    "cost": 40
+  },
+  {
+    "city": "سيدي بيبي",
+    "cost": 40
+  },
+  {
+    "city": "القليعة",
+    "cost": 40
+  },
+  {
+    "city": "أولاد التايمة",
+    "cost": 40
+  },
+  {
+    "city": "أنزا",
+    "cost": 40
+  },
+  {
+    "city": "الوليدية",
+    "cost": 40
+  },
+  {
+    "city": "بوجنيبة",
+    "cost": 40
+  },
+  {
+    "city": "اليوسفية",
+    "cost": 40
+  },
+  {
+    "city": "سخور الرحامنة",
+    "cost": 40
+  },
+  {
+    "city": "زاكورة",
+    "cost": 40
+  },
+  {
+    "city": "وزان",
+    "cost": 40
+  },
+  {
+    "city": "زاوية الشيخ",
+    "cost": 40
+  },
+  {
+    "city": "الشماعية",
+    "cost": 40
+  },
+  {
+    "city": "بيوكرا",
+    "cost": 40
+  },
+  {
+    "city": "آيت عميرة - أغادير",
+    "cost": 40
+  },
+  {
+    "city": "المهدية",
+    "cost": 40
+  },
+  {
+    "city": "القنيطرة",
+    "cost": 40
+  },
+  {
+    "city": "المهدية",
+    "cost": 40
+  },
+  {
+    "city": "محاميد الغزلان",
+    "cost": 40
+  },
+  {
+    "city": "بومية",
+    "cost": 40
+  },
+  {
+    "city": "الشلالات",
+    "cost": 40
+  },
+  {
+    "city": "بجعد",
+    "cost": 40
+  },
+  {
+    "city": "المنصورية",
+    "cost": 40
+  },
+  {
+    "city": "الريصاني",
+    "cost": 40
+  },
+  {
+    "city": "أرفود",
+    "cost": 40
+  },
+  {
+    "city": "ميسور",
+    "cost": 40
+  },
+  {
+    "city": "الخميسات",
+    "cost": 40
+  },
+  {
+    "city": "تيفلت",
+    "cost": 40
+  },
+  {
+    "city": "كولميميا الرشيدية",
+    "cost": 40
+  },
+  {
+    "city": "تينجداد",
+    "cost": 40
+  },
+  {
+    "city": "والماس",
+    "cost": 40
+  },
+  {
+    "city": "الرماني",
+    "cost": 40
+  },
+  {
+    "city": "هوارة",
+    "cost": 40
+  },
+  {
+    "city": "الدراركة",
+    "cost": 40
+  },
+  {
+    "city": "بلفاع",
+    "cost": 40
+  },
+  {
+    "city": "سوق سبت أولاد نمة",
+    "cost": 40
+  },
+  {
+    "city": "الحاجب",
+    "cost": 40
+  },
+  {
+    "city": "جرادة",
+    "cost": 40
+  },
+  {
+    "city": "قلعة امݣونة",
+    "cost": 40
+  },
+  {
+    "city": "العيون الشرقية",
+    "cost": 40
+  },
+  {
+    "city": "بئر جديد",
+    "cost": 40
+  },
+  {
+    "city": "سيدي حجاج - كازا",
+    "cost": 40
+  },
+  {
+    "city": "مولاي يعقوب",
+    "cost": 40
+  },
+  {
+    "city": "سيدي حرازم",
+    "cost": 40
+  },
+  {
+    "city": "رأس الماء - فاس",
+    "cost": 40
+  },
+  {
+    "city": "عين شقاق",
+    "cost": 40
+  },
+  {
+    "city": "كاريت با محمد",
+    "cost": 40
+  },
+  {
+    "city": "تنغير",
+    "cost": 40
+  },
+  {
+    "city": "إمزورين",
+    "cost": 40
+  },
+  {
+    "city": "بني بويحي",
+    "cost": 40
+  },
+  {
+    "city": "بومالن دادس - تنغير",
+    "cost": 40
+  },
+  {
+    "city": "زايو",
+    "cost": 40
+  },
+  {
+    "city": "أقادير",
+    "cost": 40
+  },
+  {
+    "city": "تفراوت",
+    "cost": 40
+  },
+  {
+    "city": "أولاد جرير - تزنيت",
+    "cost": 40
+  },
+  {
+    "city": "بونعمان - تزنيت",
+    "cost": 40
+  },
+  {
+    "city": "المعدر الكبير - تزنيت",
+    "cost": 40
+  },
+  {
+    "city": "معازيز",
+    "cost": 40
+  },
+  {
+    "city": "سبت الكردان",
+    "cost": 40
+  },
+  {
+    "city": "ألنيف",
+    "cost": 40
+  },
+  {
+    "city": "تغازوت",
+    "cost": 40
+  },
+  {
+    "city": "تمراخت - أغادير",
+    "cost": 40
+  },
+  {
+    "city": "أورير - أغادير",
+    "cost": 40
+  },
+  {
+    "city": "تيزتوتين - الناظور",
+    "cost": 40
+  },
+  {
+    "city": "كاريت أركمان - الناظور",
+    "cost": 40
+  },
+  {
+    "city": "حد احرارة - آسفي",
+    "cost": 40
+  },
+  {
+    "city": "تنين الغيات - آسفي",
+    "cost": 40
+  },
+  {
+    "city": "برشيد",
+    "cost": 40
+  },
+  {
+    "city": "تامنسورت - مراكش",
+    "cost": 40
+  },
+  {
+    "city": "الاوداية - مراكش",
+    "cost": 40
+  },
+  {
+    "city": "لوضية",
+    "cost": 40
+  },
+  {
+    "city": "أجدير - الحسيمة",
+    "cost": 40
+  },
+  {
+    "city": "سيدي بوزيد - الجديدة",
+    "cost": 40
+  },
+  {
+    "city": "جرف صيفر",
+    "cost": 40
+  },
+  {
+    "city": "مزغان",
+    "cost": 40
+  },
+  {
+    "city": "مصور راسو",
+    "cost": 40
+  },
+  {
+    "city": "لحوزية - الجديدة",
+    "cost": 40
+  },
+  {
+    "city": "زاوية سيدي اسماعيل",
+    "cost": 40
+  },
+  {
+    "city": "حد واد فرج",
+    "cost": 40
+  },
+  {
+    "city": "عين بني مطهر",
+    "cost": 40
+  },
+  {
+    "city": "جرف الملحة - وزان",
+    "cost": 40
+  },
+  {
+    "city": "حد كورت",
+    "cost": 40
+  },
+  {
+    "city": "عين دوري",
+    "cost": 40
+  }
+]

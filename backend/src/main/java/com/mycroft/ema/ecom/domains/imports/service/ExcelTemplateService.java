@@ -692,10 +692,6 @@ public class ExcelTemplateService {
         headers = List.of("id", "order_reference","customer_name","customer_phone","status","assigned_agent","total_price","created_at","product_summary","notes");
         types = List.of("uuid","text","text","text","text","text","numeric(12,2)","timestamp","text","text");
       }
-      case "expense", "expenses", "commission", "commissions" -> {
-        headers = List.of("id", "expense_category","expense_type","amount","incurred_on","associated_agent","associated_order_reference","notes");
-        types = List.of("uuid","text","text","numeric(12,2)","date","text","text","text");
-      }
       case "ad", "ads", "advertising", "marketing" -> {
         headers = List.of("id", "spend_date","product_reference","platform","campaign_name","ad_spend","confirmed_orders","delivered_orders","notes");
         types = List.of("uuid","date","text","text","text","numeric(12,2)","bigint","bigint","text");

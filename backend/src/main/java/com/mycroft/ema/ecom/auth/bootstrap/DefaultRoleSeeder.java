@@ -51,8 +51,6 @@ public class DefaultRoleSeeder implements ApplicationRunner {
           "product:access:available_stock",
           "product:access:low_stock_threshold",
           "product:access:product_image",
-          "expenses:read",
-          "expenses:export:excel",
           "ads:read"
       )
   );

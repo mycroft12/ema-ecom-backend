@@ -96,7 +96,6 @@ public class DevAdminInitializer implements CommandLineRunner {
             "user:read","user:create","user:update","user:delete",
             "product:read","product:create","product:update","product:delete","product:export:excel",
             "orders:read","orders:create","orders:update","orders:delete","orders:export:excel",
-            "expenses:read","expenses:create","expenses:update","expenses:delete","expenses:export:excel",
             "ads:read","ads:create","ads:update","ads:delete","ads:export:excel",
             "import:template","import:configure",
             "dashboard:view"

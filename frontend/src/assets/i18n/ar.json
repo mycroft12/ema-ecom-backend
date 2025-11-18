@@ -53,6 +53,59 @@
       "adsDetail": "سجلات أداء الإعلانات",
       "loading": "جارٍ تحميل المؤشرات...",
       "updated": "تم تحديث المؤشرات"
+    },
+    "kpis": {
+      "title": "مؤشرات الأداء الرئيسية",
+      "subtitle": "مؤشرات مباشرة تشمل التأكيد، التسليم، الربح، والتكلفة.",
+      "loading": "جاري تحميل المؤشرات..."
+    },
+    "kpiLabels": {
+      "confirmationRate": "نسبة التأكيد",
+      "deliveryRate": "نسبة التسليم",
+      "profitPerProduct": "الربح لكل منتج",
+      "agentCommission": "عمولة الوكيل",
+      "totalRevenue": "إجمالي الإيرادات",
+      "totalProfit": "إجمالي الربح",
+      "avgOrderValue": "متوسط قيمة الطلب",
+      "roas": "ROAS",
+      "cac": "CAC"
+    },
+    "kpiDetails": {
+      "confirmationRate": "المؤكدة ÷ المتصلة",
+      "deliveryRate": "المرسلة ÷ المشحونة",
+      "profitPerProduct": "المبيعات ناقص التكاليف والشحن والإعلانات",
+      "agentCommission": "عمولات الطلبات المؤكدة/المسلّمة",
+      "totalRevenue": "كل الإيرادات المسجلة",
+      "totalProfit": "الإيرادات ناقص النفقات",
+      "avgOrderValue": "الإيرادات ÷ الطلبات",
+      "roas": "العائد على الإنفاق الإعلاني",
+      "cac": "تكلفة الاستحواذ على العميل"
+    },
+    "roles": {
+      "admin": {
+        "title": "لوحة المسؤول",
+        "totalSales": "مجموع المبيعات والربح ونسب التأكيد والتسليم",
+        "profitPerProduct": "الربح لكل منتج مع التكاليف والإعلانات والشحن",
+        "commissionPerAgent": "متابعة عمولات كل وكيل",
+        "performanceBreakdown": "أداء حسب المنتج والمنصة الإعلانية"
+      },
+      "supervisor": {
+        "title": "لوحة المشرف",
+        "allOrders": "كل الطلبات من جميع الوكلاء",
+        "reassignOrders": "إعادة تعيين الطلبات بين الوكلاء",
+        "agentPerformance": "نظرة على أداء الوكلاء"
+      },
+      "agent": {
+        "title": "لوحة الوكيل",
+        "personalPerformance": "الطلبات المؤكدة وتقييم التسليم والعمولة",
+        "assignedOrders": "قائمة الطلبات المخصصة مع إمكانية التعديل"
+      },
+      "media": {
+        "title": "لوحة مدير الإعلانات",
+        "activeProducts": "المنتجات النشطة مع توفر المخزون",
+        "adSpend": "متابعة الإنفاق الإعلاني حسب المنتج/المنصة",
+        "costPerLead": "تكلفة كل عميل محتمل مقدم"
+      }
     }
   },
   "notifications": {
@@ -163,35 +216,20 @@
     }
   },
   "import": {
-    "title": "استيراد نموذج",
-    "description": "قم برفع ملف Excel/CSV لتحليل الأعمدة وتهيئة جدول المجال.",
     "tabs": {
-      "dynamic": "التكوين الديناميكي",
       "google": "موصل Google Sheet",
+      "orderConfig": "تهيئة الطلبات",
       "configured": "المكونات المهيأة"
     },
     "domainLabel": "المكوّن",
     "domainPlaceholder": "اختر المكوّن",
     "domainProduct": "المنتجات",
     "domainOrders": "الطلبات",
-    "domainExpenses": "المصروفات والعمولات",
     "domainAds": "الإعلانات",
-    "fileLabel": "ملف النموذج",
-    "chooseLabel": "اختر النموذج",
-    "uploadLabel": "تحليل وتهيئة",
-    "cancelLabel": "إلغاء",
-    "analyze": "تحليل وتهيئة",
-    "analyzing": "جارٍ التحليل...",
-    "loading": "جارٍ معالجة النموذج، يرجى الانتظار...",
-    "success": "تم تهيئة الجدول بنجاح!",
-    "resultTitle": "النتيجة",
-    "downloadExample": "تنزيل مثال للنموذج",
-    "selectComponentFirst": "يرجى اختيار المكوّن أولاً",
     "error": "فشل تحليل النموذج",
     "configured": "تم التهيئة",
     "alreadyConfigured": "تم تهيئة هذا المكوّن بالفعل. استخدم خيار إعادة التعيين أدناه إذا كنت بحاجة إلى إعادة تهيئته.",
     "alreadyConfiguredNonAdmin": "تم تهيئة هذا المكوّن بالفعل. يرجى التواصل مع المسؤول إذا كنت بحاجة إلى إعادة تهيئته.",
-    "adminOptions": "خيارات المسؤول",
     "resetDescription": "تحذير: ستؤدي إعادة تعيين هذه التهيئة إلى حذف الجدول وجميع بياناته. لا يمكن التراجع عن هذا الإجراء.",
     "resetTable": "إعادة تعيين التهيئة",
     "confirmReset": "هل أنت متأكد من رغبتك في إعادة تعيين هذه التهيئة؟ سيؤدي ذلك إلى حذف الجدول وجميع بياناته. لا يمكن التراجع عن هذا الإجراء.",
@@ -264,10 +302,7 @@
       "types": "الأنواع",
       "domainNotConnected": "{{ domain }} غير مرتبط حاليًا بـGoogle Sheets.",
       "duplicateSheetError": "لا يمكنك ربط جدول بيانات Google نفسه مرتين."
-    },
-    "adminOnly": "خيارات المسؤول",
-    "confirmUpload": "هل أنت متأكد من رغبتك في رفع نموذج {{domain}} هذا؟ لن يكون هناك إمكانية للتراجع.",
-    "confirmUploadHeader": "تأكيد رفع النموذج"
+    }
   },
   "rolesPage": {
     "permissions": {
@@ -513,81 +548,6 @@
     "newItem": "طلب جديد",
     "editItem": "تعديل الطلب",
     "configuredSuccess": "تم تهيئة مخطط الطلبات بنجاح"
-  },
-  "expenses": {
-    "title": "النفقات والعمولات",
-    "configureHeader": "تهيئة النفقات والعمولات",
-    "configureSubheader": "قم برفع ملف Excel أو CSV لتتبع النفقات والعمولات",
-    "notConfigured": "لم يتم تهيئة النفقات والعمولات بعد. يرجى رفع نموذج للبدء.",
-    "needConfiguration": "تحتاج إلى تهيئة مكون النفقات والعمولات أولاً",
-    "configureNow": "تهيئة الآن",
-    "uploadTemplate": "رفع نموذج التهيئة",
-    "displayName": "الاسم المعروض",
-    "displayNamePlaceholder": "مثال: النفقات والعمولات",
-    "validateBeforeApply": "التحقق من النموذج قبل التطبيق",
-    "dragDrop": "اسحب وأفلت الملفات هنا أو انقر للاختيار",
-    "acceptedFormats": "الصيغ المدعومة: ‎.xlsx, ‎.xls, ‎.csv (الحد الأقصى 10 ميجابايت)",
-    "btnChooseFile": "اختر النموذج",
-    "btnConfigure": "تهيئة النفقات والعمولات",
-    "btnDelete": "حذف",
-    "btnExport": "تصدير",
-    "searchPlaceholder": "البحث عن {{component}}",
-    "columnTogglePlaceholder": "أعمدة",
-    "columnToggleSelectedItems": "تم تحديد {0} فقرات",
-    "pageReport": "عرض {first} إلى {last} من أصل {totalRecords}",
-    "noImage": "لا توجد صورة",
-    "uploadImage": "تحميل الصورة",
-    "replaceImage": "استبدال الصورة",
-    "viewImage": "عرض الصورة بحجم أكبر",
-    "noResults": "لا توجد نفقات",
-    "anyOption": "أي",
-    "selectOneOption": "اختر واحدًا",
-    "dialog": {
-      "subtitle": "أدخل التفاصيل لإدارة {{component}}.",
-      "noFields": "لا توجد حقول متاحة لـ {{component}} بعد."
-    },
-    "newProduct": "نفقة جديدة",
-    "editProduct": "تعديل النفقة",
-    "exportExcel": "تصدير إلى Excel",
-    "exportExcelTooltip": "تصدير العرض الحالي إلى Excel",
-    "actions": "إجراءات",
-    "downloadExamples": "تنزيل أمثلة النماذج",
-    "downloadExplain": "قم بتنزيل نموذج للاطلاع على الصيغة المتوقعة للنفقات والعمولات. يتضمن النموذج:",
-    "row1": "السطر 1:",
-    "row2": "السطر 2:",
-    "row3": "الأسطر 3+:",
-    "row1Text": "أسماء الأعمدة (مثل expense_category, expense_type, amount, incurred_on)",
-    "row2Text": "أنواع الأعمدة (TEXT, INTEGER, DECIMAL, DATE, BOOLEAN, MINIO_IMAGE, MINIO_FILE)",
-    "row3Text": "بيانات نموذجية اختيارية",
-    "btnDownloadBasic": "تنزيل النموذج الأساسي",
-    "btnDownloadAllTypes": "تنزيل نموذج بجميع الأنواع",
-    "tooltipAllTypes": "يتضمن جميع أنواع الأعمدة المتاحة مع أمثلة",
-    "uploading": "جارٍ رفع ومعالجة النموذج...",
-    "confirmBulkDeleteHeader": "تأكيد الحذف الجماعي",
-    "confirmBulkDeleteMessage": "هل أنت متأكد من حذف {{count}} سجل نفقات؟",
-    "confirmDeleteHeader": "حذف النفقة",
-    "confirmDeleteMessage": "هل أنت متأكد من رغبتك في حذف هذه النفقة؟",
-    "toastSuccess": "تم بنجاح",
-    "toastError": "خطأ",
-    "toastExportInfo": "بدأ التصدير",
-    "toastExportDetail": "جارٍ تحضير الملف...",
-    "toastDeletedMany": "تم حذف {{count}} نفقة",
-    "toastCreated": "تم تسجيل النفقة بنجاح",
-    "toastUpdated": "تم تحديث النفقة بنجاح",
-    "toastDeleted": "تم حذف النفقة",
-    "errors": {
-      "loadOne": "تعذر تحميل تفاصيل النفقة",
-      "create": "فشل إنشاء النفقة",
-      "update": "فشل تحديث النفقة",
-      "delete": "فشل حذف النفقة",
-      "backend": "حدث خطأ ما، يرجى التواصل مع المسؤول.",
-      "maxImages": "يمكنك تحميل {{max}} صورة كحد أقصى.",
-      "fileTooLarge": "تجاوز حجم الصورة الحد {{max}}.",
-      "unsupportedImageType": "نوع الصورة غير مدعوم."
-    },
-    "newItem": "نفقة جديدة",
-    "editItem": "تعديل النفقة",
-    "configuredSuccess": "تم تهيئة مخطط النفقات بنجاح"
   },
   "ads": {
     "title": "الأداء الإعلاني",

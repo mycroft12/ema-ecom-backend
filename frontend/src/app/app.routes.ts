@@ -17,7 +17,6 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardContentComponent, canActivate: [permissionGuard], data: { permissions: ['dashboard:view'] } },
       { path: 'products', component: HybridPageComponent, canActivate: [permissionGuard], data: { permissions: ['product:read','product:create','product:update','product:delete'], entityType: 'product', translationPrefix: 'products', displayName: 'Products' } },
       { path: 'orders', component: HybridPageComponent, canActivate: [permissionGuard], data: { permissions: ['orders:read','orders:create','orders:update','orders:delete'], entityType: 'orders', translationPrefix: 'orders', displayName: 'Orders' } },
-      { path: 'expenses', component: HybridPageComponent, canActivate: [permissionGuard], data: { permissions: ['expenses:read','expenses:create','expenses:update','expenses:delete'], entityType: 'expenses', translationPrefix: 'expenses', displayName: 'Expenses & Commissions' } },
       { path: 'ads', component: HybridPageComponent, canActivate: [permissionGuard], data: { permissions: ['ads:read','ads:create','ads:update','ads:delete'], entityType: 'ads', translationPrefix: 'ads', displayName: 'Advertising Performance' } },
       { path: 'roles', component: RolesPageComponent, canActivate: [permissionGuard], data: { permissions: ['role:read'] } },
       { path: 'import', component: ImportTemplatePageComponent, canActivate: [permissionGuard], data: { permissions: ['import:configure'] } },

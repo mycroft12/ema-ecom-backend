@@ -36,7 +36,6 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
   public void run(ApplicationArguments args) {
     initializeProducts();
     initializeOrders();
-    initializeExpenses();
     initializeAds();
     domainImportService.assignAllPermissionsToAdmin();
   }
@@ -95,28 +94,6 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     seedOrdersSample();
   }
 
-  private void initializeExpenses() {
-    List<ColumnInfo> columns = new ArrayList<>();
-    columns.add(column("Expense Category", "expense_category", "TEXT", "VARCHAR(128)", true));
-    columns.add(column("Expense Type", "expense_type", "TEXT", "VARCHAR(128)", true));
-    columns.add(column("Amount", "amount", "DECIMAL", "NUMERIC(12,2)", true));
-    columns.add(column("Incurred On", "incurred_on", "DATE", "DATE", true));
-    columns.add(column("Associated Agent", "associated_agent", "TEXT", "VARCHAR(255)", true));
-    columns.add(column("Associated Order", "associated_order_reference", "TEXT", "VARCHAR(64)", true));
-    columns.add(column("Notes", "notes", "TEXT", "TEXT", true));
-
-    try {
-      boolean created = domainImportService.ensureDefaultComponent("expenses", columns);
-      if (created) {
-        log.info("Default expenses component initialized");
-      }
-    } catch (Exception ex) {
-      log.warn("Failed to bootstrap default expenses component: {}", ex.getMessage());
-    }
-    domainImportService.cleanupLegacyPermissions("expenses");
-    seedExpensesSample();
-  }
-
   private void initializeAds() {
     List<ColumnInfo> columns = new ArrayList<>();
     columns.add(column("Spend Date", "spend_date", "DATE", "DATE", true));
@@ -172,15 +149,6 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
         "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?)",
         "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", new BigDecimal("89.90"),
         "2 x Starter Pack", "Call customer tomorrow morning");
-  }
-
-  private void seedExpensesSample() {
-    if (tableHasRows("expenses_config")) {
-      return;
-    }
-    jdbcTemplate.update("insert into expenses_config (id, expense_category, expense_type, amount, incurred_on, associated_agent, associated_order_reference, notes) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?)",
-        "Logistics", "Shipping", new BigDecimal("12.40"), LocalDate.now(), "Agent A", "ORD-1001", "Standard shipping fee");
   }
 
   private void seedAdsSample() {

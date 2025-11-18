@@ -150,7 +150,6 @@ public class DomainImportService {
     return switch ((domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT))){
       case "product", "products" -> "product_config";
       case "order", "orders" -> "orders_config";
-      case "expense", "expenses", "commission", "commissions" -> "expenses_config";
       case "ad", "ads", "advertising", "marketing" -> "ads_config";
       default -> throw new IllegalArgumentException("Unsupported domain: " + domain);
     };

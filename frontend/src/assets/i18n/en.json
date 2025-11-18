@@ -125,83 +125,6 @@
       "noteError": "Failed to save the note."
     }
   },
-  "expenses": {
-    "title": "Expenses & Commissions",
-    "newItem": "New expense",
-    "editItem": "Edit expense",
-    "configureHeader": "Configure Expenses & Commissions",
-    "configureSubheader": "Upload an Excel or CSV template to track expenses and commissions",
-    "notConfigured": "Expenses & commissions are not configured yet. Please upload a template to get started.",
-    "needConfiguration": "You need to configure the Expenses & Commissions component first",
-    "configureNow": "Configure Now",
-    "uploadTemplate": "Upload Configuration Template",
-    "displayName": "Display Name",
-    "displayNamePlaceholder": "e.g., Expenses & Commissions",
-    "validateBeforeApply": "Validate template before applying changes",
-    "dragDrop": "Drag and drop files here or click to browse",
-    "acceptedFormats": "Accepted formats: .xlsx, .xls, .csv (Max 10MB)",
-    "btnChooseFile": "Choose Template",
-    "btnConfigure": "Configure Expenses & Commissions",
-    "btnDelete": "Delete",
-    "btnExport": "Export",
-    "searchPlaceholder": "Search {{component}}",
-    "columnTogglePlaceholder": "Columns",
-    "columnToggleSelectedItems": "{0} columns selected",
-    "pageReport": "Showing {first} to {last} of {totalRecords} entries",
-    "noImage": "No image",
-    "uploadImage": "Upload image",
-    "replaceImage": "Replace image",
-    "viewImage": "View image in a larger window",
-    "noResults": "No expenses found",
-    "anyOption": "Any",
-    "selectOneOption": "Select one",
-    "exportExcel": "Export Excel",
-    "exportExcelTooltip": "Export the current table view to Excel",
-    "actions": "Actions",
-    "downloadExamples": "Download Template Examples",
-    "downloadExplain": "Download a template to see the expected format for expenses and commissions. The template includes:",
-    "row1": "Row 1:",
-    "row2": "Row 2:",
-    "row3": "Row 3+:",
-    "row1Text": "Column names (e.g., expense_category, expense_type, amount, incurred_on)",
-    "row2Text": "Column types (TEXT, INTEGER, DECIMAL, DATE, BOOLEAN, MINIO_IMAGE, MINIO_FILE)",
-    "row3Text": "Optional sample data",
-    "btnDownloadBasic": "Download Basic Template",
-    "btnDownloadAllTypes": "Download Template with All Types",
-    "tooltipAllTypes": "Includes all available column types with examples",
-    "uploading": "Uploading and processing template...",
-    "confirmBulkDeleteHeader": "Confirm Bulk Delete",
-    "confirmBulkDeleteMessage": "Are you sure you want to delete {{count}} expense record(s)?",
-    "confirmDeleteHeader": "Delete Expense",
-    "confirmDeleteMessage": "Are you sure you want to delete this expense?",
-    "toastSuccess": "Success",
-    "toastError": "Error",
-    "toastExportInfo": "Export Started",
-    "toastExportDetail": "Preparing Excel file...",
-    "toastDeletedMany": "{{count}} expense record(s) deleted",
-    "toastCreated": "Expense created successfully",
-    "toastUpdated": "Expense updated successfully",
-    "toastDeleted": "Expense deleted",
-    "fileSelected": "File selected",
-    "noFile": "No file selected",
-    "selectFilePrompt": "Please select a file to upload",
-    "configuredSuccess": "Expenses schema configured successfully",
-    "uploadFailed": "Failed to upload template",
-    "errors": {
-      "loadOne": "Failed to load expense details",
-      "create": "Failed to create expense",
-      "update": "Failed to update expense",
-      "delete": "Failed to delete expense",
-      "backend": "Something went wrong. Please contact the administrator.",
-      "maxImages": "You can upload at most {{max}} image(s).",
-      "fileTooLarge": "Image exceeds the {{max}} limit.",
-      "unsupportedImageType": "Unsupported image type."
-    },
-    "dialog": {
-      "subtitle": "Fill in the details to manage {{component}}.",
-      "noFields": "No fields are available for {{component}} yet."
-    }
-  },
   "ads": {
     "title": "Advertising Performance",
     "newItem": "New advertising entry",
@@ -288,7 +211,6 @@
     "dashboard": "Dashboard",
     "products": "Products",
     "orders": "Orders",
-    "expenses": "Expenses & Commissions",
     "ads": "Advertising",
     "roles": "Roles",
     "import": "Configuration"
@@ -307,6 +229,59 @@
       "adsDetail": "Advertising performance entries",
       "loading": "Loading metrics...",
       "updated": "Metrics updated"
+    },
+    "kpis": {
+      "title": "Key Performance Indicators",
+      "subtitle": "Live metrics covering confirmation, delivery, profit, and cost performance.",
+      "loading": "Loading KPIs..."
+    },
+    "kpiLabels": {
+      "confirmationRate": "Confirmation Rate",
+      "deliveryRate": "Delivery Rate",
+      "profitPerProduct": "Profit per Product",
+      "agentCommission": "Agent Commission",
+      "totalRevenue": "Total Revenue",
+      "totalProfit": "Total Profit",
+      "avgOrderValue": "Average Order Value",
+      "roas": "ROAS",
+      "cac": "CAC"
+    },
+    "kpiDetails": {
+      "confirmationRate": "Confirmed ÷ contacted orders",
+      "deliveryRate": "Delivered ÷ shipped orders",
+      "profitPerProduct": "Sales minus costs, shipping, and ads",
+      "agentCommission": "Confirmed/delivered order commissions",
+      "totalRevenue": "All revenue recorded",
+      "totalProfit": "Revenue minus total expenses",
+      "avgOrderValue": "Revenue ÷ orders",
+      "roas": "Return on ad spend",
+      "cac": "Customer acquisition cost"
+    },
+    "roles": {
+      "admin": {
+        "title": "Admin Dashboard",
+        "totalSales": "Total sales, profit, confirmation, and delivery summaries",
+        "profitPerProduct": "Profit per product including costs, ads, and shipping",
+        "commissionPerAgent": "Commission tracking for each agent",
+        "performanceBreakdown": "Performance insights per product and ad platform"
+      },
+      "supervisor": {
+        "title": "Supervisor Dashboard",
+        "allOrders": "All orders view spanning every agent",
+        "reassignOrders": "Order reassignment between agents",
+        "agentPerformance": "Agent-level performance overview"
+      },
+      "agent": {
+        "title": "Agent Dashboard",
+        "personalPerformance": "Tracked confirmed orders, delivery rate, and commission",
+        "assignedOrders": "Editable list of assigned orders"
+      },
+      "media": {
+        "title": "Media Buyer Dashboard",
+        "activeProducts": "Active products with stock availability",
+        "adSpend": "Ad spend tracking per product/platform",
+        "costPerLead": "Lead delivered cost per lead"
+      }
     }
   },
   "notifications": {
@@ -421,10 +396,7 @@
     }
   },
   "import": {
-    "title": "Import Template",
-    "description": "Upload an Excel/CSV template to analyze columns and configure a domain table.",
     "tabs": {
-      "dynamic": "Dynamic Configuration",
       "google": "Google Sheet Connector",
       "orderConfig": "Order Configuration",
       "configured": "Configured Components"
@@ -433,24 +405,11 @@
     "domainPlaceholder": "Select component",
     "domainProduct": "Products",
     "domainOrders": "Orders",
-    "domainExpenses": "Expenses & Commissions",
     "domainAds": "Advertising Performance",
-    "fileLabel": "Template File",
-    "chooseLabel": "Choose Template",
-    "uploadLabel": "Analyze & Configure",
-    "cancelLabel": "Cancel",
-    "analyze": "Analyze & Configure",
-    "analyzing": "Analyzing...",
-    "loading": "Processing your template, please wait...",
-    "success": "Table configured successfully!",
-    "resultTitle": "Result",
-    "downloadExample": "Download Template example",
-    "selectComponentFirst": "Please select a component first",
     "error": "Failed to analyze template",
     "configured": "Configured",
     "alreadyConfigured": "This component is already configured. Use the reset option below if you need to reconfigure it.",
     "alreadyConfiguredNonAdmin": "This component is already configured. Please contact an administrator if you need to reconfigure it.",
-    "adminOptions": "Administrator Options",
     "resetDescription": "Warning: Resetting this configuration will delete the table and all its data. This action cannot be undone.",
     "resetTable": "Reset Configuration",
     "confirmReset": "Are you sure you want to reset this configuration? This will delete the table and all its data. This action cannot be undone.",
@@ -495,15 +454,6 @@
       "google": "Google Sheet"
     },
     "rowCountLabel": "Rows in table: {{count}}",
-    "populateTitle": "Populate data",
-    "populateDescription": "Upload a CSV file that matches the configured template to replace the component data.",
-    "populateHint": "Only CSV files following the original headers (and optional type row) are accepted. This action replaces all existing rows.",
-    "populateButton": "Upload CSV",
-    "populateSuccessDetail": "Last upload saved {{count}} row(s).",
-    "populateSuccessToast": "{{count}} row(s) imported successfully.",
-    "populateWarningsTitle": "Warnings",
-    "populateInvalidType": "Select a CSV file before uploading.",
-    "populateError": "Failed to populate the table. Please try again.",
     "google": {
       "intro": "Connect a Google Sheet to automatically configure and populate a component.",
       "step1Title": "Select Component",
@@ -562,10 +512,7 @@
       "types": "Types",
       "domainNotConnected": "{{ domain }} is not connected to Google Sheets yet.",
       "duplicateSheetError": "You can't link the same Google Sheet twice."
-    },
-    "adminOnly": "Admin Options",
-    "confirmUpload": "Are you sure you want to upload this {{domain}} template? There will be no rollback.",
-    "confirmUploadHeader": "Confirm Template Upload"
+    }
   },
   "rolesPage": {
     "permissions": {

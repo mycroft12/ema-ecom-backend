@@ -122,7 +122,7 @@ public class ImportConfigureController {
   @Operation(summary = "List configured domain tables", description = "Returns existing component tables with row counts.")
   public List<DomainTableInfo> listTables(){
     List<DomainTableInfo> out = new ArrayList<>();
-    String[] domains = new String[]{"product", "orders", "expenses", "ads"};
+    String[] domains = new String[]{"product", "orders", "ads"};
     for (String d : domains){
       String table = domainImportService.tableForDomain(d);
       Boolean exists = jdbcTemplate.queryForObject(

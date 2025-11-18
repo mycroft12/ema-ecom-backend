@@ -25,6 +25,7 @@ The authenticated `/dashboard` landing page is guarded by the `dashboard:view` p
 
 ## Data surfacing
 - The dashboard currently issues lightweight counts against the hybrid domains for products, orders, expenses, and ads (each call requests one row with `includeSchema=false`) so the landing page always shows the number of records available per domain even when richer KPIs still depend on future backend work.
+- The landing page now also exposes a KPI grid (confirmation/delivery rates, profit per product, agent commission, revenue/profit/average order value, ROAS, CAC) and a role-insight section that reiterates the admin, supervisor, agent, and media dashboards described above.
 
 ## Key performance indicators (KPIs)
 - **Confirmation Rate:** confirmed orders ÷ contacted orders.
