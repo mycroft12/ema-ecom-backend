@@ -1,18 +1,25 @@
 package com.mycroft.ema.ecom.common.bootstrap;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycroft.ema.ecom.domains.imports.dto.ColumnInfo;
 import com.mycroft.ema.ecom.domains.imports.service.DomainImportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +33,19 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
 
   private final DomainImportService domainImportService;
   private final JdbcTemplate jdbcTemplate;
+  private final ObjectMapper objectMapper;
+  private final ResourceLoader resourceLoader;
+  private final List<Map<String, String>> cachedCityOptions;
 
-  public DefaultComponentBootstrapper(DomainImportService domainImportService, JdbcTemplate jdbcTemplate) {
+  public DefaultComponentBootstrapper(DomainImportService domainImportService,
+                                      JdbcTemplate jdbcTemplate,
+                                      ObjectMapper objectMapper,
+                                      ResourceLoader resourceLoader) {
     this.domainImportService = domainImportService;
     this.jdbcTemplate = jdbcTemplate;
+    this.objectMapper = objectMapper;
+    this.resourceLoader = resourceLoader;
+    this.cachedCityOptions = loadCityOptions();
   }
 
   @Override
@@ -74,11 +90,24 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
 
   private void initializeOrders() {
     List<ColumnInfo> columns = new ArrayList<>();
+    ColumnInfo orderNumber = column("Order Number", "order_number", "INTEGER", "BIGSERIAL", false);
+    orderNumber.getMetadata().put("readOnly", true);
+    orderNumber.getMetadata().put("hintKey", "orders.form.orderNumberHint");
+    orderNumber.setSemanticType("SYSTEM:ORDER_NUMBER");
+    columns.add(orderNumber);
     columns.add(column("Order Reference", "order_reference", "TEXT", "VARCHAR(64)", true));
     columns.add(column("Customer Name", "customer_name", "TEXT", "VARCHAR(255)", true));
     columns.add(column("Customer Phone", "customer_phone", "TEXT", "VARCHAR(32)", true));
     columns.add(column("Status", "status", "TEXT", "VARCHAR(32)", true));
     columns.add(column("Assigned Agent", "assigned_agent", "TEXT", "VARCHAR(255)", true));
+    columns.add(column("Store Name", "store_name", "TEXT", "VARCHAR(255)", true));
+    ColumnInfo cityConfirmed = column("City Confirmed", "city_confirmed", "TEXT", "VARCHAR(128)", true);
+    if (!cachedCityOptions.isEmpty()) {
+      cityConfirmed.getMetadata().put("options", cachedCityOptions);
+      cityConfirmed.getMetadata().put("input", "select");
+    }
+    cityConfirmed.setSemanticType("REFERENCE:CITY");
+    columns.add(cityConfirmed);
     columns.add(column("Total Price", "total_price", "DECIMAL", "NUMERIC(12,2)", true));
     columns.add(column("Created At", "created_at", "DATE", "TIMESTAMP", true));
     columns.add(column("Product Summary", "product_summary", "TEXT", "TEXT", true));
@@ -101,10 +130,9 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     columns.add(column("Spend Date", "spend_date", "DATE", "DATE", true));
     columns.add(column("Product Reference", "product_reference", "TEXT", "VARCHAR(128)", true));
     columns.add(column("Platform", "platform", "TEXT", "VARCHAR(64)", true));
-    columns.add(column("Campaign Name", "campaign_name", "TEXT", "VARCHAR(255)", true));
-    columns.add(column("Ad Spend", "ad_spend", "DECIMAL", "NUMERIC(12,2)", false));
-    columns.add(column("Confirmed Orders", "confirmed_orders", "INTEGER", "BIGINT", true));
-    columns.add(column("Delivered Orders", "delivered_orders", "INTEGER", "BIGINT", true));
+    columns.add(column("AD Account Name", "campaign_name", "TEXT", "VARCHAR(255)", true));
+    columns.add(column("Ad Spend ($)", "ad_spend", "DECIMAL", "NUMERIC(12,2)", false));
+    columns.add(column("Leads", "confirmed_orders", "INTEGER", "BIGINT", true));
     columns.add(column("Notes", "notes", "TEXT", "TEXT", true));
 
     try {
@@ -121,7 +149,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
 
   private ColumnInfo column(String excelName, String name, String inferredType, String sqlType, boolean nullable) {
     ColumnInfo info = new ColumnInfo(excelName, name, inferredType, sqlType, nullable, null);
-    info.setMetadata(Map.of());
+    info.setMetadata(new HashMap<>());
     return info;
   }
 
@@ -155,18 +183,44 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     if (tableHasRows("orders_config")) {
       return;
     }
-    jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?)",
+    jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes, store_name, city_confirmed) " +
+        "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?, ?, ?)",
         "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", new BigDecimal("89.90"),
-        "2 x Starter Pack", "Call customer tomorrow morning");
+        "2 x Starter Pack", "Call customer tomorrow morning", "Downtown Store", "Casablanca");
   }
 
   private void seedAdsSample() {
     if (tableHasRows("ads_config")) {
       return;
     }
-    jdbcTemplate.update("insert into ads_config (id, spend_date, product_reference, platform, campaign_name, ad_spend, confirmed_orders, delivered_orders, notes) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, ?)",
-        LocalDate.now(), "SKU-001", "Facebook", "Spring Promo", new BigDecimal("35.00"), 8L, 5L, "Good traction, monitor CPC");
+    jdbcTemplate.update("insert into ads_config (id, spend_date, product_reference, platform, campaign_name, ad_spend, confirmed_orders, notes) " +
+        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?)",
+        LocalDate.now(), "SKU-001", "Facebook", "Spring Promo", new BigDecimal("35.00"), 8L, "Good traction, monitor CPC");
+  }
+
+  private List<Map<String, String>> loadCityOptions() {
+    Resource resource = resourceLoader.getResource("classpath:cities.json");
+    if (!resource.exists()) {
+      log.warn("Could not locate cities.json; City Confirmed options will be empty.");
+      return List.of();
+    }
+    try (InputStream is = resource.getInputStream()) {
+      JsonNode root = objectMapper.readTree(is);
+      if (root == null || !root.isArray()) {
+        return List.of();
+      }
+      List<Map<String, String>> options = new ArrayList<>();
+      for (JsonNode node : root) {
+        String city = node.path("city").asText(null);
+        if (city != null && !city.trim().isEmpty()) {
+          String normalized = city.trim();
+          options.add(Map.of("label", normalized, "value", normalized));
+        }
+      }
+      return Collections.unmodifiableList(options);
+    } catch (IOException ex) {
+      log.warn("Failed to read cities.json: {}", ex.getMessage());
+      return List.of();
+    }
   }
 }

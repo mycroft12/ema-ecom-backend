@@ -203,9 +203,13 @@
       "fileTooLarge": "Image exceeds the {{max}} limit.",
       "unsupportedImageType": "Unsupported image type."
     },
+    "adSpendMadHint": "≈ {{amount}} MAD",
     "dialog": {
       "subtitle": "Fill in the details to manage {{component}}.",
       "noFields": "No fields are available for {{component}} yet."
+    },
+    "form": {
+      "orderNumberHint": "Assigned automatically when an order is created"
     }
   },
   "app": {

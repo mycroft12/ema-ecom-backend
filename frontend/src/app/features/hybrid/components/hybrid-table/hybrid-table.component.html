@@ -489,26 +489,29 @@
                                         </div>
 
                                         <ng-container *ngSwitchDefault>
-                                            <textarea
-                                                    *ngIf="isTextarea(column); else defaultTextInput"
-                                                    pInputTextarea
-                                                    [name]="'field-' + column.name"
-                                                    [id]="'field-' + column.name"
-                                                    [(ngModel)]="formModel[column.name]"
-                                                    (ngModelChange)="onFieldChange(column.name)"
-                                                    [required]="column.required"
-                                                    [readonly]="isColumnReadOnly(column)"
-                                                    [disabled]="isColumnDisabled(column)"
-                                                    [attr.maxLength]="column.maxLength || null"
-                                                    #model="ngModel"
-                                                    [class.p-invalid]="isFieldInvalid(model)"
-                                                    [attr.aria-invalid]="isFieldInvalid(model)"
-                                                    [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
-                                            </textarea>
-                                            <ng-template #defaultTextInput>
-                                                <input
-                                                        pInputText
-                                                        type="text"
+                                            <ng-container *ngIf="hasColumnOptions(column); else defaultTextualInputs">
+                                                <p-select
+                                                        [options]="getColumnOptions(column)"
+                                                        optionLabel="label"
+                                                        optionValue="value"
+                                                        [filter]="true"
+                                                        [showClear]="!column.required"
+                                                        [name]="'field-' + column.name"
+                                                        [inputId]="'field-' + column.name"
+                                                        [(ngModel)]="formModel[column.name]"
+                                                        (ngModelChange)="onFieldChange(column.name)"
+                                                        [required]="column.required"
+                                                        [disabled]="isColumnDisabled(column)"
+                                                        #model="ngModel"
+                                                        [class.p-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                                </p-select>
+                                            </ng-container>
+                                            <ng-template #defaultTextualInputs>
+                                                <textarea
+                                                        *ngIf="isTextarea(column); else defaultTextInput"
+                                                        pInputTextarea
                                                         [name]="'field-' + column.name"
                                                         [id]="'field-' + column.name"
                                                         [(ngModel)]="formModel[column.name]"
@@ -517,11 +520,29 @@
                                                         [readonly]="isColumnReadOnly(column)"
                                                         [disabled]="isColumnDisabled(column)"
                                                         [attr.maxLength]="column.maxLength || null"
-                                                        [attr.pattern]="getPatternRule(column)"
                                                         #model="ngModel"
                                                         [class.p-invalid]="isFieldInvalid(model)"
                                                         [attr.aria-invalid]="isFieldInvalid(model)"
                                                         [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                                </textarea>
+                                                <ng-template #defaultTextInput>
+                                                    <input
+                                                            pInputText
+                                                            type="text"
+                                                            [name]="'field-' + column.name"
+                                                            [id]="'field-' + column.name"
+                                                            [(ngModel)]="formModel[column.name]"
+                                                            (ngModelChange)="onFieldChange(column.name)"
+                                                            [required]="column.required"
+                                                            [readonly]="isColumnReadOnly(column)"
+                                                            [disabled]="isColumnDisabled(column)"
+                                                            [attr.maxLength]="column.maxLength || null"
+                                                            [attr.pattern]="getPatternRule(column)"
+                                                            #model="ngModel"
+                                                            [class.p-invalid]="isFieldInvalid(model)"
+                                                            [attr.aria-invalid]="isFieldInvalid(model)"
+                                                            [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                                </ng-template>
                                             </ng-template>
                                         </ng-container>
                                     </ng-container>

@@ -36,6 +36,7 @@ import { Subject } from 'rxjs';
 import { finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { HybridBadgeService, HybridUpsertEvent } from '../../services/hybrid-badge.service';
 import { OrderAgent, OrderManagementService } from '../../../orders/order-management.service';
+import { environment } from '../../../../../environments/environment';
 
 const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
 
@@ -88,6 +89,8 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderManagementService);
   private readonly imageUploadBusy: Record<string, boolean> = {};
   readonly translationPrefix = this.schemaService.translationNamespace;
+  private readonly adSpendUsdToMadRate = environment.currencyRates?.usdToMad ?? 10;
+  private readonly columnOptionsCache = new WeakMap<HybridColumnDefinition, Array<{ label: string; value: any }>>();
 
   private static dialogInstanceCounter = 0;
   private readonly dialogInstanceId = ++HybridTableComponent.dialogInstanceCounter;
@@ -163,6 +166,9 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
   get isOrdersContext(): boolean {
     return (this.schemaService.entityTypeName ?? '').toLowerCase() === 'orders';
+  }
+  get isAdsContext(): boolean {
+    return (this.schemaService.entityTypeName ?? '').toLowerCase() === 'ads';
   }
   get canManageAssignments(): boolean {
     if (!this.isOrdersContext || !this.canEdit) {
@@ -517,18 +523,76 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  hasColumnOptions(column: HybridColumnDefinition): boolean {
+    return this.getColumnOptions(column).length > 0;
+  }
+
+  getColumnOptions(column: HybridColumnDefinition): Array<{ label: string; value: any }> {
+    const cached = this.columnOptionsCache.get(column);
+    if (cached) {
+      return cached;
+    }
+    const built = this.buildColumnOptions(column);
+    this.columnOptionsCache.set(column, built);
+    return built;
+  }
+
+  private buildColumnOptions(column: HybridColumnDefinition): Array<{ label: string; value: any }> {
+    const raw = column?.metadata?.['options'];
+    if (!Array.isArray(raw)) {
+      return [];
+    }
+    const normalized = raw.map(option => {
+      if (typeof option === 'string') {
+        const trimmed = option.trim();
+        return trimmed ? { label: trimmed, value: trimmed } : null;
+      }
+      if (this.isPlainObject(option)) {
+        const label = this.normalizeOptionLabel(option);
+        if (!label) {
+          return null;
+        }
+        const rawValue = option['value'] ?? option['code'] ?? option['id'] ?? label;
+        return { label, value: rawValue };
+      }
+      return null;
+    }).filter((opt): opt is { label: string; value: any } => !!opt);
+    return normalized;
+  }
+
+  private normalizeOptionLabel(option: Record<string, any>): string | null {
+    const candidate = option['label'] ?? option['name'] ?? option['city'] ?? option['value'];
+    if (candidate === undefined || candidate === null) {
+      return null;
+    }
+    const text = String(candidate).trim();
+    return text || null;
+  }
+
+  private isPlainObject(value: unknown): value is Record<string, any> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
   getFieldHint(column: HybridColumnDefinition): string | null {
     const meta = (column.metadata ?? {}) as Record<string, any>;
     const hintKey = meta['hintKey'] ?? meta['helperKey'];
+    let resolved: string | null = null;
     if (typeof hintKey === 'string' && hintKey.trim()) {
       const translated = this.translate.instant(hintKey.trim(), { component: this.componentDisplayName });
-      return translated === hintKey ? null : translated;
+      resolved = translated === hintKey ? null : translated;
+    } else {
+      const hint = meta['hint'] ?? meta['helperText'] ?? meta['description'];
+      if (typeof hint === 'string' && hint.trim()) {
+        resolved = hint.trim();
+      }
     }
-    const hint = meta['hint'] ?? meta['helperText'] ?? meta['description'];
-    if (typeof hint === 'string' && hint.trim()) {
-      return hint.trim();
+    if (this.isAdsContext && column.name === 'ad_spend') {
+      const conversion = this.getAdSpendConversionHint();
+      if (conversion) {
+        resolved = resolved ? `${resolved} • ${conversion}` : conversion;
+      }
     }
-    return null;
+    return resolved;
   }
 
   getFieldError(column: HybridColumnDefinition, control: NgModel | null): string | null {
@@ -636,6 +700,29 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   private cloneModel(model: Record<string, any>): Record<string, any> {
     return JSON.parse(JSON.stringify(model ?? {}));
+  }
+
+  private getAdSpendConversionHint(): string | null {
+    const raw = this.formModel?.['ad_spend'];
+    const numeric = typeof raw === 'number' ? raw : Number(raw);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+      return null;
+    }
+    const converted = numeric * this.adSpendUsdToMadRate;
+    const formatted = this.formatCurrencyValue(converted, 'MAD');
+    return this.translate.instant('ads.adSpendMadHint', { amount: formatted });
+  }
+
+  private formatCurrencyValue(value: number, currencyCode: string): string {
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: currencyCode,
+        maximumFractionDigits: 2
+      }).format(value);
+    } catch {
+      return `${value.toFixed(2)} ${currencyCode}`;
+    }
   }
 
   private queueFocusOnDialog(): void {

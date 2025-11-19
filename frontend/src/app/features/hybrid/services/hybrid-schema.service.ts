@@ -246,13 +246,14 @@ export class HybridSchemaService {
     const rawMetadata = this.cloneMetadata((column as any)?.metadata);
     const semanticType = (column as any)?.semanticType ?? rawMetadata?.['semanticType'];
     const mediaConstraints = this.buildMediaConstraints(rawMetadata, type);
-    return {
+    const normalized = {
       ...column,
       type,
       metadata: rawMetadata,
       semanticType,
       mediaConstraints
     } as HybridColumnDefinition;
+    return this.applyColumnOverrides(normalized);
   }
 
   private normalizeType(input: HybridColumnDefinition['type']): HybridColumnType {
@@ -350,6 +351,26 @@ export class HybridSchemaService {
       return 'Products';
     }
     return entity.replace(/[-_]/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  private applyColumnOverrides(column: HybridColumnDefinition): HybridColumnDefinition {
+    const entity = (this.contextSignal().entityType ?? '').toLowerCase();
+    if (entity !== 'ads') {
+      return column;
+    }
+    if (column.name === 'campaign_name') {
+      return { ...column, displayName: 'AD Account Name' };
+    }
+    if (column.name === 'ad_spend') {
+      return { ...column, displayName: 'Ad Spend ($)' };
+    }
+    if (column.name === 'confirmed_orders') {
+      return { ...column, displayName: 'Leads' };
+    }
+    if (column.name === 'delivered_orders') {
+      return { ...column, hidden: true };
+    }
+    return column;
   }
 
   private normalizeColumnOrder(order: string[] | null | undefined): string[] {

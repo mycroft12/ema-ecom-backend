@@ -181,6 +181,9 @@
       "subtitle": "أدخل التفاصيل لإدارة {{component}}.",
       "noFields": "لا توجد حقول متاحة لـ {{component}} بعد."
     },
+    "form": {
+      "orderNumberHint": "يُعيَّن تلقائيًا عند إنشاء الطلب"
+    },
     "newProduct": "منتج جديد",
     "editProduct": "تعديل المنتج",
     "exportExcel": "تصدير إلى Excel",
@@ -626,6 +629,7 @@
       "fileTooLarge": "تجاوز حجم الصورة الحد {{max}}.",
       "unsupportedImageType": "نوع الصورة غير مدعوم."
     },
+    "adSpendMadHint": "≈ {{amount}} درهم",
     "newItem": "سجل إعلاني جديد",
     "editItem": "تعديل السجل الإعلاني",
     "configuredSuccess": "تم تهيئة مخطط الإعلانات بنجاح"

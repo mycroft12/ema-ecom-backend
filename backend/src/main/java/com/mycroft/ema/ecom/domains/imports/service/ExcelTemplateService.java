@@ -685,16 +685,16 @@ public class ExcelTemplateService {
     String t = type == null ? "generic" : type.trim().toLowerCase(Locale.ROOT);
     switch (t){
       case "product" -> {
-        headers = List.of("id", "product_name","sku","selling_price","available_stock","cost_of_goods","low_stock_threshold","product_image");
-        types = List.of("uuid","text","text","numeric(12,2)","bigint","numeric(12,2)","bigint","minio:image");
+        headers = List.of("id", "product_image","product_name","product_variant","product_link","sku","selling_price","available_stock","cost_of_goods","low_stock_threshold");
+        types = List.of("uuid","minio:image","text","text","text","text","numeric(12,2)","bigint","numeric(12,2)","bigint");
       }
       case "order", "orders" -> {
-        headers = List.of("id", "order_reference","customer_name","customer_phone","status","assigned_agent","total_price","created_at","product_summary","notes");
-        types = List.of("uuid","text","text","text","text","text","numeric(12,2)","timestamp","text","text");
+        headers = List.of("id", "order_number","order_reference","customer_name","customer_phone","status","assigned_agent","store_name","city_confirmed","total_price","created_at","product_summary","notes");
+        types = List.of("uuid","bigint","text","text","text","text","text","text","text","numeric(12,2)","timestamp","text","text");
       }
       case "ad", "ads", "advertising", "marketing" -> {
-        headers = List.of("id", "spend_date","product_reference","platform","campaign_name","ad_spend","confirmed_orders","delivered_orders","notes");
-        types = List.of("uuid","date","text","text","text","numeric(12,2)","bigint","bigint","text");
+        headers = List.of("id", "spend_date","product_reference","platform","campaign_name","ad_spend","confirmed_orders","notes");
+        types = List.of("uuid","date","text","text","text","numeric(12,2)","bigint","text");
       }
       default -> {
         headers = List.of("id", "external_id","name","description","quantity","unit_price","active","created_at");

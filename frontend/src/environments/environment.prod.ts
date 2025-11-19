@@ -4,5 +4,8 @@ export const environment = {
   apiBaseUrl: '',
   googlePickerClientId: '',
   googlePickerApiKey: '',
-  googleDriveMimeTypes: 'application/vnd.google-apps.spreadsheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv'
+  googleDriveMimeTypes: 'application/vnd.google-apps.spreadsheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv',
+  currencyRates: {
+    usdToMad: 10.0
+  }
 };

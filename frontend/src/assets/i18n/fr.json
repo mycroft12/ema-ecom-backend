@@ -296,6 +296,9 @@
       "subtitle": "Renseignez les informations pour gérer {{component}}.",
       "noFields": "Aucun champ disponible pour {{component}} pour le moment."
     },
+    "form": {
+      "orderNumberHint": "Attribué automatiquement lors de la création de la commande"
+    },
     "newItem": "Nouvelle commande",
     "editItem": "Modifier la commande",
     "configuredSuccess": "Le schéma des commandes a été configuré avec succès"
@@ -371,6 +374,7 @@
       "fileTooLarge": "L'image dépasse la limite de {{max}}.",
       "unsupportedImageType": "Type d'image non pris en charge."
     },
+    "adSpendMadHint": "≈ {{amount}} MAD",
     "newItem": "Nouvelle entrée publicitaire",
     "editItem": "Modifier l'entrée publicitaire",
     "configuredSuccess": "Le schéma publicitaire a été configuré avec succès"
