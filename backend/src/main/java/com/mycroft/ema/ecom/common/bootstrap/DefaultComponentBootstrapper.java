@@ -42,13 +42,6 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
 
   private void initializeProducts() {
     List<ColumnInfo> columns = new ArrayList<>();
-    columns.add(column("Product Name", "product_name", "TEXT", "VARCHAR(255)", true));
-    columns.add(column("SKU", "sku", "TEXT", "VARCHAR(100)", true));
-    columns.add(column("Selling Price", "selling_price", "DECIMAL", "NUMERIC(12,2)", true));
-    columns.add(column("Available Stock", "available_stock", "INTEGER", "BIGINT", true));
-    columns.add(column("Cost of Goods", "cost_of_goods", "DECIMAL", "NUMERIC(12,2)", true));
-    columns.add(column("Low Stock Threshold", "low_stock_threshold", "INTEGER", "BIGINT", true));
-
     ColumnInfo image = column("Product Image", "product_image", "MINIO_IMAGE", "TEXT", true);
     image.setSemanticType("MINIO:IMAGE");
     Map<String, Object> metadata = new HashMap<>();
@@ -57,6 +50,15 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     metadata.put("allowedMimeTypes", List.of("image/jpeg", "image/png", "image/webp", "image/gif"));
     image.setMetadata(metadata);
     columns.add(image);
+
+    columns.add(column("Product Name", "product_name", "TEXT", "VARCHAR(255)", true));
+    columns.add(column("Product Variant", "product_variant", "TEXT", "VARCHAR(255)", true));
+    columns.add(column("Product Link", "product_link", "TEXT", "TEXT", true));
+    columns.add(column("SKU", "sku", "TEXT", "VARCHAR(100)", true));
+    columns.add(column("Selling Price", "selling_price", "DECIMAL", "NUMERIC(12,2)", true));
+    columns.add(column("Available Stock", "available_stock", "INTEGER", "BIGINT", true));
+    columns.add(column("Cost of Goods", "cost_of_goods", "DECIMAL", "NUMERIC(12,2)", true));
+    columns.add(column("Low Stock Threshold", "low_stock_threshold", "INTEGER", "BIGINT", true));
 
     try {
       boolean created = domainImportService.ensureDefaultComponent("product", columns);
@@ -136,9 +138,17 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     if (tableHasRows("product_config")) {
       return;
     }
-    jdbcTemplate.update("insert into product_config (id, product_name, sku, selling_price, available_stock, cost_of_goods, low_stock_threshold, product_image) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?)",
-        "Starter Pack", "SKU-001", new BigDecimal("49.99"), 150L, new BigDecimal("22.50"), 25L, null);
+    jdbcTemplate.update("insert into product_config (id, product_image, product_name, product_variant, product_link, sku, selling_price, available_stock, cost_of_goods, low_stock_threshold) " +
+        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        null,
+        "Starter Pack",
+        "Standard",
+        "https://example.com/products/starter-pack",
+        "SKU-001",
+        new BigDecimal("49.99"),
+        150L,
+        new BigDecimal("22.50"),
+        25L);
   }
 
   private void seedOrdersSample() {
