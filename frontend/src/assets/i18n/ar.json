@@ -17,7 +17,13 @@
       "updateTitle": "تحديث {{component}}",
       "discardTitle": "هل تريد تجاهل التغييرات؟",
       "discardMessage": "لديك تغييرات غير محفوظة لـ {{component}}. هل تريد تجاهلها؟"
-    }
+    },
+    "reorderColumns": "إعادة ترتيب الأعمدة",
+    "reorderColumnsTitle": "إعادة ترتيب الأعمدة",
+    "columnOrderSaved": "تم حفظ ترتيب الأعمدة",
+    "columnOrderError": "تعذّر حفظ ترتيب الأعمدة",
+    "columnOrderHint": "اسحب الأعمدة لتعديل ترتيب عرضها",
+    "columnOrderEmpty": "لا توجد أعمدة لإعادة ترتيبها"
   },
   "validation": {
     "required": "{{field}} مطلوب.",

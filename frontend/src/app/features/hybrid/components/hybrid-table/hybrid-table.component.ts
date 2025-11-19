@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -23,6 +24,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
+import { OrderListModule } from 'primeng/orderlist';
 import { SharedDialogComponent } from '@shared/ui/dialog';
 
 import { HybridTableDataService, HybridMinioUploadResponse } from '../../services/hybrid-table-data.service';
@@ -64,7 +66,8 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
     DatePicker,
     DialogModule,
     InputTextarea,
-    SharedDialogComponent
+    SharedDialogComponent,
+    OrderListModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './hybrid-table.component.html',
@@ -105,6 +108,9 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   columnToggleOptions: Array<{ label: string; value: string }> = [];
   selectedColumnKeys: string[] = [];
   columnToggleSelectedItemsLabel = '';
+  columnOrderSaving = false;
+  columnReorderDialogVisible = false;
+  columnOrderModel: HybridColumnDefinition[] = [];
 
   private readonly destroy$ = new Subject<void>();
   private lastLazyLoadEvent: TableLazyLoadEvent | null = null;
@@ -845,6 +851,50 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       return false;
     }
     return !this.selectedColumnKeys.includes(columnName);
+  }
+
+  openColumnReorderDialog(): void {
+    const nextOrder = [...this.schemaService.columns()];
+    if (!nextOrder.length) {
+      return;
+    }
+    nextOrder.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    this.columnOrderModel = nextOrder;
+    this.columnReorderDialogVisible = true;
+  }
+
+  saveColumnOrder(): void {
+    const columnNames = this.columnOrderModel.map(column => column.name);
+    if (!columnNames.length) {
+      this.columnReorderDialogVisible = false;
+      return;
+    }
+    this.columnOrderSaving = true;
+    this.schemaService.reorderColumns(columnNames).pipe(
+      finalize(() => this.columnOrderSaving = false)
+    ).subscribe({
+      next: () => {
+        this.columnReorderDialogVisible = false;
+        this.schemaService.applyColumnOrder(columnNames);
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('common.reorderColumnsTitle'),
+          detail: this.translate.instant('common.columnOrderSaved')
+        });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('common.reorderColumnsTitle'),
+          detail: err?.error?.message || this.translate.instant('common.columnOrderError')
+        });
+      }
+    });
+  }
+
+  onColumnOrderReorder(event: { value?: HybridColumnDefinition[] }): void {
+    const nextValue = Array.isArray(event?.value) ? event.value : this.columnOrderModel;
+    this.columnOrderModel = [...nextValue];
   }
 
   private syncColumnToggleOptions(columns?: HybridColumnDefinition[]): void {

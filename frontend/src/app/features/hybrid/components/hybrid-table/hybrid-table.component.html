@@ -49,6 +49,13 @@
                                 [selectedItemsLabel]="columnToggleSelectedItemsLabel"
                                 (onChange)="onColumnToggleChange($event.value)"
                         ></p-multiselect>
+                        <p-button
+                                *ngIf="canEdit"
+                                [label]="'common.reorderColumns' | translate"
+                                icon="pi pi-sort"
+                                class="p-button-outlined"
+                                (click)="openColumnReorderDialog()"
+                        ></p-button>
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
                         <p-button
@@ -326,7 +333,7 @@
         </p-table>
     </div>
 
-    <app-shared-dialog
+<app-shared-dialog
             [isOpen]="displayDialog"
             [title]="dialogTitle"
             [subtitle]="dialogSubtitle"
@@ -567,6 +574,65 @@
             </div>
         </ng-template>
 </app-shared-dialog>
+
+<p-dialog
+        [(visible)]="columnReorderDialogVisible"
+        [modal]="true"
+        [closable]="!columnOrderSaving"
+        [dismissableMask]="!columnOrderSaving"
+        [closeOnEscape]="!columnOrderSaving"
+        [style]="{ width: '32rem' }"
+        [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+        [header]="'common.reorderColumnsTitle' | translate">
+    <div class="flex flex-column gap-3">
+        <p-message
+                severity="info"
+                [text]="'common.columnOrderHint' | translate">
+        </p-message>
+
+        <ng-container *ngIf="columnOrderModel?.length; else noColumnsOrder">
+            <p-orderList
+                    [value]="columnOrderModel"
+                    [dragdrop]="true"
+                    [metaKeySelection]="false"
+                    [listStyle]="{ 'max-height': '20rem', 'width': '100%' }"
+                    (onReorder)="onColumnOrderReorder($event)">
+                <ng-template let-column pTemplate="item">
+                    <div class="flex flex-column w-full">
+                        <span class="font-medium">{{ column.displayName }}</span>
+                        <small class="text-color-secondary">{{ column.name }}</small>
+                    </div>
+                </ng-template>
+            </p-orderList>
+        </ng-container>
+
+        <ng-template #noColumnsOrder>
+            <p-message
+                    severity="warn"
+                    [text]="'common.columnOrderEmpty' | translate">
+            </p-message>
+        </ng-template>
+    </div>
+    <ng-template pTemplate="footer">
+        <button
+                pButton
+                type="button"
+                class="p-button-text"
+                [label]="'common.cancel' | translate"
+                (click)="columnReorderDialogVisible = false"
+                [disabled]="columnOrderSaving">
+        </button>
+        <button
+                pButton
+                type="button"
+                class="p-button-primary"
+                [label]="'common.save' | translate"
+                (click)="saveColumnOrder()"
+                [disabled]="!(columnOrderModel?.length)"
+                [loading]="columnOrderSaving">
+        </button>
+    </ng-template>
+</p-dialog>
 
 <p-dialog
         [(visible)]="assignmentDialogVisible"

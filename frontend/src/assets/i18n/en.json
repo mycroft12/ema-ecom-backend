@@ -17,7 +17,13 @@
       "updateTitle": "Update {{component}}",
       "discardTitle": "Discard changes?",
       "discardMessage": "You have unsaved changes for this {{component}}. Do you want to discard them?"
-    }
+    },
+    "reorderColumns": "Reorder columns",
+    "reorderColumnsTitle": "Reorder columns",
+    "columnOrderSaved": "Column order saved",
+    "columnOrderError": "Failed to save column order",
+    "columnOrderHint": "Drag the columns to adjust their display order",
+    "columnOrderEmpty": "No columns available to reorder"
   },
   "validation": {
     "required": "{{field}} is required.",

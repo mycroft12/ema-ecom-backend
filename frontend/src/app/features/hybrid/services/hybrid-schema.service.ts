@@ -36,6 +36,7 @@ export class HybridSchemaService {
   private readonly loadingSignal = signal<boolean>(false);
   private readonly errorSignal = signal<string | null>(null);
   private readonly uploadProgressSignal = signal<number>(0);
+  private readonly columnOrderStoragePrefix = 'ema.hybrid.columnOrder.';
 
   readonly schema = this.schemaSignal.asReadonly();
   readonly isLoading = this.loadingSignal.asReadonly();
@@ -103,6 +104,7 @@ export class HybridSchemaService {
           columns: filteredColumns,
           createdAt: new Date()
         } as unknown as HybridTableSchema);
+        this.applyColumnOrder();
         this.loadingSignal.set(false);
       }),
       catchError(err => {
@@ -171,6 +173,46 @@ export class HybridSchemaService {
     const csv = headers.join(',') + '\n' + allTypes.join(',') + '\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     this.saveBlob(blob, `${entity}-template-with-types.csv`);
+  }
+
+  reorderColumns(columnNames: string[]): Observable<void> {
+    const normalized = this.normalizeColumnOrder(columnNames);
+    const entity = this.entityTypeName;
+    this.persistColumnOrder(entity, normalized);
+    return of(void 0);
+  }
+
+  applyColumnOrder(columnNames?: string[]): void {
+    const schema = this.schemaSignal();
+    if (!schema || !schema.columns?.length) {
+      return;
+    }
+    const normalizedOrder = this.normalizeColumnOrder(
+      columnNames && columnNames.length ? columnNames : this.loadStoredColumnOrder(schema.domain || this.entityTypeName)
+    );
+    if (!normalizedOrder.length) {
+      const sorted = [...schema.columns].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+      this.schemaSignal.set({ ...schema, columns: sorted });
+      return;
+    }
+    const columnLookup = schema.columns.reduce<Record<string, HybridColumnDefinition>>((acc, column) => {
+      acc[column.name] = column;
+      return acc;
+    }, {});
+    const orderSet = new Set(normalizedOrder);
+    const orderedColumns: HybridColumnDefinition[] = normalizedOrder
+      .map(name => columnLookup[name])
+      .filter((column): column is HybridColumnDefinition => !!column)
+      .map(column => ({ ...column }));
+    const remainingColumns = schema.columns
+      .filter(column => !orderSet.has(column.name))
+      .map(column => ({ ...column }))
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    const nextColumns = [...orderedColumns, ...remainingColumns].map((column, index) => ({
+      ...column,
+      displayOrder: index + 1
+    }));
+    this.schemaSignal.set({ ...schema, columns: nextColumns });
   }
 
   private saveBlob(blob: Blob, filename: string): void {
@@ -308,5 +350,71 @@ export class HybridSchemaService {
       return 'Products';
     }
     return entity.replace(/[-_]/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  private normalizeColumnOrder(order: string[] | null | undefined): string[] {
+    if (!order || !order.length) {
+      return [];
+    }
+    const seen = new Set<string>();
+    return order
+      .map(name => (name ?? '').toString().trim())
+      .filter(name => {
+        if (!name || seen.has(name)) {
+          return false;
+        }
+        seen.add(name);
+        return true;
+      });
+  }
+
+  private persistColumnOrder(entity: string, order: string[]): void {
+    const storage = this.resolveStorage();
+    if (!storage) {
+      return;
+    }
+    const key = this.columnOrderStorageKey(entity);
+    if (!order.length) {
+      storage.removeItem(key);
+      return;
+    }
+    try {
+      storage.setItem(key, JSON.stringify(order));
+    } catch {
+      // ignore persistence errors
+    }
+  }
+
+  private loadStoredColumnOrder(entity: string): string[] {
+    const storage = this.resolveStorage();
+    if (!storage) {
+      return [];
+    }
+    const key = this.columnOrderStorageKey(entity);
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) {
+        return [];
+      }
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? this.normalizeColumnOrder(parsed) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private columnOrderStorageKey(entity: string): string {
+    return `${this.columnOrderStoragePrefix}${(entity ?? '').toLowerCase()}`;
+  }
+
+  private resolveStorage(): Storage | null {
+    try {
+      if (typeof window === 'undefined' || !window?.localStorage) {
+        return null;
+      }
+      return window.localStorage;
+    } catch {
+      return null;
+    }
   }
 }

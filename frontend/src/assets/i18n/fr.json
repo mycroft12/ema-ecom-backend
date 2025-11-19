@@ -17,7 +17,13 @@
       "updateTitle": "Mettre à jour {{component}}",
       "discardTitle": "Annuler les modifications ?",
       "discardMessage": "Vous avez des modifications non enregistrées pour {{component}}. Voulez-vous les annuler ?"
-    }
+    },
+    "reorderColumns": "Réorganiser les colonnes",
+    "reorderColumnsTitle": "Réorganiser les colonnes",
+    "columnOrderSaved": "Ordre des colonnes enregistré",
+    "columnOrderError": "Impossible d'enregistrer l'ordre des colonnes",
+    "columnOrderHint": "Faites glisser les colonnes pour ajuster leur ordre d'affichage",
+    "columnOrderEmpty": "Aucune colonne à réorganiser"
   },
   "validation": {
     "required": "{{field}} est obligatoire.",
