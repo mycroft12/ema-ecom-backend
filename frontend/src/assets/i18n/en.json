@@ -409,7 +409,8 @@
     "tabs": {
       "google": "Google Sheet Connector",
       "orderConfig": "Order Configuration",
-      "configured": "Configured Components"
+      "configured": "Configured Components",
+      "costs": "Costs Configuration"
     },
     "domainLabel": "Component",
     "domainPlaceholder": "Select component",
@@ -464,6 +465,26 @@
       "google": "Google Sheet"
     },
     "rowCountLabel": "Rows in table: {{count}}",
+    "costs": {
+      "description": "Track the operating costs you want to include in profitability calculations.",
+      "agentCommission": "Agent commission (%)",
+      "packageCost": "Package cost (box)",
+      "fulfillmentCost": "Fulfilment cost",
+      "otherTitle": "Other costs",
+      "otherDescription": "Add any additional costs that should be factored in.",
+      "otherNameLabel": "Cost name",
+      "otherAmountLabel": "Amount",
+      "addOther": "Add cost",
+      "otherEmpty": "No custom costs added yet.",
+      "otherTotal": "Total: {{amount}}",
+      "save": "Save costs",
+      "reload": "Reload saved values",
+      "saveSuccess": "Costs configuration saved.",
+      "storageError": "Unable to store costs in this browser.",
+      "validationTitle": "Validation required",
+      "otherNameRequired": "Provide a name for the cost.",
+      "otherAmountRequired": "Enter a valid amount."
+    },
     "google": {
       "intro": "Connect a Google Sheet to automatically configure and populate a component.",
       "step1Title": "Select Component",

@@ -383,7 +383,8 @@
     "tabs": {
       "google": "Connecteur Google Sheets",
       "orderConfig": "Configuration des commandes",
-      "configured": "Composants configurés"
+      "configured": "Composants configurés",
+      "costs": "Configuration des coûts"
     },
     "domainLabel": "Composant",
     "domainPlaceholder": "Sélectionnez un composant",
@@ -407,6 +408,26 @@
     "configuredSource": {
       "dynamic": "Configuration dynamique",
       "google": "Google Sheet"
+    },
+    "costs": {
+      "description": "Définissez les coûts opérationnels à prendre en compte dans vos calculs de rentabilité.",
+      "agentCommission": "Commission agent (%)",
+      "packageCost": "Coût de l'emballage",
+      "fulfillmentCost": "Coût de fulfilment",
+      "otherTitle": "Autres coûts",
+      "otherDescription": "Ajoutez les coûts supplémentaires à inclure.",
+      "otherNameLabel": "Nom du coût",
+      "otherAmountLabel": "Montant",
+      "addOther": "Ajouter un coût",
+      "otherEmpty": "Aucun coût personnalisé pour l'instant.",
+      "otherTotal": "Total : {{amount}}",
+      "save": "Enregistrer les coûts",
+      "reload": "Recharger les valeurs enregistrées",
+      "saveSuccess": "Configuration des coûts enregistrée.",
+      "storageError": "Impossible d'enregistrer les coûts dans ce navigateur.",
+      "validationTitle": "Champ requis",
+      "otherNameRequired": "Indiquez un nom pour ce coût.",
+      "otherAmountRequired": "Saisissez un montant valide."
     },
     "google": {
       "intro": "Connectez une feuille Google Sheets pour configurer et alimenter automatiquement un composant.",

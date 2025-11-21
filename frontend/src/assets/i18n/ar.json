@@ -228,7 +228,8 @@
     "tabs": {
       "google": "موصل Google Sheet",
       "orderConfig": "تهيئة الطلبات",
-      "configured": "المكونات المهيأة"
+      "configured": "المكونات المهيأة",
+      "costs": "تهيئة التكاليف"
     },
     "domainLabel": "المكوّن",
     "domainPlaceholder": "اختر المكوّن",
@@ -252,6 +253,26 @@
     "configuredSource": {
       "dynamic": "تمت تهيئته ديناميكياً",
       "google": "Google Sheet"
+    },
+    "costs": {
+      "description": "أضف التكاليف التشغيلية التي ترغب في احتسابها ضمن الربحية.",
+      "agentCommission": "عمولة الوكيل (%)",
+      "packageCost": "تكلفة التغليف (الصندوق)",
+      "fulfillmentCost": "تكلفة التنفيذ",
+      "otherTitle": "تكاليف أخرى",
+      "otherDescription": "أضف أي تكاليف إضافية يجب أخذها في الاعتبار.",
+      "otherNameLabel": "اسم التكلفة",
+      "otherAmountLabel": "المبلغ",
+      "addOther": "إضافة تكلفة",
+      "otherEmpty": "لا توجد تكاليف مخصصة حالياً.",
+      "otherTotal": "الإجمالي: {{amount}}",
+      "save": "حفظ التكاليف",
+      "reload": "إعادة تحميل القيم المحفوظة",
+      "saveSuccess": "تم حفظ إعدادات التكاليف.",
+      "storageError": "تعذّر حفظ التكاليف في هذا المتصفح.",
+      "validationTitle": "معلومة مطلوبة",
+      "otherNameRequired": "يرجى إدخال اسم التكلفة.",
+      "otherAmountRequired": "يرجى إدخال مبلغ صالح."
     },
     "google": {
       "intro": "قم بتوصيل Google Sheet لتهيئة المكوّن وتعبئته تلقائياً.",

@@ -16,6 +16,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { AuthService } from '../../core/auth.service';
 import { OrderManagementService, OrderStatus } from '../orders/order-management.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -54,6 +55,19 @@ interface GoogleSheetTestResponseDto {
   dataRowCount: number;
 }
 
+interface OtherCostEntry {
+  id: string;
+  name: string;
+  amount: number;
+}
+
+interface CostsConfiguration {
+  agentCommission: number | null;
+  packageCost: number | null;
+  fulfillmentCost: number | null;
+  otherCosts: OtherCostEntry[];
+}
+
 @Component({
   selector: 'app-import-template-page',
   standalone: true,
@@ -71,7 +85,8 @@ interface GoogleSheetTestResponseDto {
     InputTextModule,
     MessageModule,
     DialogModule,
-    TableModule
+    TableModule,
+    InputNumberModule
   ],
   providers: [ConfirmationService, MessageService],
   styles: [
@@ -439,6 +454,170 @@ interface GoogleSheetTestResponseDto {
           </div>
         </p-card>
       </p-tabPanel>
+      <p-tabPanel>
+        <ng-template pTemplate="header">
+          <i class="pi pi-wallet mr-2"></i>
+          {{ 'import.tabs.costs' | translate }}
+        </ng-template>
+        <p-card>
+          <div class="flex flex-column gap-4">
+            <p class="text-600">{{ 'import.costs.description' | translate }}</p>
+            <div class="grid formgrid">
+              <div class="col-12 md:col-4">
+                <label class="field-label block mb-2" for="costsAgentCommission">
+                  {{ 'import.costs.agentCommission' | translate }}
+                </label>
+                <p-inputNumber
+                  inputId="costsAgentCommission"
+                  mode="decimal"
+                  [suffix]="' %'"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="2"
+                  [min]="0"
+                  [max]="100"
+                  [(ngModel)]="costsForm.agentCommission"
+                  name="costsAgentCommission"
+                  class="w-full"
+                ></p-inputNumber>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="field-label block mb-2" for="costsPackage">
+                  {{ 'import.costs.packageCost' | translate }}
+                </label>
+                <p-inputNumber
+                  inputId="costsPackage"
+                  mode="decimal"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [min]="0"
+                  [(ngModel)]="costsForm.packageCost"
+                  name="costsPackageCost"
+                  class="w-full"
+                ></p-inputNumber>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="field-label block mb-2" for="costsFulfillment">
+                  {{ 'import.costs.fulfillmentCost' | translate }}
+                </label>
+                <p-inputNumber
+                  inputId="costsFulfillment"
+                  mode="decimal"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [min]="0"
+                  [(ngModel)]="costsForm.fulfillmentCost"
+                  name="costsFulfillmentCost"
+                  class="w-full"
+                ></p-inputNumber>
+              </div>
+            </div>
+
+            <div class="flex flex-column gap-3">
+              <div>
+                <div class="font-bold text-lg">{{ 'import.costs.otherTitle' | translate }}</div>
+                <div class="text-600">{{ 'import.costs.otherDescription' | translate }}</div>
+              </div>
+              <div class="grid formgrid align-items-end">
+                <div class="col-12 md:col-5">
+                  <label class="field-label block mb-2" for="otherCostName">
+                    {{ 'import.costs.otherNameLabel' | translate }}
+                  </label>
+                  <input
+                    pInputText
+                    id="otherCostName"
+                    [(ngModel)]="otherCostDraft.name"
+                    name="otherCostName"
+                    class="w-full"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="field-label block mb-2" for="otherCostAmount">
+                    {{ 'import.costs.otherAmountLabel' | translate }}
+                  </label>
+                  <p-inputNumber
+                    inputId="otherCostAmount"
+                    mode="decimal"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [min]="0"
+                    [(ngModel)]="otherCostDraft.amount"
+                    name="otherCostAmount"
+                    class="w-full"
+                  ></p-inputNumber>
+                </div>
+                <div class="col-12 md:col-3 flex align-items-end">
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-plus"
+                    class="w-full md:w-auto"
+                    [label]="'import.costs.addOther' | translate"
+                    (click)="addOtherCost()"
+                  ></button>
+                </div>
+              </div>
+
+              <p-table
+                *ngIf="costsForm.otherCosts.length > 0; else otherCostsEmpty"
+                [value]="costsForm.otherCosts"
+                responsiveLayout="scroll"
+                [rows]="5"
+                [paginator]="costsForm.otherCosts.length > 5"
+              >
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>{{ 'import.costs.otherNameLabel' | translate }}</th>
+                    <th style="width: 10rem;">{{ 'import.costs.otherAmountLabel' | translate }}</th>
+                    <th style="width: 6rem;"></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-cost>
+                  <tr>
+                    <td>{{ cost.name }}</td>
+                    <td>{{ cost.amount | number:'1.2-2' }}</td>
+                    <td class="text-right">
+                      <button
+                        pButton
+                        type="button"
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-text p-button-danger"
+                        (click)="removeOtherCost(cost.id)"
+                      ></button>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="caption">
+                  <div class="flex justify-content-end font-semibold">
+                    {{ 'import.costs.otherTotal' | translate:{ amount: (otherCostsTotal | number:'1.2-2') } }}
+                  </div>
+                </ng-template>
+              </p-table>
+              <ng-template #otherCostsEmpty>
+                <p class="text-600">{{ 'import.costs.otherEmpty' | translate }}</p>
+              </ng-template>
+            </div>
+
+            <div class="flex justify-content-end gap-2">
+              <button
+                pButton
+                type="button"
+                class="p-button-outlined"
+                [label]="'import.costs.reload' | translate"
+                (click)="loadCostsConfiguration()"
+              ></button>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-save"
+                [label]="'import.costs.save' | translate"
+                [loading]="costsSaveInProgress"
+                (click)="saveCostsConfiguration()"
+              ></button>
+            </div>
+          </div>
+        </p-card>
+      </p-tabPanel>
     </p-tabView>
 
     <p-confirmDialog [style]="{width: '450px'}" [acceptLabel]="'common.yes' | translate" [rejectLabel]="'common.no' | translate"></p-confirmDialog>
@@ -588,6 +767,10 @@ export class ImportTemplatePageComponent implements OnInit {
   editingOrderStatusId: string | null = null;
   orderStatusSaving = false;
   canManageOrderStatuses = false;
+  private readonly costsStorageKey = 'ema.costsConfiguration';
+  costsForm: CostsConfiguration = this.defaultCostsConfiguration();
+  otherCostDraft: { name: string; amount: number | null } = { name: '', amount: null };
+  costsSaveInProgress = false;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
     { key: 'import.domainProduct', value: 'product' },
@@ -604,6 +787,7 @@ export class ImportTemplatePageComponent implements OnInit {
       this.fetchServiceAccountStatus();
     }
     this.loadOrderStatuses();
+    this.loadCostsConfiguration();
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
@@ -757,6 +941,162 @@ export class ImportTemplatePageComponent implements OnInit {
 
   onGoogleStepChange(step: number | undefined): void {
     this.googleStep = typeof step === 'number' ? step : 0;
+  }
+
+  get otherCostsTotal(): number {
+    return this.costsForm.otherCosts.reduce((sum, entry) => sum + (entry.amount ?? 0), 0);
+  }
+
+  addOtherCost(): void {
+    const name = (this.otherCostDraft.name || '').trim();
+    const amount = this.coerceNumber(this.otherCostDraft.amount);
+    if (!name) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.costs.validationTitle'),
+        detail: this.translate.instant('import.costs.otherNameRequired')
+      });
+      return;
+    }
+    if (amount === null) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.costs.validationTitle'),
+        detail: this.translate.instant('import.costs.otherAmountRequired')
+      });
+      return;
+    }
+    const entry: OtherCostEntry = {
+      id: this.generateCostId(),
+      name,
+      amount
+    };
+    this.costsForm = {
+      ...this.costsForm,
+      otherCosts: [...this.costsForm.otherCosts, entry]
+    };
+    this.otherCostDraft = { name: '', amount: null };
+  }
+
+  removeOtherCost(id: string): void {
+    this.costsForm = {
+      ...this.costsForm,
+      otherCosts: this.costsForm.otherCosts.filter(entry => entry.id !== id)
+    };
+  }
+
+  saveCostsConfiguration(): void {
+    const storage = this.getBrowserStorage();
+    if (!storage) {
+      this.messageService.add({
+        severity: 'error',
+        summary: this.translate.instant('import.error'),
+        detail: this.translate.instant('import.costs.storageError')
+      });
+      return;
+    }
+    this.costsSaveInProgress = true;
+    const payload: CostsConfiguration = {
+      agentCommission: this.coerceNumber(this.costsForm.agentCommission),
+      packageCost: this.coerceNumber(this.costsForm.packageCost),
+      fulfillmentCost: this.coerceNumber(this.costsForm.fulfillmentCost),
+      otherCosts: this.costsForm.otherCosts.map(entry => ({
+        ...entry,
+        amount: Number(entry.amount)
+      }))
+    };
+    try {
+      this.costsForm = payload;
+      storage.setItem(this.costsStorageKey, JSON.stringify(payload));
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translate.instant('import.success'),
+        detail: this.translate.instant('import.costs.saveSuccess')
+      });
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: this.translate.instant('import.error'),
+        detail: this.translate.instant('import.costs.storageError')
+      });
+    } finally {
+      this.costsSaveInProgress = false;
+    }
+  }
+
+  loadCostsConfiguration(): void {
+    const storage = this.getBrowserStorage();
+    if (!storage) {
+      this.costsForm = this.defaultCostsConfiguration();
+      return;
+    }
+    try {
+      const raw = storage.getItem(this.costsStorageKey);
+      if (!raw) {
+        this.costsForm = this.defaultCostsConfiguration();
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      const otherCosts: OtherCostEntry[] = Array.isArray(parsed?.otherCosts)
+        ? parsed.otherCosts
+            .map((entry: any) => {
+              const name = typeof entry?.name === 'string' ? entry.name.trim() : '';
+              const numericAmount = this.coerceNumber(entry?.amount);
+              if (!name || numericAmount === null) {
+                return null;
+              }
+              return {
+                id: typeof entry?.id === 'string' && entry.id ? entry.id : this.generateCostId(),
+                name,
+                amount: numericAmount
+              } as OtherCostEntry;
+            })
+            .filter((entry: OtherCostEntry | null): entry is OtherCostEntry => !!entry)
+        : [];
+      this.costsForm = {
+        agentCommission: this.coerceNumber(parsed?.agentCommission),
+        packageCost: this.coerceNumber(parsed?.packageCost),
+        fulfillmentCost: this.coerceNumber(parsed?.fulfillmentCost),
+        otherCosts
+      };
+    } catch {
+      this.costsForm = this.defaultCostsConfiguration();
+    }
+  }
+
+  private defaultCostsConfiguration(): CostsConfiguration {
+    return {
+      agentCommission: null,
+      packageCost: null,
+      fulfillmentCost: null,
+      otherCosts: []
+    };
+  }
+
+  private getBrowserStorage(): Storage | null {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) {
+        return null;
+      }
+      return window.localStorage;
+    } catch {
+      return null;
+    }
+  }
+
+  private coerceNumber(value: unknown): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  private generateCostId(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'cost-' + Math.random().toString(36).substring(2, 9);
   }
 
   handleGoogleNext(activate: (step: number) => void): void {
