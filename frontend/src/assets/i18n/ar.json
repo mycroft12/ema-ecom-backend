@@ -59,6 +59,9 @@
       "product": "المنتج",
       "apply": "تطبيق التصفية",
       "reset": "إعادة التعيين",
+      "anyAgent": "كل الوكلاء",
+      "anyMediaBuyer": "كل الميديا باير",
+      "anyProduct": "كل المنتجات",
       "timeframes": {
         "all": "كل الوقت",
         "daily": "اليوم",

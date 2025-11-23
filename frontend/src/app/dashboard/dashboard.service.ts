@@ -1,8 +1,9 @@
-import { HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { forkJoin, map, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HybridDataService } from '../features/hybrid/services/hybrid-data.service';
+import { environment } from '../../environments/environment';
 
 export interface DashboardTotals {
   products: number;
@@ -19,6 +20,12 @@ export interface DashboardFilters {
   product?: string;
 }
 
+export interface DashboardLookupOption {
+  id: string;
+  label: string;
+  detail?: string | null;
+}
+
 export interface DashboardKpis {
   confirmationRate: number;
   deliveryRate: number;
@@ -33,7 +40,7 @@ export interface DashboardKpis {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  constructor(private readonly hybrid: HybridDataService) {}
+  constructor(private readonly hybrid: HybridDataService, private readonly http: HttpClient) {}
 
   getTotals(filters?: DashboardFilters): Observable<DashboardTotals> {
     return forkJoin({
@@ -175,5 +182,26 @@ export class DashboardService {
     }
     const trimmed = value.toString().trim();
     return trimmed ? trimmed : undefined;
+  }
+
+  getAgentOptions(): Observable<DashboardLookupOption[]> {
+    return this.http.get<Array<{ id: string; username: string; email?: string }>>(`${environment.apiBase}/api/dashboard/lookups/agents`).pipe(
+      map(options => (options ?? []).map(opt => ({ id: opt.id, label: opt.username, detail: opt.email }))),
+      catchError(() => of([]))
+    );
+  }
+
+  getMediaBuyerOptions(): Observable<DashboardLookupOption[]> {
+    return this.http.get<Array<{ id: string; username: string; email?: string }>>(`${environment.apiBase}/api/dashboard/lookups/media-buyers`).pipe(
+      map(options => (options ?? []).map(opt => ({ id: opt.id, label: opt.username, detail: opt.email }))),
+      catchError(() => of([]))
+    );
+  }
+
+  getProductOptions(): Observable<DashboardLookupOption[]> {
+    return this.http.get<Array<{ id: string; name: string }>>(`${environment.apiBase}/api/dashboard/lookups/products`).pipe(
+      map(options => (options ?? []).map(opt => ({ id: opt.id, label: opt.name }))),
+      catchError(() => of([]))
+    );
   }
 }

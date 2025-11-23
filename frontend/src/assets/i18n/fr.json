@@ -61,6 +61,9 @@
       "product": "Produit",
       "apply": "Appliquer les filtres",
       "reset": "Réinitialiser",
+      "anyAgent": "Tous les agents",
+      "anyMediaBuyer": "Tous les media buyers",
+      "anyProduct": "Tous les produits",
       "timeframes": {
         "all": "Toute la période",
         "daily": "Aujourd'hui",

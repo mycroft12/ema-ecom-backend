@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { DashboardFilters, DashboardKpis, DashboardService, DashboardTotals } from './dashboard.service';
+import { DashboardFilters, DashboardKpis, DashboardLookupOption, DashboardService, DashboardTotals } from './dashboard.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -50,15 +50,30 @@ import { Subscription } from 'rxjs';
               </div>
               <div class="col-12 md:col-3">
                 <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.agent' | translate }}</label>
-                <input type="text" class="p-inputtext p-component w-full" [(ngModel)]="filterForm.agent">
+                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.agent">
+                  <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyAgent' | translate }}</option>
+                  <option *ngFor="let agent of agentOptions" [ngValue]="agent.label">
+                    {{ agent.label }}
+                  </option>
+                </select>
               </div>
               <div class="col-12 md:col-3">
                 <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.mediaBuyer' | translate }}</label>
-                <input type="text" class="p-inputtext p-component w-full" [(ngModel)]="filterForm.mediaBuyer">
+                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.mediaBuyer">
+                  <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyMediaBuyer' | translate }}</option>
+                  <option *ngFor="let buyer of mediaBuyerOptions" [ngValue]="buyer.label">
+                    {{ buyer.label }}
+                  </option>
+                </select>
               </div>
               <div class="col-12 md:col-3">
                 <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.product' | translate }}</label>
-                <input type="text" class="p-inputtext p-component w-full" [(ngModel)]="filterForm.product">
+                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.product">
+                  <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyProduct' | translate }}</option>
+                  <option *ngFor="let product of productOptions" [ngValue]="product.label">
+                    {{ product.label }}
+                  </option>
+                </select>
               </div>
             </div>
           </div>
@@ -150,6 +165,9 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   kpisLoading = true;
   kpis?: DashboardKpis;
   roleInsights: RoleInsight[] = [];
+  agentOptions: DashboardLookupOption[] = [];
+  mediaBuyerOptions: DashboardLookupOption[] = [];
+  productOptions: DashboardLookupOption[] = [];
   filterForm: DashboardFilterForm = { timeframe: 'all' };
   customDateFrom?: string;
   customDateTo?: string;
@@ -158,6 +176,7 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   constructor(private translate: TranslateService, private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
+    this.loadLookups();
     this.applyFilters();
     this.roleInsights = this.buildRoleInsights();
     this.langSub = new Subscription();
@@ -190,6 +209,12 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
       this.customDateFrom = undefined;
       this.customDateTo = undefined;
     }
+  }
+
+  private loadLookups(): void {
+    this.dashboardService.getAgentOptions().subscribe(options => this.agentOptions = options ?? []);
+    this.dashboardService.getMediaBuyerOptions().subscribe(options => this.mediaBuyerOptions = options ?? []);
+    this.dashboardService.getProductOptions().subscribe(options => this.productOptions = options ?? []);
   }
 
   private loadStats(filters?: DashboardFilters): void {

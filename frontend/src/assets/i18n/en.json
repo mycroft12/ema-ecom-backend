@@ -239,6 +239,9 @@
       "product": "Product",
       "apply": "Apply filters",
       "reset": "Reset",
+      "anyAgent": "All agents",
+      "anyMediaBuyer": "All media buyers",
+      "anyProduct": "All products",
       "timeframes": {
         "all": "All time",
         "daily": "Today",
