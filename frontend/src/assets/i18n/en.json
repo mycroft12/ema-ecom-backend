@@ -228,6 +228,25 @@
   "dashboardPage": {
     "title": "Dashboard",
     "subtitle": "EMA E-Commerce Panel",
+    "filters": {
+      "title": "Filters",
+      "subtitle": "Slice metrics by date, confirmation agent, media buyer, or product.",
+      "timeframe": "Quick range",
+      "from": "Start date",
+      "to": "End date",
+      "agent": "Agent confirmation",
+      "mediaBuyer": "Media buyer",
+      "product": "Product",
+      "apply": "Apply filters",
+      "reset": "Reset",
+      "timeframes": {
+        "all": "All time",
+        "daily": "Today",
+        "monthly": "This month",
+        "yearly": "This year",
+        "custom": "Custom range"
+      }
+    },
     "stats": {
       "products": "Products tracked",
       "productsDetail": "Active product records from the catalog",
@@ -467,9 +486,9 @@
     "rowCountLabel": "Rows in table: {{count}}",
     "costs": {
       "description": "Track the operating costs you want to include in profitability calculations.",
-      "agentCommission": "Agent commission (%)",
-      "packageCost": "Package cost (box)",
-      "fulfillmentCost": "Fulfilment cost",
+      "agentCommission": "Agent commission (DH)",
+      "packageCost": "Package cost (DH)",
+      "fulfillmentCost": "Fulfilment cost (DH)",
       "otherTitle": "Other costs",
       "otherDescription": "Add any additional costs that should be factored in.",
       "otherNameLabel": "Cost name",

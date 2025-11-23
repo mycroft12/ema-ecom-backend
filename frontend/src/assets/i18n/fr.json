@@ -50,6 +50,25 @@
   "dashboardPage": {
     "title": "Tableau de bord",
     "subtitle": "EMA E-Commerce Panel",
+    "filters": {
+      "title": "Filtres",
+      "subtitle": "Affinez les indicateurs par date, agent de confirmation, media buyer ou produit.",
+      "timeframe": "Période rapide",
+      "from": "Date de début",
+      "to": "Date de fin",
+      "agent": "Agent de confirmation",
+      "mediaBuyer": "Media buyer",
+      "product": "Produit",
+      "apply": "Appliquer les filtres",
+      "reset": "Réinitialiser",
+      "timeframes": {
+        "all": "Toute la période",
+        "daily": "Aujourd'hui",
+        "monthly": "Ce mois-ci",
+        "yearly": "Cette année",
+        "custom": "Plage personnalisée"
+      }
+    },
     "stats": {
       "products": "Produits suivis",
       "productsDetail": "Fiches produits actives",
@@ -411,9 +430,9 @@
     },
     "costs": {
       "description": "Définissez les coûts opérationnels à prendre en compte dans vos calculs de rentabilité.",
-      "agentCommission": "Commission agent (%)",
-      "packageCost": "Coût de l'emballage",
-      "fulfillmentCost": "Coût de fulfilment",
+      "agentCommission": "Commission agent (DH)",
+      "packageCost": "Coût de l'emballage (DH)",
+      "fulfillmentCost": "Coût de fulfilment (DH)",
       "otherTitle": "Autres coûts",
       "otherDescription": "Ajoutez les coûts supplémentaires à inclure.",
       "otherNameLabel": "Nom du coût",

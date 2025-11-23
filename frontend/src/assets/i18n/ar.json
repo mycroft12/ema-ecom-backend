@@ -48,6 +48,25 @@
   "dashboardPage": {
     "title": "لوحة القيادة",
     "subtitle": "لوحة EMA للتجارة الإلكترونية",
+    "filters": {
+      "title": "عوامل التصفية",
+      "subtitle": "قسّم المؤشرات حسب التاريخ، وكيل التأكيد، الميديا باير أو المنتج.",
+      "timeframe": "نطاق زمني",
+      "from": "تاريخ البداية",
+      "to": "تاريخ النهاية",
+      "agent": "وكيل التأكيد",
+      "mediaBuyer": "الميديا باير",
+      "product": "المنتج",
+      "apply": "تطبيق التصفية",
+      "reset": "إعادة التعيين",
+      "timeframes": {
+        "all": "كل الوقت",
+        "daily": "اليوم",
+        "monthly": "هذا الشهر",
+        "yearly": "هذه السنة",
+        "custom": "نطاق مخصص"
+      }
+    },
     "stats": {
       "products": "المنتجات المتبعة",
       "productsDetail": "سجلات المنتجات النشطة",
@@ -256,9 +275,9 @@
     },
     "costs": {
       "description": "أضف التكاليف التشغيلية التي ترغب في احتسابها ضمن الربحية.",
-      "agentCommission": "عمولة الوكيل (%)",
-      "packageCost": "تكلفة التغليف (الصندوق)",
-      "fulfillmentCost": "تكلفة التنفيذ",
+      "agentCommission": "عمولة الوكيل (DH)",
+      "packageCost": "تكلفة التغليف (DH)",
+      "fulfillmentCost": "تكلفة التنفيذ (DH)",
       "otherTitle": "تكاليف أخرى",
       "otherDescription": "أضف أي تكاليف إضافية يجب أخذها في الاعتبار.",
       "otherNameLabel": "اسم التكلفة",

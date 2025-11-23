@@ -2,7 +2,6 @@ package com.mycroft.ema.ecom.domains.hybrid.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mycroft.ema.ecom.auth.service.CurrentUserService;
 import com.mycroft.ema.ecom.auth.domain.User;
 import com.mycroft.ema.ecom.auth.service.CurrentUserService;
 import com.mycroft.ema.ecom.common.error.BadRequestException;
@@ -34,7 +33,9 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Locale;
@@ -327,40 +328,60 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     if (!StringUtils.hasText(criterion.value())) {
       return Optional.empty();
     }
-    String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
     String matchMode = (criterion.matchMode() == null ? "" : criterion.matchMode().trim().toLowerCase(Locale.ROOT));
     String column = meta.name();
     if (!StringUtils.hasText(column)) {
       return Optional.empty();
     }
 
+    boolean isNumeric = isNumericColumn(meta, criterion);
+    boolean isDate = isDateColumn(meta, criterion);
+
     if ("in".equals(matchMode)) {
-      try {
-        List<String> values = OBJECT_MAPPER.readValue(criterion.value(), LIST_STRING);
-        if (values == null || values.isEmpty()) {
-          return Optional.empty();
-        }
+      List<String> values = tryParseList(criterion.value());
+      if (values != null && !values.isEmpty()) {
         String placeholders = values.stream().map(v -> "?").collect(Collectors.joining(","));
         args.addAll(values);
         return Optional.of(column + " in (" + placeholders + ")");
-      } catch (Exception ex) {
-        args.add(criterion.value());
-        return Optional.of(column + " = ?");
       }
+      args.add(criterion.value());
+      return Optional.of(column + " = ?");
     }
 
-    if ("between".equals(matchMode) && ("numeric".equalsIgnoreCase(criterion.type()) || dataType.contains("int") || dataType.contains("numeric"))) {
-      try {
-        List<String> values = OBJECT_MAPPER.readValue(criterion.value(), LIST_STRING);
-        if (values == null || values.size() != 2) {
-          return Optional.empty();
-        }
-        args.add(values.get(0));
-        args.add(values.get(1));
-        return Optional.of(column + " between ? and ?");
-      } catch (Exception ex) {
+    if ("between".equals(matchMode)) {
+      List<String> values = tryParseList(criterion.value());
+      if (values == null || values.isEmpty()) {
         return Optional.empty();
       }
+      if (isDate) {
+        String startValue = values.get(0);
+        String endValue = values.size() > 1 ? values.get(1) : values.get(0);
+        Optional<Object> start = parseDateValue(startValue, false);
+        Optional<Object> end = parseDateValue(endValue, true);
+        if (start.isPresent() && end.isPresent()) {
+          args.add(start.get());
+          args.add(end.get());
+          return Optional.of(column + " between ? and ?");
+        }
+        return Optional.empty();
+      }
+      if (isNumeric) {
+        String startValue = values.get(0);
+        String endValue = values.size() > 1 ? values.get(1) : startValue;
+        args.add(startValue);
+        args.add(endValue);
+        return Optional.of(column + " between ? and ?");
+      }
+      return Optional.empty();
+    }
+
+    if (isDate && ("equals".equals(matchMode) || "on".equals(matchMode))) {
+      Optional<Object> parsed = parseDateValue(criterion.value(), false);
+      if (parsed.isPresent()) {
+        args.add(parsed.get());
+        return Optional.of(column + " = ?");
+      }
+      return Optional.empty();
     }
 
     if (matchMode.isEmpty() || "contains".equals(matchMode)) {
@@ -418,33 +439,140 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     if (filters == null || filters.isEmpty()) {
       return List.of();
     }
-    List<FilterCriterion> out = new ArrayList<>();
+    Map<String, List<String>> valuesByField = new LinkedHashMap<>();
+    Map<String, List<String>> matchModesByField = new LinkedHashMap<>();
+    Map<String, List<String>> typesByField = new LinkedHashMap<>();
+
     filters.forEach((key, values) -> {
       if (key == null || !key.startsWith("filter.")) {
         return;
       }
-      String column = key.substring("filter.".length());
+      String rawField = key.substring("filter.".length());
+      if (!StringUtils.hasText(rawField)) {
+        return;
+      }
+      String normalizedField = rawField.trim();
+      String lowerField = normalizedField.toLowerCase(Locale.ROOT);
+      boolean isMatchModeKey = lowerField.endsWith(".matchmode");
+      boolean isTypeKey = lowerField.endsWith(".type");
+      String fieldName = normalizedField;
+      if (isMatchModeKey) {
+        fieldName = normalizedField.substring(0, normalizedField.length() - ".matchMode".length());
+      } else if (isTypeKey) {
+        fieldName = normalizedField.substring(0, normalizedField.length() - ".type".length());
+      }
+      fieldName = fieldName.trim();
+      if (!StringUtils.hasText(fieldName)) {
+        return;
+      }
+
       for (String value : values) {
         if (!StringUtils.hasText(value)) {
           continue;
         }
+        if (isMatchModeKey) {
+          matchModesByField.computeIfAbsent(fieldName, f -> new ArrayList<>()).add(value);
+          continue;
+        }
+        if (isTypeKey) {
+          typesByField.computeIfAbsent(fieldName, f -> new ArrayList<>()).add(value);
+          continue;
+        }
         try {
           Map<String, Object> parsed = OBJECT_MAPPER.readValue(value, MAP_STRING_OBJECT);
-          String matchMode = parsed.containsKey("matchMode") ? Objects.toString(parsed.get("matchMode"), null) : null;
           Object filterValue = parsed.get("value");
-          String serialized;
-          if (filterValue instanceof Collection<?> collection) {
-            serialized = OBJECT_MAPPER.writeValueAsString(collection);
-          } else {
-            serialized = Objects.toString(filterValue, null);
+          if (filterValue != null) {
+            String serialized = filterValue instanceof Collection<?>
+                ? OBJECT_MAPPER.writeValueAsString(filterValue)
+                : Objects.toString(filterValue, null);
+            if (StringUtils.hasText(serialized)) {
+              valuesByField.computeIfAbsent(fieldName, f -> new ArrayList<>()).add(serialized);
+            }
           }
-          out.add(new FilterCriterion(column, matchMode, serialized, Objects.toString(parsed.get("type"), null)));
+          String parsedMatch = Objects.toString(parsed.get("matchMode"), null);
+          if (StringUtils.hasText(parsedMatch)) {
+            matchModesByField.computeIfAbsent(fieldName, f -> new ArrayList<>()).add(parsedMatch);
+          }
+          String parsedType = Objects.toString(parsed.get("type"), null);
+          if (StringUtils.hasText(parsedType)) {
+            typesByField.computeIfAbsent(fieldName, f -> new ArrayList<>()).add(parsedType);
+          }
         } catch (Exception ex) {
-          out.add(new FilterCriterion(column, null, value, null));
+          valuesByField.computeIfAbsent(fieldName, f -> new ArrayList<>()).add(value);
         }
       }
     });
+
+    List<FilterCriterion> out = new ArrayList<>();
+    Set<String> fields = new LinkedHashSet<>();
+    fields.addAll(valuesByField.keySet());
+    fields.addAll(matchModesByField.keySet());
+    fields.addAll(typesByField.keySet());
+
+    for (String field : fields) {
+      List<String> vals = valuesByField.getOrDefault(field, List.of());
+      List<String> modes = matchModesByField.getOrDefault(field, List.of());
+      List<String> types = typesByField.getOrDefault(field, List.of());
+      if (vals.isEmpty()) {
+        continue;
+      }
+      for (int i = 0; i < vals.size(); i++) {
+        String mode = i < modes.size() ? modes.get(i) : (modes.isEmpty() ? null : modes.get(modes.size() - 1));
+        String type = i < types.size() ? types.get(i) : (types.isEmpty() ? null : types.get(types.size() - 1));
+        out.add(new FilterCriterion(field, mode, vals.get(i), type));
+      }
+    }
     return out;
+  }
+
+  private boolean isNumericColumn(ColumnMeta meta, FilterCriterion criterion) {
+    String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
+    if (dataType.contains("int") || dataType.contains("numeric") || dataType.contains("decimal") || dataType.contains("double") || dataType.contains("real")) {
+      return true;
+    }
+    String type = criterion.type() == null ? "" : criterion.type().toLowerCase(Locale.ROOT);
+    return "numeric".equals(type) || "number".equals(type);
+  }
+
+  private boolean isDateColumn(ColumnMeta meta, FilterCriterion criterion) {
+    String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
+    if (dataType.contains("timestamp") || dataType.contains("date")) {
+      return true;
+    }
+    String type = criterion.type() == null ? "" : criterion.type().toLowerCase(Locale.ROOT);
+    return type.contains("date") || type.contains("time");
+  }
+
+  private List<String> tryParseList(String raw) {
+    try {
+      return OBJECT_MAPPER.readValue(raw, LIST_STRING);
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private Optional<Object> parseDateValue(String raw, boolean endOfDay) {
+    if (!StringUtils.hasText(raw)) {
+      return Optional.empty();
+    }
+    String trimmed = raw.trim();
+    try {
+      LocalDateTime ldt = LocalDateTime.parse(trimmed, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+      return Optional.of(Timestamp.valueOf(ldt));
+    } catch (Exception ignored) {
+    }
+    try {
+      Instant instant = Instant.parse(trimmed);
+      return Optional.of(Timestamp.from(instant));
+    } catch (Exception ignored) {
+    }
+    try {
+      LocalDate date = LocalDate.parse(trimmed, DateTimeFormatter.ISO_LOCAL_DATE);
+      LocalDateTime boundary = endOfDay ? date.atTime(LocalTime.MAX) : date.atStartOfDay();
+      return Optional.of(Timestamp.valueOf(boundary));
+    } catch (Exception ignored) {
+    }
+    return Optional.of(trimmed);
   }
 
   private void normalizeMediaColumns(Map<String, Object> attrs, Map<String, ColumnMeta> columnLookup) {
