@@ -26,6 +26,9 @@
     "columnOrderEmpty": "لا توجد أعمدة لإعادة ترتيبها"
   },
   "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "markAll": "تحديد الكل كمقروء",
     "orders": {
       "insertTitle": "تمت إضافة طلب جديد",
       "insertDescription": "تمت إضافة طلب جديد من الجدول.",
@@ -157,18 +160,6 @@
         "adSpend": "متابعة الإنفاق الإعلاني حسب المنتج/المنصة",
         "costPerLead": "تكلفة كل عميل محتمل مقدم"
       }
-    }
-  },
-  "notifications": {
-    "title": "الإشعارات",
-    "empty": "لا توجد إشعارات",
-    "markAll": "تحديد الكل كمقروء",
-    "product": {
-      "insertTitle": "المنتجات → إضافة",
-      "insertDescription": "تمت إضافة صف جديد.",
-      "updateTitle": "المنتجات → تحديث",
-      "updateDescription": "تم تحديث العمود {{column}} (الصف {{row}}).",
-      "updateDescriptionFallback": "تم تحديث الصف {{row}}."
     }
   },
   "auth": {

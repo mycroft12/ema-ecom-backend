@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, Signal, inject } from '@angular/core';
+import { Component, Signal, ChangeDetectorRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel';
@@ -17,6 +17,11 @@ export class NotificationMenuComponent {
   private readonly badge = inject(HybridBadgeService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  constructor() {
+    this.translate.onLangChange.subscribe(() => this.cdr.markForCheck());
+  }
 
   readonly badgeCount = this.badge.asSignal();
   readonly notifications = this.badge.notifications();

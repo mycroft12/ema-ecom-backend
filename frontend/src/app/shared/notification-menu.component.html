@@ -36,8 +36,24 @@
               <i class="pi" [ngClass]="isInsert(entry) ? 'pi-plus' : 'pi-box'"></i>
             </div>
             <div class="notification-body">
-              <div class="notification-title">{{ titleFor(entry) }}</div>
-              <div class="notification-description">{{ descriptionFor(entry) }}</div>
+              <div class="notification-title">
+                {{ ('notifications.' + (entry.event.domain || 'orders') + '.' + (isInsert(entry) ? 'insertTitle' : 'updateTitle')) | translate }}
+              </div>
+              <div class="notification-description">
+                {{
+                  (
+                    'notifications.' +
+                    (entry.event.domain || 'orders') +
+                    '.' +
+                    (isInsert(entry)
+                      ? 'insertDescription'
+                      : (entry.event.changedColumns && entry.event.changedColumns.length > 0
+                        ? 'updateDescription'
+                        : 'updateDescriptionFallback'))
+                  )
+                    | translate:{ column: entry.event.changedColumns && entry.event.changedColumns[0], row: entry.event.rowNumber || '—' }
+                }}
+              </div>
               <div class="notification-meta">
                 <span class="timestamp">{{ entry.event.timestamp | date:'short' }}</span>
                 <span *ngIf="!entry.read" class="unread-dot" aria-hidden="true"></span>
