@@ -68,7 +68,7 @@ export class NavService {
       },
       items: children.length ? children : undefined
     };
-    if (item.route === '/products' && badgeCount > 0) {
+    if (item.route === '/orders' && badgeCount > 0) {
         menuItem.badge = String(badgeCount);
     }
     return menuItem;

@@ -377,17 +377,19 @@ interface CostsConfiguration {
                   {{ 'import.rowCountLabel' | translate:{ count: configuredDomain.rowCount } }}
                 </p>
                 <div class="mt-3 pt-3 border-top-1 surface-border">
-                  <div class="flex align-items-center justify-content-between">
-                    <button
-                      pButton
-                      type="button"
-                      [label]="('import.resetTable' | translate)"
-                      icon="pi pi-trash"
-                      severity="danger"
-                      (click)="resetTable(configuredDomain.domain)"
-                      size="small"
-                    ></button>
-                  </div>
+                  <ng-container *ngIf="configuredDomain.domain === 'orders'">
+                    <div class="flex align-items-center justify-content-between">
+                      <button
+                        pButton
+                        type="button"
+                        [label]="('import.resetTable' | translate)"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        (click)="resetTable(configuredDomain.domain)"
+                        size="small"
+                      ></button>
+                    </div>
+                  </ng-container>
                 </div>
               </div>
             </p-card>
@@ -782,9 +784,7 @@ export class ImportTemplatePageComponent implements OnInit {
   costsSaveInProgress = false;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
-    { key: 'import.domainProduct', value: 'product' },
-    { key: 'import.domainOrders', value: 'orders' },
-    { key: 'import.domainAds', value: 'ads' }
+    { key: 'import.domainOrders', value: 'orders' }
   ];
 
   ngOnInit(): void {
@@ -811,20 +811,21 @@ export class ImportTemplatePageComponent implements OnInit {
   fetchConfiguredTables(): void {
     this.http.get<ConfiguredTableResponse[]>('/api/import/configure/tables').subscribe({
       next: (tables) => {
-        const cards = tables
-          .map(table => {
-            const domain = this.normalizeDomain(table.domain);
-            if (!domain) {
-              return null;
-            }
-            return {
-              domain,
-              tableName: table.tableName,
-              rowCount: typeof table.rowCount === 'number' ? table.rowCount : 0,
-              source: table.source === 'google' ? 'google' : 'dynamic'
-            } as ConfiguredDomainCard;
-          })
-          .filter((card): card is ConfiguredDomainCard => !!card);
+    const cards = tables
+      .map(table => {
+        const domain = this.normalizeDomain(table.domain);
+        if (!domain) {
+          return null;
+        }
+        return {
+          domain,
+          tableName: table.tableName,
+          rowCount: typeof table.rowCount === 'number' ? table.rowCount : 0,
+          source: table.source === 'google' ? 'google' : 'dynamic'
+        } as ConfiguredDomainCard;
+      })
+      .filter((card): card is ConfiguredDomainCard => !!card)
+      .filter(card => card.domain === 'orders');
         this.configuredDomainCards = cards;
         this.configuredTables = cards.map(card => card.domain);
         const nextSources: Record<string, ConfigurationSource> = {};

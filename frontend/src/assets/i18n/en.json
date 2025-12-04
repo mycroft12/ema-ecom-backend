@@ -25,6 +25,29 @@
     "columnOrderHint": "Drag the columns to adjust their display order",
     "columnOrderEmpty": "No columns available to reorder"
   },
+  "notifications": {
+    "orders": {
+      "insertTitle": "New order added",
+      "insertDescription": "A new order was added from the sheet.",
+      "updateTitle": "Order updated",
+      "updateDescription": "Column {{ column }} changed on row {{ row }}.",
+      "updateDescriptionFallback": "Order updated on row {{ row }}."
+    },
+    "product": {
+      "insertTitle": "New product added",
+      "insertDescription": "A new product was added from the sheet.",
+      "updateTitle": "Product updated",
+      "updateDescription": "Column {{ column }} changed on row {{ row }}.",
+      "updateDescriptionFallback": "Product updated on row {{ row }}."
+    },
+    "ads": {
+      "insertTitle": "New ad entry added",
+      "insertDescription": "A new advertising row was added from the sheet.",
+      "updateTitle": "Ad entry updated",
+      "updateDescription": "Column {{ column }} changed on row {{ row }}.",
+      "updateDescriptionFallback": "Ad entry updated on row {{ row }}."
+    }
+  },
   "validation": {
     "required": "{{field}} is required.",
     "min": "{{field}} must be greater than or equal to {{min}}.",

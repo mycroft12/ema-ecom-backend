@@ -54,7 +54,9 @@ export class NotificationMenuComponent {
       this.badge.markAsRead(entry.id);
     }
     panel.hide();
-    this.router.navigate(['/products']);
+    const domain = (entry.event.domain || 'product').toLowerCase();
+    const target = domain === 'orders' ? '/orders' : domain === 'ads' ? '/ads' : '/products';
+    this.router.navigate([target]);
   }
 
   trackById = (_: number, entry: NotificationEntry) => entry.id;

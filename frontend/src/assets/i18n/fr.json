@@ -25,6 +25,29 @@
     "columnOrderHint": "Faites glisser les colonnes pour ajuster leur ordre d'affichage",
     "columnOrderEmpty": "Aucune colonne à réorganiser"
   },
+  "notifications": {
+    "orders": {
+      "insertTitle": "Nouvelle commande ajoutée",
+      "insertDescription": "Une nouvelle commande a été ajoutée depuis la feuille.",
+      "updateTitle": "Commande mise à jour",
+      "updateDescription": "Colonne {{ column }} modifiée à la ligne {{ row }}.",
+      "updateDescriptionFallback": "Commande mise à jour à la ligne {{ row }}."
+    },
+    "product": {
+      "insertTitle": "Nouveau produit ajouté",
+      "insertDescription": "Un nouveau produit a été ajouté depuis la feuille.",
+      "updateTitle": "Produit mis à jour",
+      "updateDescription": "Colonne {{ column }} modifiée à la ligne {{ row }}.",
+      "updateDescriptionFallback": "Produit mis à jour à la ligne {{ row }}."
+    },
+    "ads": {
+      "insertTitle": "Nouvelle entrée publicitaire",
+      "insertDescription": "Une nouvelle ligne publicitaire a été ajoutée depuis la feuille.",
+      "updateTitle": "Entrée publicitaire mise à jour",
+      "updateDescription": "Colonne {{ column }} modifiée à la ligne {{ row }}.",
+      "updateDescriptionFallback": "Entrée publicitaire mise à jour à la ligne {{ row }}."
+    }
+  },
   "validation": {
     "required": "{{field}} est obligatoire.",
     "min": "{{field}} doit être supérieur ou égal à {{min}}.",

@@ -25,6 +25,29 @@
     "columnOrderHint": "اسحب الأعمدة لتعديل ترتيب عرضها",
     "columnOrderEmpty": "لا توجد أعمدة لإعادة ترتيبها"
   },
+  "notifications": {
+    "orders": {
+      "insertTitle": "تمت إضافة طلب جديد",
+      "insertDescription": "تمت إضافة طلب جديد من الجدول.",
+      "updateTitle": "تم تحديث الطلب",
+      "updateDescription": "تم تعديل العمود {{ column }} في الصف {{ row }}.",
+      "updateDescriptionFallback": "تم تحديث الطلب في الصف {{ row }}."
+    },
+    "product": {
+      "insertTitle": "تمت إضافة منتج جديد",
+      "insertDescription": "تمت إضافة منتج جديد من الجدول.",
+      "updateTitle": "تم تحديث المنتج",
+      "updateDescription": "تم تعديل العمود {{ column }} في الصف {{ row }}.",
+      "updateDescriptionFallback": "تم تحديث المنتج في الصف {{ row }}."
+    },
+    "ads": {
+      "insertTitle": "تمت إضافة إدخال إعلاني جديد",
+      "insertDescription": "تمت إضافة صف إعلاني جديد من الجدول.",
+      "updateTitle": "تم تحديث الإدخال الإعلاني",
+      "updateDescription": "تم تعديل العمود {{ column }} في الصف {{ row }}.",
+      "updateDescriptionFallback": "تم تحديث الإدخال الإعلاني في الصف {{ row }}."
+    }
+  },
   "validation": {
     "required": "{{field}} مطلوب.",
     "min": "{{field}} يجب أن يكون أكبر من أو يساوي {{min}}.",

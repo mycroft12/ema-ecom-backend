@@ -8,8 +8,8 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class HybridUpsertListenerService implements OnDestroy {
-  private eventSource?: EventSource;
-  private retryHandle?: ReturnType<typeof setTimeout>;
+  private eventSources: Record<string, EventSource> = {};
+  private retryHandles: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
   private lastConnectionErrorAt = 0;
 
   constructor(private badge: HybridBadgeService,
@@ -20,9 +20,8 @@ export class HybridUpsertListenerService implements OnDestroy {
               private translate: TranslateService) {}
 
   async start(): Promise<void> {
-    if (this.eventSource) {
-      return;
-    }
+    const domains = ['product', 'orders', 'ads'];
+
     const ensured = await firstValueFrom(this.auth.ensureAuthenticated()).catch(() => false);
     if (!ensured) {
       if (this.auth.isAuthenticated() && this.auth.isRefreshStale()) {
@@ -41,10 +40,18 @@ export class HybridUpsertListenerService implements OnDestroy {
     if (!token) {
       return;
     }
-    const domain = (this.schemaService.schema()?.domain ?? 'product').toLowerCase();
+    domains.forEach(domain => this.connectDomainStream(domain, token));
+  }
+
+  private connectDomainStream(domain: string, token: string): void {
+    if (this.eventSources[domain]) {
+      return;
+    }
     const url = `/api/hybrid/${encodeURIComponent(domain)}/upserts/stream?token=${encodeURIComponent(token)}`;
-    this.eventSource = new EventSource(url);
-    this.eventSource.addEventListener('upsert', (event) => {
+    const source = new EventSource(url);
+    this.eventSources[domain] = source;
+
+    source.addEventListener('upsert', (event) => {
       let parsed: HybridUpsertEvent | null = null;
       try {
         parsed = event?.data ? JSON.parse(event.data) : null;
@@ -58,31 +65,38 @@ export class HybridUpsertListenerService implements OnDestroy {
         this.badge.notifyUpsert(parsed as HybridUpsertEvent);
       });
     });
-    this.eventSource.addEventListener('error', () => {
+
+    source.addEventListener('error', () => {
       this.reportConnectionError();
-      this.stop();
-      this.scheduleRetry();
+      this.disconnectDomain(domain);
+      this.scheduleRetry(domain, token);
     });
   }
 
-  private stop(): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = undefined;
+  private disconnectDomain(domain: string): void {
+    const source = this.eventSources[domain];
+    if (source) {
+      source.close();
+      delete this.eventSources[domain];
     }
-    if (this.retryHandle) {
-      clearTimeout(this.retryHandle);
-      this.retryHandle = undefined;
+    const handle = this.retryHandles[domain];
+    if (handle) {
+      clearTimeout(handle);
+      delete this.retryHandles[domain];
     }
   }
 
-  private scheduleRetry(): void {
-    if (this.retryHandle) {
+  private stop(): void {
+    Object.keys(this.eventSources).forEach(domain => this.disconnectDomain(domain));
+  }
+
+  private scheduleRetry(domain: string, token: string): void {
+    if (this.retryHandles[domain]) {
       return;
     }
-    this.retryHandle = setTimeout(() => {
-      this.retryHandle = undefined;
-      void this.start();
+    this.retryHandles[domain] = setTimeout(() => {
+      delete this.retryHandles[domain];
+      this.connectDomainStream(domain, token);
     }, 5000);
   }
 
