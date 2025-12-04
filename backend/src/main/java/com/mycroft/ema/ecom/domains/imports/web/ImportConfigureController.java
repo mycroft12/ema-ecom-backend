@@ -1,5 +1,6 @@
 package com.mycroft.ema.ecom.domains.imports.web;
 
+import com.mycroft.ema.ecom.domains.imports.domain.GoogleImportConfig;
 import com.mycroft.ema.ecom.domains.imports.dto.DomainPopulationResponse;
 import com.mycroft.ema.ecom.domains.imports.dto.TemplateAnalysisResponse;
 import com.mycroft.ema.ecom.domains.imports.service.DomainImportService;
@@ -126,16 +127,19 @@ public class ImportConfigureController {
     for (String d : domains){
       String table = domainImportService.tableForDomain(d);
       Boolean exists = jdbcTemplate.queryForObject(
-          "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
+        "select exists (select 1 from information_schema.tables where table_schema = current_schema() and table_name = ?)",
           Boolean.class, table);
       if (Boolean.TRUE.equals(exists)){
         Long count = jdbcTemplate.queryForObject("select count(*) from " + table, Long.class);
-        String source = googleImportConfigRepository.findByDomain(d)
-            .map(config -> {
-              String value = config.getSource();
-              return value == null || value.isBlank() ? "dynamic" : value.toLowerCase(Locale.ROOT);
-            })
-            .orElse("dynamic");
+        List<GoogleImportConfig> configs = googleImportConfigRepository.findAllByDomain(d);
+        String source = configs.isEmpty()
+            ? "dynamic"
+            : configs.stream()
+                .map(GoogleImportConfig::getSource)
+                .filter(value -> value != null && !value.isBlank())
+                .map(value -> value.toLowerCase(Locale.ROOT))
+                .findFirst()
+                .orElse("google");
         out.add(new DomainTableInfo(d, table, count == null ? 0L : count, source));
       }
     }
@@ -159,7 +163,7 @@ public class ImportConfigureController {
         stmt.execute("drop table if exists " + table + " cascade");
       }
       jdbcTemplate.update("delete from column_semantics where table_name = ?", table);
-      googleImportConfigRepository.findByDomain(normalizedDomain).ifPresent(googleImportConfigRepository::delete);
+      googleImportConfigRepository.deleteAll(googleImportConfigRepository.findAllByDomain(normalizedDomain));
       domainImportService.cleanupLegacyPermissions(normalizedDomain);
 
       String accessPattern = normalizedDomain + ":access:%";

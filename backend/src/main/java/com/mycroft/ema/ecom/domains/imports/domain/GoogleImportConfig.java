@@ -12,8 +12,10 @@ import java.util.UUID;
 @Entity
 @Table(name = "google_import_config",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_google_import_domain", columnNames = {"domain"}),
         @UniqueConstraint(name = "uk_google_import_sheet", columnNames = {"spreadsheet_id", "tab_name"})
+    },
+    indexes = {
+        @Index(name = "idx_google_import_domain", columnList = "domain")
     })
 public class GoogleImportConfig {
 

@@ -619,12 +619,28 @@ public class ExcelTemplateService {
     String placeholders = columns.stream().map(c -> "?").collect(Collectors.joining(", "));
     String sql = "INSERT INTO " + table + " (" + columnList + ") VALUES (" + placeholders + ")";
 
+    Set<UUID> existingIds = new HashSet<>();
+    boolean dedupeIds = hasIdColumn && "orders_config".equalsIgnoreCase(table);
+    if (dedupeIds) {
+      existingIds.addAll(fetchExistingIds(table));
+    }
+    Set<UUID> usedIds = new HashSet<>(existingIds);
+
     for (Object[] row : rawBatch) {
       Object[] filtered = Arrays.copyOf(row, row.length);
       if (hasIdColumn) {
         int idIndex = findColumnIndex(columns, "id");
         Object idValue = idIndex >= 0 ? filtered[idIndex] : null;
-        filtered[idIndex] = sanitizeImportedId(idValue, warnings);
+        UUID sanitized = sanitizeImportedId(idValue, warnings);
+        if (dedupeIds && sanitized != null) {
+          if (usedIds.contains(sanitized)) {
+            UUID regenerated = UUID.randomUUID();
+            warnings.add("Duplicate id detected (" + sanitized + "); generated new id " + regenerated + ".");
+            sanitized = regenerated;
+          }
+          usedIds.add(sanitized);
+        }
+        filtered[idIndex] = sanitized;
       }
       batch.add(filtered);
     }
@@ -658,7 +674,7 @@ public class ExcelTemplateService {
     return -1;
   }
 
-  private Object sanitizeImportedId(Object rawId, List<String> warnings) {
+  private UUID sanitizeImportedId(Object rawId, List<String> warnings) {
     if (rawId == null) {
       UUID generated = UUID.randomUUID();
       warnings.add("Missing id detected in template import. Generated UUID " + generated + ".");
@@ -676,6 +692,17 @@ public class ExcelTemplateService {
       UUID generated = UUID.randomUUID();
       warnings.add("Invalid UUID '" + trimmed + "' detected in template import. Generated UUID " + generated + ".");
       return generated;
+    }
+  }
+
+  private Set<UUID> fetchExistingIds(String table) {
+    try {
+      return new HashSet<>(jdbcTemplate.query(
+          "select id from " + table,
+          (rs, rowNum) -> rs.getObject("id", UUID.class)
+      ));
+    } catch (Exception ex) {
+      return Set.of();
     }
   }
 

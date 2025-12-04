@@ -65,12 +65,22 @@ public class GoogleSheetImportService {
     String tabName = normalizedTabName(request.tabName());
     String range = buildRange(tabName);
 
+    configRepository.findBySpreadsheetIdAndTabName(spreadsheetId, tabName).ifPresent(existing -> {
+      String existingDomain = existing.getDomain() == null ? "" : existing.getDomain().trim().toLowerCase(Locale.ROOT);
+      String requestedDomain = domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT);
+      if ("orders".equals(existingDomain) || "orders".equals(requestedDomain)) {
+        throw new IllegalArgumentException("This sheet tab is already linked to Orders. Please choose another tab/store name.");
+      }
+      throw new IllegalArgumentException("This sheet tab is already linked to " + existing.getDomain() + ".");
+    });
+
     List<List<Object>> values = sheetsClient.readSheet(spreadsheetId, range);
     if (values.isEmpty()) {
       throw new IllegalArgumentException("The provided sheet does not contain any data (missing header row)");
     }
 
     sanitizeSheetValues(values);
+    maybeAppendStoreNameColumn(domain, tabName, values);
 
     byte[] csvBytes = toCsv(values);
     MemoryMultipartFile csvFile = new MemoryMultipartFile(
@@ -84,8 +94,9 @@ public class GoogleSheetImportService {
     long lastRowImported = Math.max(values.size() - 1L, 0L);
     String headerHash = hashHeader(values.get(0));
 
-    GoogleImportConfig config = configRepository.findByDomain(domain)
+    GoogleImportConfig config = configRepository.findBySpreadsheetIdAndTabName(spreadsheetId, tabName)
         .orElse(new GoogleImportConfig(domain, spreadsheetId, tabName, headerHash, lastRowImported, "google"));
+    config.setDomain(domain);
     config.setSpreadsheetId(spreadsheetId);
     config.setTabName(tabName);
     config.setHeaderHash(headerHash);
@@ -119,9 +130,15 @@ public class GoogleSheetImportService {
       throw new IllegalArgumentException("domain is required");
     }
     String normalized = domain.trim().toLowerCase(Locale.ROOT);
+    String canonical = switch (normalized) {
+      case "product", "products" -> "product";
+      case "order", "orders" -> "orders";
+      case "ad", "ads", "advertising", "marketing" -> "ads";
+      default -> normalized;
+    };
     // Validate via table resolution (throws if unsupported)
-    domainImportService.tableForDomain(normalized);
-    return normalized;
+    domainImportService.tableForDomain(canonical);
+    return canonical;
   }
 
   private String normalizedTabName(String tabName) {
@@ -183,6 +200,74 @@ public class GoogleSheetImportService {
       }
     }
     return false;
+  }
+
+  private void maybeAppendStoreNameColumn(String domain, String tabName, List<List<Object>> values) {
+    if (!isOrdersDomain(domain) || values == null || values.isEmpty()) {
+      return;
+    }
+
+    List<Object> headerRow = values.get(0);
+    int storeIndex = resolveStoreNameIndex(headerRow);
+    boolean hasTypeRow = values.size() > 1 && containsAnyNonBlank(values.get(1));
+
+    if (storeIndex < 0) {
+      headerRow.add("store_name");
+      storeIndex = headerRow.size() - 1;
+      if (hasTypeRow) {
+        List<Object> typeRow = values.get(1);
+        ensureRowSize(typeRow, storeIndex + 1);
+        typeRow.set(storeIndex, "TEXT");
+      }
+    } else if (hasTypeRow) {
+      List<Object> typeRow = values.get(1);
+      ensureRowSize(typeRow, storeIndex + 1);
+      Object marker = typeRow.get(storeIndex);
+      if (marker == null || marker.toString().trim().isEmpty()) {
+        typeRow.set(storeIndex, "TEXT");
+      }
+    }
+
+    int dataStart = hasTypeRow ? 2 : 1;
+    for (int r = dataStart; r < values.size(); r++) {
+      List<Object> row = values.get(r);
+      ensureRowSize(row, storeIndex + 1);
+      row.set(storeIndex, tabName);
+    }
+  }
+
+  private int resolveStoreNameIndex(List<Object> headerRow) {
+    if (headerRow == null) {
+      return -1;
+    }
+    for (int i = 0; i < headerRow.size(); i++) {
+      Object cell = headerRow.get(i);
+      if (cell == null) {
+        continue;
+      }
+      String normalized = cell.toString().trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", "_");
+      if ("store_name".equals(normalized)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private void ensureRowSize(List<Object> row, int desiredSize) {
+    if (row == null) {
+      return;
+    }
+    while (row.size() < desiredSize) {
+      row.add("");
+    }
+  }
+
+  private boolean isOrdersDomain(String domain) {
+    if (domain == null) {
+      return false;
+    }
+    String normalized = domain.trim().toLowerCase(Locale.ROOT);
+    return "orders".equals(normalized) || "order".equals(normalized);
   }
 
   private void validateTypeRow(List<Object> headerRow, List<Object> typeRow) {

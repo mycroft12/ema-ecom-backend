@@ -356,8 +356,9 @@ public class DomainImportService {
       return;
     }
     String normalized = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
-    if ("orders".equals(normalized)) {
+    if ("orders".equals(normalized) || "order".equals(normalized)) {
       ensureColumnExists(table, "assigned_agent", "text");
+      ensureColumnExists(table, "store_name", "text");
     }
   }
 

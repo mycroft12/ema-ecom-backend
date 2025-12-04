@@ -53,23 +53,13 @@ public class GoogleSheetSyncService {
   @Transactional
   public void syncRow(GoogleSheetSyncRequest request) {
     String domain = normalizeDomain(request.domain());
-    GoogleImportConfig config = configRepository.findByDomain(domain)
-        .orElseThrow(() -> new IllegalArgumentException("Domain '" + domain + "' is not connected to Google Sheets."));
-
-    if (request.spreadsheetId() != null && !request.spreadsheetId().isBlank()) {
-      String incoming = request.spreadsheetId().trim();
-      if (!incoming.equals(config.getSpreadsheetId())) {
-        throw new IllegalArgumentException("Spreadsheet mismatch for domain '" + domain + "'.");
-      }
-    }
-
-    if (config.getTabName() != null && request.tabName() != null
-        && !config.getTabName().equalsIgnoreCase(request.tabName().trim())) {
-      throw new IllegalArgumentException("Tab mismatch for domain '" + domain + "'. Expected '" + config.getTabName() + "'");
-    }
+    GoogleImportConfig config = resolveConfig(domain, request);
 
     String table = domainImportService.tableForDomain(domain);
     Map<String, Object> sanitizedRow = sanitizeRow(request.row());
+    if (isOrdersDomain(domain) && config.getTabName() != null) {
+      sanitizedRow.put("store_name", config.getTabName());
+    }
     Set<String> allowedColumns = allowedColumnsForTable(table);
     Map<String, String> columnTypes = columnTypesForTable(table);
     if (allowedColumns.isEmpty()) {
@@ -134,7 +124,69 @@ public class GoogleSheetSyncService {
     if (domain == null || domain.isBlank()) {
       throw new IllegalArgumentException("domain is required");
     }
-    return domain.trim().toLowerCase(Locale.ROOT);
+    String normalized = domain.trim().toLowerCase(Locale.ROOT);
+    String canonical = switch (normalized) {
+      case "product", "products" -> "product";
+      case "order", "orders" -> "orders";
+      case "ad", "ads", "advertising", "marketing" -> "ads";
+      default -> normalized;
+    };
+    domainImportService.tableForDomain(canonical);
+    return canonical;
+  }
+
+  private GoogleImportConfig resolveConfig(String domain, GoogleSheetSyncRequest request) {
+    String spreadsheetId = trimToNull(request.spreadsheetId());
+    String tabName = trimToNull(request.tabName());
+
+    if (spreadsheetId != null && tabName != null) {
+      return configRepository.findBySpreadsheetIdAndTabName(spreadsheetId, tabName)
+          .filter(cfg -> domain.equalsIgnoreCase(cfg.getDomain()))
+          .orElseThrow(() -> new IllegalArgumentException(
+              "No Google Sheet connection found for domain '" + domain + "' with sheet '" + tabName + "'."));
+    }
+
+    List<GoogleImportConfig> configs = configRepository.findAllByDomain(domain);
+    if (configs.isEmpty()) {
+      throw new IllegalArgumentException("Domain '" + domain + "' is not connected to Google Sheets.");
+    }
+
+    List<GoogleImportConfig> filtered = new ArrayList<>(configs);
+    if (spreadsheetId != null) {
+      filtered = filtered.stream()
+          .filter(cfg -> spreadsheetId.equals(cfg.getSpreadsheetId()))
+          .toList();
+    }
+    if (tabName != null) {
+      String normalizedTab = tabName.toLowerCase(Locale.ROOT);
+      filtered = filtered.stream()
+          .filter(cfg -> cfg.getTabName() != null
+              && cfg.getTabName().toLowerCase(Locale.ROOT).equals(normalizedTab))
+          .toList();
+    }
+
+    if (filtered.isEmpty()) {
+      throw new IllegalArgumentException("Domain '" + domain + "' is not connected to the specified Google Sheet/tab.");
+    }
+
+    if (filtered.size() == 1) {
+      return filtered.get(0);
+    }
+
+    throw new IllegalArgumentException("Domain '" + domain + "' has multiple Google Sheet connections. Please provide both spreadsheetId and tabName.");
+  }
+
+  private String trimToNull(String value) {
+    if (value == null) {
+      return null;
+    }
+    String trimmed = value.trim();
+    return trimmed.isEmpty() ? null : trimmed;
+  }
+
+  private boolean isOrdersDomain(String domain) {
+    String normalized = domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT);
+    return "orders".equals(normalized) || "order".equals(normalized);
   }
 
   private Map<String, Object> sanitizeRow(Map<String, Object> row) {

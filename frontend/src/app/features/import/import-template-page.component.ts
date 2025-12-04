@@ -234,15 +234,24 @@ interface CostsConfiguration {
                     <ng-template pTemplate="selectedItem" let-selected>
                       <div *ngIf="selected" class="flex align-items-center justify-content-between">
                         <span>{{ selected.key | translate }}</span>
-                        <span *ngIf="selected.configured" class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round">
+                        <span
+                          *ngIf="selected.configured && selected.value !== 'orders'"
+                          class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round"
+                        >
                           {{ 'import.configured' | translate }}
                         </span>
                       </div>
                     </ng-template>
                     <ng-template pTemplate="item" let-option>
-                      <div class="flex align-items-center justify-content-between" [class.text-400]="option.configured">
+                      <div
+                        class="flex align-items-center justify-content-between"
+                        [class.text-400]="option.configured && option.value !== 'orders'"
+                      >
                         <span>{{ option.key | translate }}</span>
-                        <span *ngIf="option.configured" class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round">
+                        <span
+                          *ngIf="option.configured && option.value !== 'orders'"
+                          class="ml-2 text-xs bg-primary-100 text-primary-900 px-2 py-1 border-round"
+                        >
                           {{ 'import.configured' | translate }}
                         </span>
                       </div>
@@ -934,8 +943,10 @@ export class ImportTemplatePageComponent implements OnInit {
   get googleDomainOptions() {
     return this.componentOptions.map(option => ({
       ...option,
-      configured: this.isTableConfigured(option.value),
-      disabled: this.isTableConfigured(option.value) || !this.googleServiceAccount?.configured
+      configured: option.value === 'orders' ? false : this.isTableConfigured(option.value),
+      disabled:
+        !this.googleServiceAccount?.configured ||
+        (this.isTableConfigured(option.value) && option.value !== 'orders')
     }));
   }
 
@@ -1358,6 +1369,12 @@ export class ImportTemplatePageComponent implements OnInit {
       'already exists'
     ];
     if (duplicateIndicators.some(indicator => normalized.includes(indicator))) {
+      if (domain === 'orders') {
+        if (normalized.includes('orders')) {
+          return this.translate.instant('import.google.sheetAlreadyLinkedOrders');
+        }
+        return this.translate.instant('import.google.duplicateSheetError');
+      }
       return this.translate.instant('import.google.duplicateSheetError');
     }
 
