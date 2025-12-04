@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 
 /**
  * Lazily-initialized Google Sheets client that reuses service-account credentials and caches the Sheets service instance.
@@ -107,12 +108,19 @@ public class GoogleSheetsClient {
   }
 
   public List<List<Object>> readSheet(String spreadsheetId, String range) {
+    String tabName = extractTabName(range);
     try {
       ValueRange response = sheets().spreadsheets().values()
           .get(spreadsheetId, range)
           .execute();
       List<List<Object>> values = response.getValues();
       return values != null ? values : List.of();
+    } catch (GoogleJsonResponseException gjre) {
+      if (isMissingTabError(gjre)) {
+        String tab = tabName == null ? "sheet" : tabName;
+        throw new IllegalArgumentException("Sheet tab '" + tab + "' was not found in the spreadsheet.");
+      }
+      throw new IllegalStateException("Failed to read sheet range " + range + " from spreadsheet " + spreadsheetId, gjre);
     } catch (IOException ex) {
       throw new IllegalStateException("Failed to read sheet range " + range + " from spreadsheet " + spreadsheetId, ex);
     }
@@ -153,5 +161,29 @@ public class GoogleSheetsClient {
       return matcher.group(1);
     }
     throw new IllegalArgumentException("Unable to extract spreadsheetId from URL: " + sheetUrl);
+  }
+
+  private String extractTabName(String range) {
+    if (range == null) {
+      return null;
+    }
+    int idx = range.indexOf('!');
+    if (idx > 0) {
+      return range.substring(0, idx);
+    }
+    return null;
+  }
+
+  private boolean isMissingTabError(GoogleJsonResponseException ex) {
+    if (ex == null) {
+      return false;
+    }
+    int status = ex.getStatusCode();
+    String message = ex.getDetails() != null ? ex.getDetails().getMessage() : ex.getMessage();
+    String normalized = message == null ? "" : message.toLowerCase();
+    if (status == 400 && normalized.contains("unable to parse range")) {
+      return true;
+    }
+    return status == 404 && normalized.contains("not found");
   }
 }

@@ -1239,7 +1239,7 @@ export class ImportTemplatePageComponent implements OnInit {
         this.googleTestHeaders = [];
         this.googleTestTypes = [];
         this.googleTestRows = 0;
-        this.googleErrorMessage = err?.error?.message || this.translate.instant('import.google.testConnectionError');
+        this.googleErrorMessage = this.resolveGoogleConnectErrorMessage(err, this.googleDomain);
         this.googleTestValidated = false;
       }
     });
@@ -1345,6 +1345,16 @@ export class ImportTemplatePageComponent implements OnInit {
     const domainLabel = domainLabelKey ? this.translate.instant(domainLabelKey) : '';
     const domainDisplay = domainLabel || domain || this.translate.instant('import.domainPlaceholder');
     const normalizedDomain = (domain ?? '').toLowerCase();
+
+    const sheetNotFoundIndicators = [
+      'sheet tab',
+      'not found',
+      'unable to parse range'
+    ];
+    if (sheetNotFoundIndicators.every(indicator => normalized.includes(indicator))
+        || (normalized.includes('sheet tab') && normalized.includes('not found'))) {
+      return this.translate.instant('import.google.sheetNotFound');
+    }
 
     if (normalized.includes('not connected to google sheets')) {
       const match = /domain ['\"]?([a-z0-9_-]+)['\"]?/i.exec(normalized);

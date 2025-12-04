@@ -466,6 +466,7 @@
       "connect": "Analyser et configurer",
       "connectError": "Échec de la connexion à Google Sheets. Veuillez réessayer.",
       "sheetAlreadyLinkedOrders": "Cette feuille/onglet est déjà lié aux commandes. Choisissez un autre onglet/nom de boutique.",
+      "sheetNotFound": "Feuille/onglet introuvable. Vérifiez le nom de l'onglet puis réessayez.",
       "successDetail": "Connexion Google Sheets enregistrée. Le composant sera configuré sous peu.",
       "domainRequired": "Veuillez sélectionner un composant avant de continuer.",
       "sheetRequired": "Sélectionnez un onglet avant de continuer.",
