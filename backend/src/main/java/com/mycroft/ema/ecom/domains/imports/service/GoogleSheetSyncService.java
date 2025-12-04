@@ -138,17 +138,47 @@ public class GoogleSheetSyncService {
   private GoogleImportConfig resolveConfig(String domain, GoogleSheetSyncRequest request) {
     String spreadsheetId = trimToNull(request.spreadsheetId());
     String tabName = trimToNull(request.tabName());
+    String normalizedTab = tabName == null ? null : tabName.toLowerCase(Locale.ROOT);
 
+    // 1) Try exact spreadsheet + tab match (case-insensitive)
     if (spreadsheetId != null && tabName != null) {
-      return configRepository.findBySpreadsheetIdAndTabName(spreadsheetId, tabName)
-          .filter(cfg -> domain.equalsIgnoreCase(cfg.getDomain()))
-          .orElseThrow(() -> new IllegalArgumentException(
-              "No Google Sheet connection found for domain '" + domain + "' with sheet '" + tabName + "'."));
+      Optional<GoogleImportConfig> match = configRepository.findBySpreadsheetIdAndTabName(spreadsheetId, tabName)
+          .filter(cfg -> domain.equalsIgnoreCase(cfg.getDomain()));
+      if (match.isEmpty()) {
+        match = configRepository.findBySpreadsheetIdAndTabName(spreadsheetId, tabName)
+            .filter(cfg -> cfg.getTabName() != null
+                && cfg.getTabName().toLowerCase(Locale.ROOT).equals(normalizedTab)
+                && domain.equalsIgnoreCase(cfg.getDomain()));
+      }
+      if (match.isPresent()) {
+        return match.get();
+      }
     }
 
     List<GoogleImportConfig> configs = configRepository.findAllByDomain(domain);
     if (configs.isEmpty()) {
+      log.warn("Google Sheets sync received for domain '{}' but no configurations were found (sheetId={}, tab={})",
+          domain, spreadsheetId, tabName);
       throw new IllegalArgumentException("Domain '" + domain + "' is not connected to Google Sheets.");
+    }
+
+    // 2) If spreadsheetId provided, prefer configs pointing to that sheet (any tab)
+    if (spreadsheetId != null) {
+      List<GoogleImportConfig> sheetConfigs = configs.stream()
+          .filter(cfg -> spreadsheetId.equals(cfg.getSpreadsheetId()))
+          .toList();
+      if (sheetConfigs.size() == 1) {
+        return sheetConfigs.get(0);
+      }
+      if (sheetConfigs.size() > 1 && normalizedTab != null) {
+        Optional<GoogleImportConfig> tabMatch = sheetConfigs.stream()
+            .filter(cfg -> cfg.getTabName() != null
+                && cfg.getTabName().toLowerCase(Locale.ROOT).equals(normalizedTab))
+            .findFirst();
+        if (tabMatch.isPresent()) {
+          return tabMatch.get();
+        }
+      }
     }
 
     List<GoogleImportConfig> filtered = new ArrayList<>(configs);
@@ -157,8 +187,7 @@ public class GoogleSheetSyncService {
           .filter(cfg -> spreadsheetId.equals(cfg.getSpreadsheetId()))
           .toList();
     }
-    if (tabName != null) {
-      String normalizedTab = tabName.toLowerCase(Locale.ROOT);
+    if (normalizedTab != null) {
       filtered = filtered.stream()
           .filter(cfg -> cfg.getTabName() != null
               && cfg.getTabName().toLowerCase(Locale.ROOT).equals(normalizedTab))
