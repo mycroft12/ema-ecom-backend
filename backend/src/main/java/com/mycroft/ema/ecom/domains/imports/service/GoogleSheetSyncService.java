@@ -77,7 +77,7 @@ public class GoogleSheetSyncService {
         .map(a -> a.trim().toUpperCase(Locale.ROOT))
         .orElse("UPSERT");
 
-    UUID rowId = resolveRowId(sanitizedRow);
+    UUID rowId = resolveRowId(sanitizedRow, action);
     sanitizedRow.put("id", rowId);
 
     if ("DELETE".equals(action)) {
@@ -254,21 +254,38 @@ public class GoogleSheetSyncService {
     return value;
   }
 
-  private UUID resolveRowId(Map<String, Object> row) {
+  private UUID resolveRowId(Map<String, Object> row, String action) {
     Object idValue = row.get("id");
+    // Allow auto-generation for inserts when id is missing/blank
+    boolean isDelete = "DELETE".equalsIgnoreCase(action);
     if (idValue == null) {
-      throw new IllegalArgumentException("id column is required for Google Sheet sync updates.");
+      if (isDelete) {
+        throw new IllegalArgumentException("id column is required for delete actions.");
+      }
+      UUID generated = UUID.randomUUID();
+      row.put("id", generated);
+      return generated;
     }
     String raw = idValue.toString().trim();
     if (raw.isEmpty()) {
-      throw new IllegalArgumentException("id column must contain a non-empty UUID value.");
+      if (isDelete) {
+        throw new IllegalArgumentException("id column must contain a non-empty UUID value for delete actions.");
+      }
+      UUID generated = UUID.randomUUID();
+      row.put("id", generated);
+      return generated;
     }
     try {
       UUID uuid = UUID.fromString(raw);
       row.put("id", uuid);
       return uuid;
     } catch (IllegalArgumentException ex) {
-      throw new IllegalArgumentException("id column must be a valid UUID value", ex);
+      if (isDelete) {
+        throw new IllegalArgumentException("id column must be a valid UUID value for delete actions", ex);
+      }
+      UUID generated = UUID.randomUUID();
+      row.put("id", generated);
+      return generated;
     }
   }
 

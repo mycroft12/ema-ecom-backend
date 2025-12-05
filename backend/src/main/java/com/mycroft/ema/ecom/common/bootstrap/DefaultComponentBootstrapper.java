@@ -162,6 +162,25 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     }
   }
 
+  private boolean tableHasAllColumns(String table, List<String> expectedColumns) {
+    try {
+      List<String> cols = jdbcTemplate.queryForList(
+          "select column_name from information_schema.columns where table_schema = current_schema() and table_name = ?",
+          String.class,
+          table
+      );
+      var set = new java.util.HashSet<>(cols.stream().map(c -> c == null ? "" : c.toLowerCase()).toList());
+      for (String col : expectedColumns) {
+        if (!set.contains(col.toLowerCase())) {
+          return false;
+        }
+      }
+      return true;
+    } catch (Exception ex) {
+      return false;
+    }
+  }
+
   private void seedProductsSample() {
     if (tableHasRows("product_config")) {
       return;
@@ -183,10 +202,22 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     if (tableHasRows("orders_config")) {
       return;
     }
-    jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes, store_name, city_confirmed) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?, ?, ?)",
-        "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", new BigDecimal("89.90"),
-        "2 x Starter Pack", "Call customer tomorrow morning", "Downtown Store", "Casablanca");
+    List<String> required = List.of(
+        "order_reference", "customer_name", "customer_phone", "status",
+        "total_price", "created_at", "product_summary", "notes", "store_name", "city_confirmed"
+    );
+    if (!tableHasAllColumns("orders_config", required)) {
+      log.warn("Skipping orders sample seed: orders_config schema does not contain legacy sample columns.");
+      return;
+    }
+    try {
+      jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes, store_name, city_confirmed) " +
+          "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?, ?, ?)",
+          "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", new BigDecimal("89.90"),
+          "2 x Starter Pack", "Call customer tomorrow morning", "Downtown Store", "Casablanca");
+    } catch (Exception ex) {
+      log.warn("Skipping orders sample seed due to insert failure: {}", ex.getMessage());
+    }
   }
 
   private void seedAdsSample() {

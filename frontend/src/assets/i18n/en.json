@@ -537,6 +537,8 @@
       "connectError": "Failed to connect the Google Sheet. Please try again.",
       "sheetAlreadyLinkedOrders": "This sheet/tab is already linked to Orders. Choose another tab/store name.",
       "sheetNotFound": "We couldn't find this sheet/tab. Please check the tab name and try again.",
+      "overrideConfirmTitle": "Replace Orders configuration?",
+      "overrideConfirmMessage": "The current Orders configuration will be reset and replaced by the Google Sheet. Continue?",
       "successDetail": "Google Sheet connection saved. The component will be configured shortly.",
       "domainRequired": "Please select a component before continuing.",
       "sheetRequired": "Select a worksheet before continuing.",

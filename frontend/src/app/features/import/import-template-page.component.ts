@@ -1163,9 +1163,47 @@ export class ImportTemplatePageComponent implements OnInit {
       tabName: trimmedTabName ? trimmedTabName : null
     };
 
+    const targetDomain = this.googleDomain;
+    const requiresOverrideConfirm = targetDomain === 'orders' && this.isTableConfigured('orders');
+    if (requiresOverrideConfirm) {
+      this.confirmationService.confirm({
+        message: this.translate.instant('import.google.overrideConfirmMessage'),
+        header: this.translate.instant('import.google.overrideConfirmTitle'),
+        icon: 'pi pi-exclamation-triangle',
+        accept: () => this.resetAndExecuteGoogleImport(requestBody, targetDomain, activateCallback)
+      });
+      return;
+    }
+
+    this.executeGoogleImport(requestBody, targetDomain, activateCallback);
+  }
+
+  private resetAndExecuteGoogleImport(requestBody: any, targetDomain: DomainKey | null, activateCallback?: (step: number) => void): void {
+    if (!targetDomain) {
+      return;
+    }
     this.googleLoading = true;
     this.googleErrorMessage = '';
-    const targetDomain = this.googleDomain;
+    this.http.delete(`/api/import/configure/table`, { params: { domain: targetDomain } }).subscribe({
+      next: () => {
+        this.executeGoogleImport(requestBody, targetDomain, activateCallback);
+      },
+      error: (err) => {
+        this.googleLoading = false;
+        const detail = err?.error?.message || this.translate.instant('import.resetError');
+        this.googleErrorMessage = detail;
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail
+        });
+      }
+    });
+  }
+
+  private executeGoogleImport(requestBody: any, targetDomain: DomainKey | null, activateCallback?: (step: number) => void): void {
+    this.googleLoading = true;
+    this.googleErrorMessage = '';
 
     this.http.post<GoogleSheetConnectResponse>('/api/import/google/connect', requestBody).subscribe({
       next: (response) => {
@@ -1339,7 +1377,7 @@ export class ImportTemplatePageComponent implements OnInit {
     }
   }
 
-  private resolveGoogleConnectErrorMessage(err: any, domain: DomainKey): string {
+  private resolveGoogleConnectErrorMessage(err: any, domain: DomainKey | null): string {
     const raw = (err?.error?.message ?? err?.error?.detail ?? '').toString();
     const normalized = raw.toLowerCase();
     const domainLabelKey = domain ? this.getDomainDisplayName(domain) : '';
