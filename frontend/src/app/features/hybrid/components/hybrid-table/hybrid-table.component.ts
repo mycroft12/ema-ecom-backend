@@ -25,6 +25,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { OrderListModule } from 'primeng/orderlist';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { SharedDialogComponent } from '@shared/ui/dialog';
 
 import { HybridTableDataService, HybridMinioUploadResponse } from '../../services/hybrid-table-data.service';
@@ -68,7 +69,8 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
     DialogModule,
     InputTextarea,
     SharedDialogComponent,
-    OrderListModule
+    OrderListModule,
+    OverlayPanelModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './hybrid-table.component.html',
@@ -144,6 +146,19 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   activityMin = 0;
   activityMax = 100;
   activityRange: [number, number] = [0, 100];
+  primaryDateField: string | null = null;
+  dateRange: Date[] = [];
+  activeDatePreset: string | null = null;
+  readonly dateRangePresets = [
+    { key: 'today', label: 'common.dateRangePresets.today', range: () => this.buildSingleDayRange(0) },
+    { key: 'yesterday', label: 'common.dateRangePresets.yesterday', range: () => this.buildSingleDayRange(1) },
+    { key: 'last7', label: 'common.dateRangePresets.last7', range: () => this.buildTrailingRange(6) },
+    { key: 'last30', label: 'common.dateRangePresets.last30', range: () => this.buildTrailingRange(29) },
+    { key: 'last90', label: 'common.dateRangePresets.last90', range: () => this.buildTrailingRange(89) },
+    { key: 'thisMonth', label: 'common.dateRangePresets.thisMonth', range: () => this.buildMonthRange(0) },
+    { key: 'lastMonth', label: 'common.dateRangePresets.lastMonth', range: () => this.buildMonthRange(1) },
+    { key: 'sinceLaunch', label: 'common.dateRangePresets.sinceLaunch', range: () => this.buildSinceLaunchRange() }
+  ] as const;
 
   private permissionsState = { add: false, edit: false, delete: false, export: false };
 
@@ -879,6 +894,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     const columns = this.schemaService.visibleColumns();
     this.globalFilterFields = columns.map(c => c.name);
     this.syncColumnToggleOptions(columns);
+    this.updatePrimaryDateField(columns);
   }
 
   clear(table: Table) {
@@ -902,6 +918,8 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.repFilterModel = [];
     this.statusFilterModel = undefined;
     this.activityRange = [this.activityMin, this.activityMax];
+    this.dateRange = [];
+    this.activeDatePreset = null;
     this.selectedColumnKeys = this.columnToggleOptions.map(option => option.value);
     if (this.dt1) {
       this.dt1.clear();
@@ -991,6 +1009,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       value: column.name
     }));
     this.columnToggleOptions = nextOptions;
+    this.updatePrimaryDateField(sourceColumns);
     if (!this.selectedColumnKeys.length) {
       this.selectedColumnKeys = nextOptions.map(option => option.value);
       return;
@@ -1170,6 +1189,132 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   isActivity(column: any) {
     return column.name === 'activity' || column.ui === 'activity';
+  }
+
+  get dateRangeLabel(): string {
+    if (this.dateRange?.length >= 2 && this.dateRange[0] && this.dateRange[1]) {
+      return `${this.formatDateForLabel(this.dateRange[0])} - ${this.formatDateForLabel(this.dateRange[1])}`;
+    }
+    return this.translate.instant('common.dateRangeFilter');
+  }
+
+  onDateRangeSelect(value: Date[] | null): void {
+    this.activeDatePreset = null;
+    this.dateRange = value ?? [];
+    this.applyDateRangeFilter();
+  }
+
+  applyDatePreset(key: string): void {
+    const preset = this.dateRangePresets.find(p => p.key === key);
+    if (!preset) {
+      return;
+    }
+    const [start, end] = preset.range();
+    this.dateRange = [start, end];
+    this.activeDatePreset = key;
+    this.applyDateRangeFilter();
+  }
+
+  clearDateRangeFilter(): void {
+    this.dateRange = [];
+    this.activeDatePreset = null;
+    this.applyDateRangeFilter();
+  }
+
+  private applyDateRangeFilter(): void {
+    if (!this.primaryDateField || !this.dt1) {
+      return;
+    }
+    const serialized = this.serializeDateRange();
+    const filters: any = { ...(this.dt1 as any).filters };
+    if (serialized) {
+      filters[this.primaryDateField] = { value: serialized, matchMode: 'between' };
+    } else {
+      delete filters[this.primaryDateField];
+    }
+    (this.dt1 as any).filters = filters;
+    this.loadData({
+      first: this.first,
+      rows: this.rows,
+      sortField: this.sortField ?? (this.dt1 as any)?.sortField,
+      sortOrder: this.sortOrder ?? (this.dt1 as any)?.sortOrder,
+      filters,
+      globalFilter: this.searchValue
+    });
+  }
+
+  private serializeDateRange(): string[] | null {
+    if (!this.dateRange || this.dateRange.length < 2 || !this.dateRange[0] || !this.dateRange[1]) {
+      return null;
+    }
+    const [start, end] = this.dateRange;
+    return [this.startOfDay(start), this.endOfDay(end)].map(date => date.toISOString());
+  }
+
+  private updatePrimaryDateField(columns?: HybridColumnDefinition[]): void {
+    const source = columns ?? this.schemaService.visibleColumns();
+    const normalized = source.map(col => ({
+      col,
+      name: (col.name || '').toLowerCase(),
+      display: (col.displayName || '').toLowerCase()
+    }));
+
+    const dateTyped = normalized.filter(item => item.col.type === HybridColumnType.DATE);
+    const dateNamed = normalized.filter(item => item.name.includes('date') || item.display.includes('date'));
+    const orderDateNamed = normalized.filter(item => item.name.includes('order') || item.display.includes('order'));
+
+    const priorityNames = ['order_date', 'orderdate', 'order-date', 'order', 'createdat', 'created_at', 'created', 'date', 'updatedat', 'updated_at'];
+    const prioritized = normalized.find(item => priorityNames.includes(item.name));
+    const nextField = (prioritized ?? orderDateNamed[0] ?? dateTyped[0] ?? dateNamed[0])?.col?.name ?? null;
+    const didChange = this.primaryDateField !== nextField;
+    this.primaryDateField = nextField;
+    if (didChange && this.primaryDateField && this.dateRange?.length >= 2 && this.dateRange[0] && this.dateRange[1]) {
+      this.applyDateRangeFilter();
+    }
+  }
+
+  private buildSingleDayRange(daysAgo: number): [Date, Date] {
+    const now = new Date();
+    const target = new Date(now);
+    target.setDate(now.getDate() - daysAgo);
+    return [this.startOfDay(target), this.endOfDay(target)];
+  }
+
+  private buildTrailingRange(daysBack: number): [Date, Date] {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - daysBack);
+    return [this.startOfDay(start), this.endOfDay(now)];
+  }
+
+  private buildMonthRange(monthOffset: number): [Date, Date] {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+    const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+    return [this.startOfDay(start), this.endOfDay(end)];
+  }
+
+  private buildSinceLaunchRange(): [Date, Date] {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = this.endOfDay(now);
+    return [this.startOfDay(start), end];
+  }
+
+  private startOfDay(date: Date): Date {
+    const next = new Date(date);
+    next.setHours(0, 0, 0, 0);
+    return next;
+  }
+
+  private endOfDay(date: Date): Date {
+    const next = new Date(date);
+    next.setHours(23, 59, 59, 999);
+    return next;
+  }
+
+  private formatDateForLabel(date: Date): string {
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   /* ===========================

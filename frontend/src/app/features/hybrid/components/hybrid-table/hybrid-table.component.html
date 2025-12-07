@@ -23,63 +23,111 @@
         >
             <!-- CAPTION -->
             <ng-template pTemplate="caption">
-                <div class="flex flex-wrap items-center gap-2 caption-toolbar">
-                    <div class="flex flex-wrap gap-2">
-                        <p-button
-                                [label]="'common.clear' | translate"
-                                [outlined]="true"
-                                icon="pi pi-filter-slash"
-                                (click)="clear(dt1)"
-                        ></p-button>
-                        <p-button
-                                *ngIf="canAdd"
-                                [label]="(translationPrefix + '.newItem') | translate"
-                                icon="pi pi-plus"
-                                (click)="openCreateDialog()"
-                        ></p-button>
-                        <p-multiselect
-                                class="column-toggle"
-                                [options]="columnToggleOptions"
-                                [(ngModel)]="selectedColumnKeys"
-                                optionLabel="label"
-                                optionValue="value"
-                                display="chip"
-                                [showToggleAll]="false"
-                                [placeholder]="(translationPrefix + '.columnTogglePlaceholder') | translate"
-                                [selectedItemsLabel]="columnToggleSelectedItemsLabel"
-                                (onChange)="onColumnToggleChange($event.value)"
-                        ></p-multiselect>
-                        <p-button
-                                *ngIf="canEdit"
-                                [label]="'common.reorderColumns' | translate"
-                                icon="pi pi-sort"
-                                class="p-button-outlined"
-                                (click)="openColumnReorderDialog()"
-                        ></p-button>
+                <div class="caption-toolbar">
+                    <div class="caption-row caption-row--top">
+                        <div class="caption-row__left">
+                            <p-iconfield iconPosition="left" class="search-field">
+                                <p-inputicon>
+                                    <i class="pi pi-search"></i>
+                                </p-inputicon>
+                                <input
+                                        pInputText
+                                        type="text"
+                                        [(ngModel)]="searchValue"
+                                        (input)="onGlobalFilter($event, dt1)"
+                                        [placeholder]="(translationPrefix + '.searchPlaceholder') | translate:{ component: schemaService.displayName() }"
+                                />
+                            </p-iconfield>
+                            <p-button
+                                    *ngIf="canExport"
+                                    [label]="(translationPrefix + '.exportExcel') | translate"
+                                    icon="pi pi-file-excel"
+                                    severity="success"
+                                    (click)="onExportExcel()"
+                                    [disabled]="!hasRows"
+                                    [title]="(translationPrefix + '.exportExcelTooltip') | translate"
+                            ></p-button>
+                        </div>
+                        <div class="caption-row__right" *ngIf="canAdd">
+                            <p-button
+                                    [label]="(translationPrefix + '.newItem') | translate"
+                                    icon="pi pi-plus"
+                                    (click)="openCreateDialog()"
+                            ></p-button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 ml-auto">
-                        <p-button
-                                *ngIf="canExport"
-                                [label]="(translationPrefix + '.exportExcel') | translate"
-                                icon="pi pi-file-excel"
-                                severity="success"
-                                (click)="onExportExcel()"
-                                [disabled]="!hasRows"
-                                [title]="(translationPrefix + '.exportExcelTooltip') | translate"
-                        ></p-button>
-                        <p-iconfield iconPosition="left" class="search-field">
-                            <p-inputicon>
-                                <i class="pi pi-search"></i>
-                            </p-inputicon>
-                            <input
-                                    pInputText
-                                    type="text"
-                                    [(ngModel)]="searchValue"
-                                    (input)="onGlobalFilter($event, dt1)"
-                                    [placeholder]="(translationPrefix + '.searchPlaceholder') | translate:{ component: schemaService.displayName() }"
-                            />
-                        </p-iconfield>
+                    <div class="caption-row caption-row--bottom">
+                        <div class="caption-row__left">
+                            <p-button
+                                    [label]="'common.clear' | translate"
+                                    [outlined]="true"
+                                    icon="pi pi-filter-slash"
+                                    (click)="clear(dt1)"
+                            ></p-button>
+                            <p-multiselect
+                                    class="column-toggle"
+                                    [options]="columnToggleOptions"
+                                    [(ngModel)]="selectedColumnKeys"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    display="chip"
+                                    [showToggleAll]="false"
+                                    [placeholder]="(translationPrefix + '.columnTogglePlaceholder') | translate"
+                                    [selectedItemsLabel]="columnToggleSelectedItemsLabel"
+                                    (onChange)="onColumnToggleChange($event.value)"
+                            ></p-multiselect>
+                            <p-button
+                                    *ngIf="primaryDateField"
+                                    class="date-range-trigger"
+                                    icon="pi pi-calendar"
+                                    [label]="dateRangeLabel"
+                                    [outlined]="true"
+                                    severity="success"
+                                    (click)="dateRangePanel.toggle($event)"
+                            ></p-button>
+                        </div>
+                        <div class="caption-row__right">
+                            <p-button
+                                    *ngIf="canEdit"
+                                    [label]="'common.reorderColumns' | translate"
+                                    icon="pi pi-sort"
+                                    class="p-button-outlined"
+                                    (click)="openColumnReorderDialog()"
+                            ></p-button>
+                        </div>
                     </div>
+                    <p-overlayPanel #dateRangePanel styleClass="date-range-panel" [dismissable]="true" [showCloseIcon]="true">
+                        <div class="date-range-content">
+                            <div class="date-range-presets">
+                                <button
+                                        type="button"
+                                        class="preset-button"
+                                        *ngFor="let preset of dateRangePresets"
+                                        [class.active]="activeDatePreset === preset.key"
+                                        (click)="applyDatePreset(preset.key)"
+                                >
+                                    {{ preset.label | translate }}
+                                </button>
+                                <button
+                                        type="button"
+                                        class="preset-button preset-clear"
+                                        (click)="clearDateRangeFilter()"
+                                >
+                                    {{ 'common.clear' | translate }}
+                                </button>
+                            </div>
+                            <div class="date-range-picker">
+                                <p-datepicker
+                                        [(ngModel)]="dateRange"
+                                        selectionMode="range"
+                                        [manualInput]="false"
+                                        [numberOfMonths]="2"
+                                        [inline]="true"
+                                        (onSelect)="onDateRangeSelect($event)"
+                                ></p-datepicker>
+                            </div>
+                        </div>
+                    </p-overlayPanel>
                 </div>
             </ng-template>
 
