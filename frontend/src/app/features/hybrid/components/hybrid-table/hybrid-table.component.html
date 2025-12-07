@@ -119,11 +119,11 @@
                             <div class="date-range-picker">
                                 <p-datepicker
                                         [(ngModel)]="dateRange"
+                                        (ngModelChange)="onDateRangeChange($event)"
                                         selectionMode="range"
                                         [manualInput]="false"
                                         [numberOfMonths]="2"
                                         [inline]="true"
-                                        (onSelect)="onDateRangeSelect($event)"
                                 ></p-datepicker>
                             </div>
                         </div>

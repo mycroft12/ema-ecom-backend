@@ -1199,8 +1199,18 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   }
 
   onDateRangeSelect(value: Date[] | null): void {
+    this.onDateRangeChange(value);
+  }
+
+  onDateRangeChange(value: Date[] | Date | null): void {
     this.activeDatePreset = null;
-    this.dateRange = value ?? [];
+    if (Array.isArray(value)) {
+      this.dateRange = value.filter(Boolean) as Date[];
+    } else if (value instanceof Date) {
+      this.dateRange = [value];
+    } else {
+      this.dateRange = [];
+    }
     this.applyDateRangeFilter();
   }
 
