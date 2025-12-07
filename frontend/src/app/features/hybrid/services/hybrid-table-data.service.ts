@@ -62,6 +62,9 @@ export class HybridTableDataService {
           if (detail.matchMode) {
             params = params.set(`filter.${key}.matchMode`, detail.matchMode);
           }
+          if (detail.type) {
+            params = params.set(`filter.${key}.type`, detail.type);
+          }
         }
       });
     }
@@ -165,7 +168,7 @@ export class HybridTableDataService {
     };
   }
 
-  private extractFilterDetail(metadata: any): { value: string; matchMode?: string } | null {
+  private extractFilterDetail(metadata: any): { value: string; matchMode?: string; type?: string } | null {
     if (!metadata) {
       return null;
     }
@@ -180,7 +183,7 @@ export class HybridTableDataService {
     }
     const serialized = this.serializeFilterValue(metadata.value);
     if (serialized !== null) {
-      return { value: serialized, matchMode: metadata.matchMode };
+      return { value: serialized, matchMode: metadata.matchMode, type: metadata.type };
     }
     if (Array.isArray(metadata.constraints)) {
       for (const constraint of metadata.constraints) {
@@ -188,7 +191,8 @@ export class HybridTableDataService {
         if (detail) {
           return {
             value: detail.value,
-            matchMode: detail.matchMode ?? metadata.matchMode
+            matchMode: detail.matchMode ?? metadata.matchMode,
+            type: detail.type ?? metadata.type
           };
         }
       }

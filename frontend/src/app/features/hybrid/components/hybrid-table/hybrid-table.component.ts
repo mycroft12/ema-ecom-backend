@@ -1228,7 +1228,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     const serialized = this.serializeDateRange();
     const filters: any = { ...(this.dt1 as any).filters };
     if (serialized) {
-      filters[this.primaryDateField] = { value: serialized, matchMode: 'between' };
+      filters[this.primaryDateField] = { value: serialized, matchMode: 'between', type: 'date' };
     } else {
       delete filters[this.primaryDateField];
     }
@@ -1247,8 +1247,10 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     if (!this.dateRange || this.dateRange.length < 2 || !this.dateRange[0] || !this.dateRange[1]) {
       return null;
     }
-    const [start, end] = this.dateRange;
-    return [this.startOfDay(start), this.endOfDay(end)].map(date => date.toISOString());
+    const [startRaw, endRaw] = this.dateRange;
+    const start = this.startOfDay(startRaw);
+    const end = this.endOfDay(endRaw);
+    return [start, end].map(date => this.formatDateOnly(date));
   }
 
   private updatePrimaryDateField(columns?: HybridColumnDefinition[]): void {
@@ -1315,6 +1317,11 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   private formatDateForLabel(date: Date): string {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  private formatDateOnly(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   /* ===========================
