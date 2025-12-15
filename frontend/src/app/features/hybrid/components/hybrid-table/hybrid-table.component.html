@@ -85,6 +85,17 @@
                                     severity="success"
                                     (click)="dateRangePanel.toggle($event)"
                             ></p-button>
+                            <p-select
+                                    *ngIf="isOrdersContext && statusOptions.length && statusColumnName"
+                                    class="status-quick-filter"
+                                    [options]="statusOptions"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    [showClear]="true"
+                                    [placeholder]="statusColumnDisplayName"
+                                    [(ngModel)]="statusQuickFilter"
+                                    (onChange)="applyQuickStatusFilter($event.value)"
+                            ></p-select>
                         </div>
                         <div class="caption-row__right">
                             <p-button

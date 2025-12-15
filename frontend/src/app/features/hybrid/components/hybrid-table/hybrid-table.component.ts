@@ -141,6 +141,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   statusOptions: Array<{ label: string; value: string }> = [];
   repFilterModel: any[] = [];
   statusFilterModel?: string;
+  statusQuickFilter?: string;
 
   // activity range (between)
   activityMin = 0;
@@ -184,6 +185,14 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   }
   get isAdsContext(): boolean {
     return (this.schemaService.entityTypeName ?? '').toLowerCase() === 'ads';
+  }
+  get statusColumnName(): string | null {
+    const col = this.schemaService.visibleColumns().find(c => this.isStatus(c));
+    return col?.name ?? null;
+  }
+  get statusColumnDisplayName(): string {
+    const col = this.schemaService.visibleColumns().find(c => this.isStatus(c));
+    return col?.displayName ?? 'Status';
   }
   get canManageAssignments(): boolean {
     if (!this.isOrdersContext || !this.canEdit) {
@@ -309,8 +318,18 @@ export class HybridTableComponent implements OnInit, OnDestroy {
         // status options (if column exists)
         const statusCol = this.schemaService.visibleColumns().find(c => this.isStatus(c));
         if (statusCol) {
-          const uniq = Array.from(new Set(rows.map(r => r?.[statusCol.name]).filter(Boolean)));
-          this.statusOptions = uniq.map(v => ({ label: String(v), value: String(v) }));
+          const columnOptions = this.getColumnOptions(statusCol);
+          if (columnOptions.length) {
+            this.statusOptions = columnOptions.map(opt => ({
+              label: String(opt.label),
+              value: String(opt.value)
+            }));
+          } else {
+            const uniq = Array.from(new Set(rows.map(r => r?.[statusCol.name]).filter(Boolean)));
+            this.statusOptions = uniq.map(v => ({ label: String(v), value: String(v) }));
+          }
+        } else {
+          this.statusOptions = [];
         }
 
         // activity range (if column exists)
@@ -917,6 +936,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.sortOrder = 1;
     this.repFilterModel = [];
     this.statusFilterModel = undefined;
+    this.statusQuickFilter = undefined;
     this.activityRange = [this.activityMin, this.activityMax];
     this.dateRange = [];
     this.activeDatePreset = null;
@@ -937,6 +957,29 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       globalFilter: this.searchValue
     };
     this.loadData(event);
+  }
+
+  applyQuickStatusFilter(value: string | null): void {
+    const column = this.statusColumnName;
+    if (!column || !this.dt1) {
+      return;
+    }
+    this.statusQuickFilter = value ?? undefined;
+    const filters: any = { ...(this.dt1 as any).filters };
+    if (value) {
+      filters[column] = { value, matchMode: 'equals', type: 'text' };
+    } else {
+      delete filters[column];
+    }
+    (this.dt1 as any).filters = filters;
+    this.loadData({
+      first: this.first,
+      rows: this.rows,
+      sortField: this.sortField ?? (this.dt1 as any)?.sortField,
+      sortOrder: this.sortOrder ?? (this.dt1 as any)?.sortOrder,
+      filters,
+      globalFilter: this.searchValue
+    });
   }
 
   onColumnToggleChange(values: string[] | undefined): void {

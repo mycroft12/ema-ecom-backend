@@ -81,6 +81,7 @@ public class GoogleSheetImportService {
 
     sanitizeSheetValues(values);
     maybeAppendStoreNameColumn(domain, tabName, values);
+    maybeAppendStatusColumn(domain, values);
 
     byte[] csvBytes = toCsv(values);
     MemoryMultipartFile csvFile = new MemoryMultipartFile(
@@ -236,7 +237,46 @@ public class GoogleSheetImportService {
     }
   }
 
+  private void maybeAppendStatusColumn(String domain, List<List<Object>> values) {
+    if (!isOrdersDomain(domain) || values == null || values.isEmpty()) {
+      return;
+    }
+    List<Object> headerRow = values.get(0);
+    int statusIndex = resolveColumnIndex(headerRow, "status");
+    boolean hasTypeRow = values.size() > 1 && containsAnyNonBlank(values.get(1));
+
+    if (statusIndex < 0) {
+      headerRow.add("status");
+      statusIndex = headerRow.size() - 1;
+      if (hasTypeRow) {
+        List<Object> typeRow = values.get(1);
+        ensureRowSize(typeRow, statusIndex + 1);
+        typeRow.set(statusIndex, "TEXT");
+      }
+    } else if (hasTypeRow) {
+      List<Object> typeRow = values.get(1);
+      ensureRowSize(typeRow, statusIndex + 1);
+      Object marker = typeRow.get(statusIndex);
+      if (marker == null || marker.toString().trim().isEmpty()) {
+        typeRow.set(statusIndex, "TEXT");
+      }
+    }
+
+    int dataStart = hasTypeRow ? 2 : 1;
+    for (int r = dataStart; r < values.size(); r++) {
+      List<Object> row = values.get(r);
+      ensureRowSize(row, statusIndex + 1);
+      if (row.get(statusIndex) == null) {
+        row.set(statusIndex, "");
+      }
+    }
+  }
+
   private int resolveStoreNameIndex(List<Object> headerRow) {
+    return resolveColumnIndex(headerRow, "store_name");
+  }
+
+  private int resolveColumnIndex(List<Object> headerRow, String targetName) {
     if (headerRow == null) {
       return -1;
     }
@@ -246,7 +286,7 @@ public class GoogleSheetImportService {
         continue;
       }
       String normalized = cell.toString().trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", "_");
-      if ("store_name".equals(normalized)) {
+      if (targetName.equals(normalized)) {
         return i;
       }
     }

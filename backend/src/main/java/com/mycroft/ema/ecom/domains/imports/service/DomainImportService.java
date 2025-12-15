@@ -60,6 +60,7 @@ public class DomainImportService {
 
     String table = tableForDomain(domain);
     TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
+    analysis.setColumns(appendSystemColumnDefinitions(domain, analysis.getColumns()));
     executeDdl(analysis.getCreateTableSql());
     ensureSystemColumns(domain, table);
     ensureDomainBasePermissions(domain);
@@ -92,6 +93,7 @@ public class DomainImportService {
     }
 
     TemplateAnalysisResponse analysis = templateService.analyzeTemplate(file, table);
+    analysis.setColumns(appendSystemColumnDefinitions(domain, analysis.getColumns()));
     if (analysis.getColumns() == null || analysis.getColumns().isEmpty()) {
       throw new IllegalArgumentException("Unable to detect any columns in the uploaded CSV file");
     }
@@ -119,6 +121,7 @@ public class DomainImportService {
     if (tableExists(table)) {
       return false;
     }
+    columns = appendSystemColumnDefinitions(domain, columns);
     String ddl = buildCreateTable(table, columns);
     executeDdl(ddl);
     TemplateAnalysisResponse analysis = new TemplateAnalysisResponse(table, columns, ddl, List.of(), true);
@@ -357,9 +360,35 @@ public class DomainImportService {
     }
     String normalized = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
     if ("orders".equals(normalized) || "order".equals(normalized)) {
+      ensureColumnExists(table, "status", "text");
       ensureColumnExists(table, "assigned_agent", "text");
       ensureColumnExists(table, "store_name", "text");
+      ensureSystemColumnPermissions(normalized, List.of("status", "assigned_agent", "store_name"));
     }
+  }
+
+  private List<ColumnInfo> appendSystemColumnDefinitions(String domain, List<ColumnInfo> columns) {
+    String normalized = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
+    if (!"orders".equals(normalized) && !"order".equals(normalized)) {
+      return columns;
+    }
+    List<ColumnInfo> current = columns == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(columns);
+    java.util.Set<String> existing = current.stream()
+        .map(ColumnInfo::getName)
+        .filter(java.util.Objects::nonNull)
+        .map(name -> name.trim().toLowerCase(Locale.ROOT))
+        .collect(java.util.stream.Collectors.toSet());
+
+    if (!existing.contains("status")) {
+      current.add(new ColumnInfo("Status", "status", "TEXT", "TEXT", true, null));
+    }
+    if (!existing.contains("store_name")) {
+      current.add(new ColumnInfo("Store Name", "store_name", "TEXT", "TEXT", true, null));
+    }
+    if (!existing.contains("assigned_agent")) {
+      current.add(new ColumnInfo("Assigned Agent", "assigned_agent", "TEXT", "TEXT", true, null));
+    }
+    return current;
   }
 
   private void ensureColumnExists(String table, String columnName, String sqlType) {
@@ -390,5 +419,20 @@ public class DomainImportService {
     } catch (Exception ex) {
       log.warn("Failed to ensure column '{}' on table '{}': {}", columnName, table, ex.getMessage());
     }
+  }
+
+  private void ensureSystemColumnPermissions(String prefix, List<String> columnNames) {
+    if (prefix == null || prefix.isBlank() || columnNames == null) {
+      return;
+    }
+    for (String columnName : columnNames) {
+      if (columnName == null || columnName.isBlank()) {
+        continue;
+      }
+      String permissionName = prefix + ":access:" + columnName.trim().toLowerCase(Locale.ROOT);
+      Permission perm = permissionService.ensure(permissionName);
+      assignPermissionToAdmin(perm.getId());
+    }
+    assignAllColumnPermissionsToAdmin(prefix);
   }
 }

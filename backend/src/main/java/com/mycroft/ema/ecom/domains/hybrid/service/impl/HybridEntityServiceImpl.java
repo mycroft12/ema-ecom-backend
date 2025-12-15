@@ -222,6 +222,8 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   @Override
   public List<HybridResponseDto.ColumnDto> listColumns(String entityType) {
     String table = ensureConfigured(entityType);
+    boolean isOrdersDomain = "orders".equalsIgnoreCase(entityType) || "order".equalsIgnoreCase(entityType);
+    List<Map<String, Object>> orderStatusOptions = isOrdersDomain ? loadOrderStatusOptions() : List.of();
 
     List<Map<String, Object>> rows = jdbc.queryForList("""
         select column_name, data_type, ordinal_position 
@@ -261,6 +263,10 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       metadata.put("allowedMimeTypes", semantic != null
           ? semantic.allowedMimeTypes(minioProperties.getAllowedImageMimeTypes())
           : minioProperties.getAllowedImageMimeTypes());
+      if (isOrdersDomain && "status".equalsIgnoreCase(name) && !orderStatusOptions.isEmpty()) {
+        metadata.put("options", orderStatusOptions);
+        metadata.putIfAbsent("input", "select");
+      }
 
       cols.add(new HybridResponseDto.ColumnDto(
           name,
@@ -433,6 +439,39 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     }
     whereParts.add("lower(assigned_agent) = ?");
     args.add(username.trim().toLowerCase(Locale.ROOT));
+  }
+
+  private List<Map<String, Object>> loadOrderStatusOptions() {
+    try {
+      return jdbc.query(
+          "select label_fr, label_en, name from order_statuses order by display_order asc, name asc",
+          (rs, rowNum) -> {
+            String label = firstNonBlank(rs.getString("label_fr"), rs.getString("label_en"), rs.getString("name"));
+            if (!StringUtils.hasText(label)) {
+              return null;
+            }
+            return Map.<String, Object>of(
+                "label", label.trim(),
+                "value", label.trim()
+            );
+          }
+      ).stream().filter(Objects::nonNull).toList();
+    } catch (Exception ex) {
+      log.warn("Failed to load order status options: {}", ex.getMessage());
+      return List.of();
+    }
+  }
+
+  private String firstNonBlank(String... candidates) {
+    if (candidates == null || candidates.length == 0) {
+      return null;
+    }
+    for (String candidate : candidates) {
+      if (StringUtils.hasText(candidate)) {
+        return candidate.trim();
+      }
+    }
+    return null;
   }
 
   private List<FilterCriterion> extractFilterCriteria(MultiValueMap<String, String> filters) {
