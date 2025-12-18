@@ -73,6 +73,22 @@ public class ImportConfigureController {
   public DomainPopulationResponse populate(@RequestParam("domain") String domain,
                                            @RequestPart("file") MultipartFile file,
                                            @RequestParam(value = "replaceExisting", defaultValue = "true") boolean replaceExisting) {
+    String normalizedDomain = (domain == null ? "" : domain.trim());
+    if (normalizedDomain.isEmpty()) {
+      throw new IllegalArgumentException("Domain is required");
+    }
+    if (file == null || file.isEmpty()) {
+      throw new IllegalArgumentException("Please upload a non-empty CSV file.");
+    }
+    String filename = (file.getOriginalFilename() == null ? "" : file.getOriginalFilename()).toLowerCase(Locale.ROOT);
+    String contentType = (file.getContentType() == null ? "" : file.getContentType()).toLowerCase(Locale.ROOT);
+    boolean isCsv = filename.endsWith(".csv")
+        || "text/csv".equalsIgnoreCase(contentType)
+        || "application/csv".equalsIgnoreCase(contentType)
+        || "application/vnd.ms-excel".equalsIgnoreCase(contentType);
+    if (!isCsv) {
+      throw new IllegalArgumentException("Only CSV files are supported when populating data.");
+    }
     return domainImportService.populateFromCsv(domain, file, replaceExisting);
   }
 

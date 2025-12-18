@@ -1,6 +1,7 @@
 package com.mycroft.ema.ecom.domains.orders.web;
 
 import com.mycroft.ema.ecom.domains.hybrid.dto.HybridViewDto;
+import com.mycroft.ema.ecom.domains.orders.dto.AgentOrderStatusDto;
 import com.mycroft.ema.ecom.domains.orders.dto.OrderAgentDto;
 import com.mycroft.ema.ecom.domains.orders.dto.OrderAssignmentRequest;
 import com.mycroft.ema.ecom.domains.orders.service.OrderAssignmentService;
@@ -36,5 +37,19 @@ public class OrderAssignmentController {
   @Operation(summary = "Assign an agent to an order")
   public HybridViewDto assign(@PathVariable UUID orderId, @Valid @RequestBody OrderAssignmentRequest request) {
     return service.assignAgent(orderId, request.agentId());
+  }
+
+  @GetMapping("/agents/me/active-orders")
+  @PreAuthorize("hasAuthority('orders:update') and hasRole('CONFIRMATION_AGENT')")
+  @Operation(summary = "Summarize active orders for the current confirmation agent")
+  public AgentOrderStatusDto activeOrders() {
+    return service.currentAgentStatus();
+  }
+
+  @PostMapping("/claim")
+  @PreAuthorize("hasAuthority('orders:update') and hasRole('CONFIRMATION_AGENT')")
+  @Operation(summary = "Assign the next available order to the current confirmation agent")
+  public HybridViewDto claimNext() {
+    return service.claimNextAvailableOrder();
   }
 }

@@ -158,6 +158,20 @@ public class DomainImportService {
     };
   }
 
+  /**
+   * Ensures the orders table has the columns required for agent assignment/claim flows.
+   * This is a defensive guard for environments configured with custom templates that omitted these fields.
+   */
+  public void ensureOrderAssignmentColumns() {
+    String table = tableForDomain("orders");
+    try {
+      ensureSystemColumns("orders", table);
+      ensureColumnExists(table, "created_at", "timestamp");
+    } catch (Exception ex) {
+      log.warn("Failed to enforce assignment columns on '{}': {}", table, ex.getMessage());
+    }
+  }
+
   private void ensureDomainBasePermissions(String domain) {
     String normalized = (domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT));
     if (normalized.isEmpty()) {

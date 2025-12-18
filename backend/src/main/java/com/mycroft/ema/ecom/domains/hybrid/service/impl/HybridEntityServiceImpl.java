@@ -432,13 +432,28 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       return;
     }
     String username = currentUserService.getCurrentUser()
-        .map(User::getUsername)
+        .map(this::resolveAgentIdentifier)
         .orElse(null);
     if (!StringUtils.hasText(username)) {
       return;
     }
     whereParts.add("lower(assigned_agent) = ?");
     args.add(username.trim().toLowerCase(Locale.ROOT));
+  }
+
+  private String resolveAgentIdentifier(User user) {
+    if (user == null) {
+      return null;
+    }
+    String username = user.getUsername();
+    if (StringUtils.hasText(username)) {
+      return username.trim();
+    }
+    String email = user.getEmail();
+    if (StringUtils.hasText(email)) {
+      return email.trim();
+    }
+    return null;
   }
 
   private List<Map<String, Object>> loadOrderStatusOptions() {

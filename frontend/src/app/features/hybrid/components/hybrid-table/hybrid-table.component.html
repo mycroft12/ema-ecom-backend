@@ -48,8 +48,21 @@
                                     [title]="(translationPrefix + '.exportExcelTooltip') | translate"
                             ></p-button>
                         </div>
-                        <div class="caption-row__right" *ngIf="canAdd">
+                        <div class="caption-row__right" *ngIf="canAdd || showTakeOrderButton">
                             <p-button
+                                    *ngIf="showTakeOrderButton"
+                                    class="take-order-button"
+                                    [label]="'orders.takeOrder.cta' | translate"
+                                    icon="pi pi-user-plus"
+                                    [outlined]="true"
+                                    severity="info"
+                                    [loading]="takeOrderLoading || agentWorkloadLoading"
+                                    [disabled]="takeOrderDisabled"
+                                    [title]="takeOrderTitle"
+                                    (click)="takeNextOrder()"
+                            ></p-button>
+                            <p-button
+                                    *ngIf="canAdd"
                                     [label]="(translationPrefix + '.newItem') | translate"
                                     icon="pi pi-plus"
                                     (click)="openCreateDialog()"

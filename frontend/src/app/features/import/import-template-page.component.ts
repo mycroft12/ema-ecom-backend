@@ -68,6 +68,14 @@ interface CostsConfiguration {
   otherCosts: OtherCostEntry[];
 }
 
+interface DomainPopulationResponse {
+  domain: string;
+  table: string;
+  inserted: number;
+  replaceExistingRows: boolean;
+  warnings: string[];
+}
+
 @Component({
   selector: 'app-import-template-page',
   standalone: true,
@@ -376,8 +384,8 @@ interface CostsConfiguration {
                 <p class="text-600 text-sm">
                   {{ 'import.rowCountLabel' | translate:{ count: configuredDomain.rowCount } }}
                 </p>
-                <div class="mt-3 pt-3 border-top-1 surface-border">
-                  <ng-container *ngIf="configuredDomain.domain === 'orders'">
+                <div class="mt-3 pt-3 border-top-1 surface-border" *ngIf="isAdmin">
+                  <div class="flex flex-column gap-3">
                     <div class="flex align-items-center justify-content-between">
                       <button
                         pButton
@@ -389,7 +397,30 @@ interface CostsConfiguration {
                         size="small"
                       ></button>
                     </div>
-                  </ng-container>
+                    <div class="flex align-items-center justify-content-between">
+                      <div class="text-600 text-sm mr-3">
+                        {{ 'import.populateCsv.description' | translate }}
+                      </div>
+                      <div class="flex align-items-center gap-2">
+                        <input
+                          #populateInput
+                          type="file"
+                          accept=".csv,text/csv"
+                          style="display: none;"
+                          (change)="onPopulateFileSelected($event, configuredDomain.domain, populateInput)"
+                        />
+                        <button
+                          pButton
+                          type="button"
+                          icon="pi pi-upload"
+                          [label]="'import.populateCsv.cta' | translate"
+                          (click)="triggerPopulateUpload(configuredDomain.domain, populateInput)"
+                          [loading]="isPopulateLoading(configuredDomain.domain)"
+                          size="small"
+                        ></button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </p-card>
@@ -782,9 +813,13 @@ export class ImportTemplatePageComponent implements OnInit {
   costsForm: CostsConfiguration = this.defaultCostsConfiguration();
   otherCostDraft: { name: string; amount: number | null } = { name: '', amount: null };
   costsSaveInProgress = false;
+  populateLoading: Partial<Record<DomainKey, boolean>> = { '': false, product: false, orders: false, ads: false };
+  readonly maxCsvSizeBytes = 10 * 1024 * 1024;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
-    { key: 'import.domainOrders', value: 'orders' }
+    { key: 'import.domainProduct', value: 'product' },
+    { key: 'import.domainOrders', value: 'orders' },
+    { key: 'import.domainAds', value: 'ads' }
   ];
 
   ngOnInit(): void {
@@ -1331,6 +1366,86 @@ export class ImportTemplatePageComponent implements OnInit {
         });
       }
     });
+  }
+
+  isPopulateLoading(domain: DomainKey): boolean {
+    return !!this.populateLoading[domain];
+  }
+
+  triggerPopulateUpload(domain: DomainKey, input: HTMLInputElement | null | undefined): void {
+    if (!this.isAdmin || !domain || !input) {
+      return;
+    }
+    input.value = '';
+    input.click();
+  }
+
+  onPopulateFileSelected(event: Event, domain: DomainKey, input: HTMLInputElement | null | undefined): void {
+    if (!this.isAdmin || !domain) {
+      return;
+    }
+    const target = event.target as HTMLInputElement;
+    const file = target?.files?.[0];
+    if (!file) {
+      return;
+    }
+    const filename = (file.name || '').toLowerCase();
+    if (!filename.endsWith('.csv')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.populateCsv.title'),
+        detail: this.translate.instant('import.populateCsv.invalidType')
+      });
+      if (input) {
+        input.value = '';
+      }
+      return;
+    }
+    if (file.size > this.maxCsvSizeBytes) {
+      const limitMb = Math.round(this.maxCsvSizeBytes / 1024 / 1024);
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.translate.instant('import.populateCsv.title'),
+        detail: this.translate.instant('import.populateCsv.tooLarge', { limit: limitMb })
+      });
+      if (input) {
+        input.value = '';
+      }
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    const params: any = { domain, replaceExisting: 'true' };
+    this.populateLoading = { ...this.populateLoading, [domain]: true };
+    this.http.post<DomainPopulationResponse>('/api/import/configure/populate', formData, { params }).subscribe({
+      next: (resp) => {
+        this.populateLoading = { ...this.populateLoading, [domain]: false };
+        const inserted = resp?.inserted ?? 0;
+        const warnings = Array.isArray(resp?.warnings) ? resp.warnings : [];
+        const detail = warnings.length
+          ? this.translate.instant('import.populateCsv.successWithWarnings', { inserted, warnings: warnings.join(' ') })
+          : this.translate.instant('import.populateCsv.success', { inserted });
+        this.messageService.add({
+          severity: warnings.length ? 'warn' : 'success',
+          summary: this.translate.instant('import.success'),
+          detail
+        });
+        this.fetchConfiguredTables();
+      },
+      error: (err) => {
+        this.populateLoading = { ...this.populateLoading, [domain]: false };
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.instant('import.error'),
+          detail: err?.error?.message || this.translate.instant('import.populateCsv.error')
+        });
+      }
+    });
+
+    if (input) {
+      input.value = '';
+    }
   }
 
 

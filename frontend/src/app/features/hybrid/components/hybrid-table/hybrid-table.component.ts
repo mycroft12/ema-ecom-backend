@@ -89,6 +89,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly badgeService = inject(HybridBadgeService);
   private readonly orderService = inject(OrderManagementService);
+  private readonly isConfirmationAgent = this.auth.hasRole('CONFIRMATION_AGENT');
   private readonly imageUploadBusy: Record<string, boolean> = {};
   readonly translationPrefix = this.schemaService.translationNamespace;
   private readonly adSpendUsdToMadRate = environment.currencyRates?.usdToMad ?? 10;
@@ -135,6 +136,9 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   noteValue = '';
   assigningAgent = false;
   noteSaving = false;
+  agentWorkloadLoading = false;
+  hasOngoingOrders = false;
+  takeOrderLoading = false;
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -203,6 +207,24 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   get canAddNotes(): boolean {
     return this.isOrdersContext && this.canEdit;
   }
+  get canSelfAssignOrders(): boolean {
+    return this.isOrdersContext && this.isConfirmationAgent;
+  }
+  get showTakeOrderButton(): boolean {
+    return this.canSelfAssignOrders;
+  }
+  get takeOrderDisabled(): boolean {
+    return this.takeOrderLoading || this.agentWorkloadLoading || this.hasOngoingOrders;
+  }
+  get takeOrderTitle(): string {
+    if (this.agentWorkloadLoading && this.showTakeOrderButton) {
+      return this.translate.instant('common.loading');
+    }
+    if (this.hasOngoingOrders && this.showTakeOrderButton) {
+      return this.translate.instant('orders.takeOrder.blockedActive');
+    }
+    return '';
+  }
   get dialogTitle(): string {
     const key = this.dialogMode === 'create' ? 'common.dialog.addTitle' : 'common.dialog.updateTitle';
     return this.translate.instant(key, { component: this.componentDisplayName });
@@ -248,6 +270,9 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loading = true;
     this.refreshActionPermissions();
+    if (this.canSelfAssignOrders) {
+      this.agentWorkloadLoading = true;
+    }
     // 1) build globalFilterFields from dynamic schema
     this.updateGlobalFilterFields();
     this.updateColumnToggleSelectedLabel();
@@ -343,9 +368,28 @@ export class HybridTableComponent implements OnInit, OnDestroy {
           }
         }
         this.loading = false;
+        this.refreshAgentWorkload();
       },
       error: () => {
         this.loading = false;
+      }
+    });
+  }
+
+  private refreshAgentWorkload(): void {
+    if (!this.canSelfAssignOrders) {
+      return;
+    }
+    this.agentWorkloadLoading = true;
+    this.orderService.currentAgentStatus().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.agentWorkloadLoading = false)
+    ).subscribe({
+      next: status => {
+        this.hasOngoingOrders = !!status?.hasActiveOrders;
+      },
+      error: () => {
+        this.hasOngoingOrders = true;
       }
     });
   }
@@ -1739,6 +1783,49 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       default:
         return undefined;
     }
+  }
+
+  takeNextOrder(): void {
+    if (!this.canSelfAssignOrders || this.takeOrderLoading || this.hasOngoingOrders) {
+      return;
+    }
+    this.takeOrderLoading = true;
+    this.orderService.claimNextOrder().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.takeOrderLoading = false)
+    ).subscribe({
+      next: () => {
+        this.hasOngoingOrders = true;
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('orders.takeOrder.successTitle'),
+          detail: this.translate.instant('orders.takeOrder.success')
+        });
+        this.reloadTable();
+      },
+      error: (err: HttpErrorResponse) => {
+        const key = this.resolveTakeOrderErrorKey(err);
+        this.showWarn(this.translate.instant(key));
+        this.refreshAgentWorkload();
+      }
+    });
+  }
+
+  private resolveTakeOrderErrorKey(err: HttpErrorResponse): string {
+    const raw = (err?.error?.message || err?.message || '').toString().toLowerCase();
+    if (raw.includes('activeorders')) {
+      return 'orders.takeOrder.activeOrders';
+    }
+    if (raw.includes('noavailable')) {
+      return 'orders.takeOrder.noneAvailable';
+    }
+    if (raw.includes('claimconflict')) {
+      return 'orders.takeOrder.claimConflict';
+    }
+    if (raw.includes('notagent')) {
+      return 'orders.takeOrder.notAgent';
+    }
+    return 'orders.takeOrder.error';
   }
 
   openAssignmentDialog(record: Record<string, any>): void {

@@ -346,6 +346,17 @@
     "form": {
       "orderNumberHint": "Attribué automatiquement lors de la création de la commande"
     },
+    "takeOrder": {
+      "cta": "Prendre une commande",
+      "successTitle": "Commande affectée",
+      "success": "Vous êtes affecté à la prochaine commande disponible.",
+      "activeOrders": "Terminez vos commandes en cours avant d'en prendre une nouvelle.",
+      "noneAvailable": "Aucune commande disponible pour le moment.",
+      "claimConflict": "Cette commande vient d'être prise par quelqu'un d'autre. Réessayez.",
+      "notAgent": "Seuls les agents de confirmation peuvent prendre des commandes.",
+      "error": "Impossible d'affecter une nouvelle commande pour le moment.",
+      "blockedActive": "Terminez ou expédiez vos commandes actuelles avant d'en prendre une autre."
+    },
     "newItem": "Nouvelle commande",
     "editItem": "Modifier la commande",
     "configuredSuccess": "Le schéma des commandes a été configuré avec succès"
@@ -455,6 +466,17 @@
     "configuredSource": {
       "dynamic": "Configuration dynamique",
       "google": "Google Sheet"
+    },
+    "rowCountLabel": "Lignes dans la table : {{count}}",
+    "populateCsv": {
+      "title": "Importer via CSV",
+      "description": "Téléchargez un fichier CSV pour remplacer le contenu de la table.",
+      "cta": "Charger un CSV",
+      "success": "Données importées avec succès ({{inserted}} ligne(s)).",
+      "successWithWarnings": "Données importées ({{inserted}} ligne(s)). Avertissements : {{warnings}}",
+      "error": "Échec de l'import des données.",
+      "invalidType": "Seuls les fichiers .csv sont acceptés.",
+      "tooLarge": "Fichier trop volumineux. La taille maximale est de {{limit}} Mo."
     },
     "costs": {
       "description": "Définissez les coûts opérationnels à prendre en compte dans vos calculs de rentabilité.",

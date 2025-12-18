@@ -166,6 +166,17 @@
       "noteSuccessTitle": "Note saved",
       "noteSuccess": "The note was stored successfully.",
       "noteError": "Failed to save the note."
+    },
+    "takeOrder": {
+      "cta": "Take an order",
+      "successTitle": "Order assigned",
+      "success": "You are now assigned to the next available order.",
+      "activeOrders": "Finish your current orders before taking a new one.",
+      "noneAvailable": "No available orders to assign right now.",
+      "claimConflict": "That order was just taken by someone else. Try again.",
+      "notAgent": "Only confirmation agents can take orders.",
+      "error": "Could not assign a new order. Please try again.",
+      "blockedActive": "Complete or ship your current orders before taking another."
     }
   },
   "ads": {
@@ -512,6 +523,16 @@
       "google": "Google Sheet"
     },
     "rowCountLabel": "Rows in table: {{count}}",
+    "populateCsv": {
+      "title": "Populate from CSV",
+      "description": "Upload a CSV to replace the table contents.",
+      "cta": "Upload CSV",
+      "success": "Data imported successfully ({{inserted}} row(s)).",
+      "successWithWarnings": "Data imported ({{inserted}} row(s)). Warnings: {{warnings}}",
+      "error": "Failed to import data.",
+      "invalidType": "Only .csv files are supported.",
+      "tooLarge": "File is too large. Maximum allowed is {{limit}} MB."
+    },
     "costs": {
       "description": "Track the operating costs you want to include in profitability calculations.",
       "agentCommission": "Agent commission (DH)",

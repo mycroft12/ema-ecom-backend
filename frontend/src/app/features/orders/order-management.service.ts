@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
-import { HybridEntityRecord } from '../hybrid/models/hybrid-entity.model';
+import { HybridEntityRecord, HybridRawEntityDto } from '../hybrid/models/hybrid-entity.model';
 
 export interface OrderAgent {
   id: string;
@@ -16,6 +16,11 @@ export interface OrderStatus {
   displayOrder: number;
   labelEn: string;
   labelFr: string;
+}
+
+export interface AgentOrderStatus {
+  activeOrders: number;
+  hasActiveOrders: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,5 +50,13 @@ export class OrderManagementService {
 
   deleteStatus(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiBase}/api/orders/statuses/${id}`);
+  }
+
+  currentAgentStatus(): Observable<AgentOrderStatus> {
+    return this.http.get<AgentOrderStatus>(`${this.apiBase}/api/orders/agents/me/active-orders`);
+  }
+
+  claimNextOrder(): Observable<HybridRawEntityDto> {
+    return this.http.post<HybridRawEntityDto>(`${this.apiBase}/api/orders/claim`, {});
   }
 }
