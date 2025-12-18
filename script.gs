@@ -7,32 +7,36 @@ function onEdit(e) {
   const ss = sheet.getParent();
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  //const values = sheet.getRange(e.range.getRow(), 1, headers.length).getValues()[0];
-  const values = sheet
-  .getRange(e.range.getRow(), 1, 1, headers.length) // 1 row, N columns
-  .getValues()[0];
+  const startRow = e.range.getRow();
+  const numRows = e.range.getNumRows();
+  const valuesMatrix = sheet.getRange(startRow, 1, numRows, headers.length).getValues();
 
+  valuesMatrix.forEach((values, index) => {
+    const rowNumber = startRow + index;
+    if (rowNumber === 1) {
+      return;
+    }
+    const payload = {
+      domain: DOMAIN,
+      spreadsheetId: ss.getId(),
+      tabName: sheet.getName(),
+      rowNumber,
+      action: values.join('').trim() ? 'UPSERT' : 'DELETE',
+      row: buildRow(headers, values)
+    };
 
-  const payload = {
-    domain: DOMAIN,
-    spreadsheetId: ss.getId(),
-    tabName: sheet.getName(),
-    rowNumber: e.range.getRow(),
-    action: values.join('').trim() ? 'UPSERT' : 'DELETE',
-    row: buildRow(headers, values)
-  };
+    const response = UrlFetchApp.fetch(WEBHOOK_URL, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      // change the header name away from X-Google-*
+      headers: { 'X-Webhook-Secret': WEBHOOK_SECRET },
+      muteHttpExceptions: true,
+      followRedirects: false
+    });
 
-  const response = UrlFetchApp.fetch(WEBHOOK_URL, {
-    method: 'post',
-    contentType: 'application/json',
-    payload: JSON.stringify(payload),
-    // change the header name away from X-Google-*
-    headers: { 'X-Webhook-Secret': WEBHOOK_SECRET },
-    muteHttpExceptions: true,
-    followRedirects: false
+    Logger.log('Row=%s Status=%s Body=%s', rowNumber, response.getResponseCode(), response.getContentText());
   });
-
-  Logger.log('Status=%s Body=%s', response.getResponseCode(), response.getContentText());
 }
 
 function buildRow(headers, values) {

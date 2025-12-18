@@ -28,6 +28,7 @@ public class OrderAssignmentService {
   private static final Logger log = LoggerFactory.getLogger(OrderAssignmentService.class);
   private static final String AGENT_ROLE = "CONFIRMATION_AGENT";
   private static final Set<String> COMPLETED_STATUSES = Set.of("shipped", "confirmed");
+  private static final String NEW_STATUS = "new";
 
   private final UserRepository userRepository;
   private final HybridEntityService hybridEntityService;
@@ -135,18 +136,16 @@ public class OrderAssignmentService {
   }
 
   private Optional<UUID> findFirstAvailableOrder() {
-    List<Object> args = new ArrayList<>(COMPLETED_STATUSES);
+    List<Object> args = new ArrayList<>();
+    args.add(NEW_STATUS);
     String table = ordersTable();
-    String orderClause = hasColumn(table, "created_at")
-        ? "created_at asc nulls first, id asc"
-        : "id asc";
     String sql = """
         select id from %s
          where (assigned_agent is null or trim(assigned_agent) = '')
-           and coalesce(lower(trim(status)), '') not in (%s)
-         order by %s
+           and coalesce(lower(trim(status)), '') = ?
+         order by random()
          limit 1
-        """.formatted(table, placeholders(COMPLETED_STATUSES.size()), orderClause);
+        """.formatted(table);
     try {
       UUID id = jdbcTemplate.queryForObject(sql, UUID.class, args.toArray());
       return Optional.ofNullable(id);
@@ -159,13 +158,13 @@ public class OrderAssignmentService {
     List<Object> args = new ArrayList<>();
     args.add(agentIdentifier == null ? null : agentIdentifier.trim());
     args.add(orderId);
-    args.addAll(COMPLETED_STATUSES);
+    args.add(NEW_STATUS);
     String sql = """
         update %s set assigned_agent = ?
          where id = ?
            and (assigned_agent is null or trim(assigned_agent) = '')
-           and coalesce(lower(trim(status)), '') not in (%s)
-        """.formatted(ordersTable(), placeholders(COMPLETED_STATUSES.size()));
+           and coalesce(lower(trim(status)), '') = ?
+        """.formatted(ordersTable());
     int updated = jdbcTemplate.update(sql, args.toArray());
     return updated > 0;
   }
@@ -203,28 +202,6 @@ public class OrderAssignmentService {
       } catch (Exception ex) {
         log.warn("Failed to ensure assignment columns are present: {}", ex.getMessage());
       }
-    }
-  }
-
-  private boolean hasColumn(String table, String columnName) {
-    try {
-      Boolean exists = jdbcTemplate.queryForObject(
-          """
-              select exists (
-                select 1 from information_schema.columns
-                where table_schema = current_schema()
-                  and table_name = ?
-                  and column_name = ?
-              )
-              """,
-          Boolean.class,
-          table,
-          columnName == null ? null : columnName.trim().toLowerCase(Locale.ROOT)
-      );
-      return Boolean.TRUE.equals(exists);
-    } catch (Exception ex) {
-      log.warn("Failed to check column '{}' on '{}': {}", columnName, table, ex.getMessage());
-      return false;
     }
   }
 

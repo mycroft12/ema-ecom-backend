@@ -232,13 +232,20 @@ export class HybridSchemaService {
     if (hasWildcard) {
       return columns;
     }
-    return columns.filter(col => {
+    const filtered = columns.filter(col => {
       if (!col?.name) {
         return true;
       }
       const required = (prefix + col.name).toLowerCase();
       return normalizedPerms.has(required);
     });
+    if (filtered.length > 0) {
+      return filtered;
+    }
+    if (normalizedPerms.has(`${entity}:read`)) {
+      return columns;
+    }
+    return filtered;
   }
 
   private normalizeColumnDefinition(column: HybridColumnDefinition): HybridColumnDefinition {
