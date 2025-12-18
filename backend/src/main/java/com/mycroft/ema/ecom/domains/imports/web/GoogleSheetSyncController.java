@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,13 +55,62 @@ public class GoogleSheetSyncController {
     }
 
     try {
-      syncService.syncRow(request);
+      GoogleSheetSyncRequest normalized = applyDefaultStatus(request);
+      syncService.syncRow(normalized);
       return ResponseEntity.accepted().build();
     } catch (IllegalArgumentException ex) {
       return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
     } catch (Exception ex) {
       return ResponseEntity.internalServerError().body(Map.of("error", "Failed to process sync request"));
     }
+  }
+
+  private GoogleSheetSyncRequest applyDefaultStatus(GoogleSheetSyncRequest request) {
+    if (request == null) {
+      return null;
+    }
+    if (!isOrdersDomain(request.domain())) {
+      return request;
+    }
+    Map<String, Object> row = request.row();
+    if (row == null || row.isEmpty()) {
+      return request;
+    }
+    Object statusValue = extractStatusValue(row);
+    if (statusValue != null && !(statusValue instanceof String s && s.trim().isEmpty())) {
+      return request;
+    }
+    Map<String, Object> nextRow = new LinkedHashMap<>(row);
+    nextRow.put("status", "New");
+    return new GoogleSheetSyncRequest(
+        request.domain(),
+        request.spreadsheetId(),
+        request.tabName(),
+        request.rowNumber(),
+        request.action(),
+        nextRow
+    );
+  }
+
+  private Object extractStatusValue(Map<String, Object> row) {
+    if (row == null) {
+      return null;
+    }
+    for (Map.Entry<String, Object> entry : row.entrySet()) {
+      String key = entry.getKey();
+      if (key == null) {
+        continue;
+      }
+      if ("status".equalsIgnoreCase(key.trim())) {
+        return entry.getValue();
+      }
+    }
+    return null;
+  }
+
+  private boolean isOrdersDomain(String domain) {
+    String normalized = domain == null ? "" : domain.trim().toLowerCase(Locale.ROOT);
+    return "orders".equals(normalized) || "order".equals(normalized);
   }
 
   private boolean isAuthorized(Authentication authentication, String providedSecret, String tokenParam) {
