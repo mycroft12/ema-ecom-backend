@@ -37,7 +37,7 @@ export class HybridTableDataService {
     this.resetState();
   }
 
-  loadRecords(event: TableLazyLoadEvent): Observable<HybridPageResponse> {
+  loadRecords(event: TableLazyLoadEvent, ordersView?: 'new' | 'done' | null): Observable<HybridPageResponse> {
     const entity = this.ensureEntityContext();
     this.loadingSignal.set(true);
 
@@ -52,6 +52,10 @@ export class HybridTableDataService {
 
     if (event.globalFilter) {
       params = params.set('q', event.globalFilter);
+    }
+
+    if (ordersView && entity === 'orders') {
+      params = params.set('ordersView', ordersView);
     }
 
     if (event.filters) {

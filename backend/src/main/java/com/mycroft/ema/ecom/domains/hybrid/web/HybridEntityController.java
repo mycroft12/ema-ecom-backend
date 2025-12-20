@@ -37,6 +37,7 @@ public class HybridEntityController {
       description = "Search any configured entity type with pagination. includeSchema=true returns dynamic columns metadata.")
   public HybridResponseDto.SearchResponse search(@PathVariable String entityType,
                                                  @RequestParam(required = false) String q,
+                                                 @RequestParam(value = "ordersView", required = false) String ordersView,
                                                  @RequestParam(defaultValue = "false") boolean includeSchema,
                                                  Pageable pageable,
                                                  @RequestParam MultiValueMap<String, String> requestParams) {
@@ -46,7 +47,7 @@ public class HybridEntityController {
         filterParams.put(key, values);
       }
     });
-    var page = service.search(entityType, q, filterParams, pageable);
+    var page = service.search(entityType, q, filterParams, pageable, ordersView);
     List<HybridResponseDto.ColumnDto> columns = includeSchema ? service.listColumns(entityType) : null;
     return HybridResponseDto.SearchResponse.of(page, columns);
   }

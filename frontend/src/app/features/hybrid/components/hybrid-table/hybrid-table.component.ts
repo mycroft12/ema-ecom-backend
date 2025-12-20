@@ -1,4 +1,16 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, effect, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  ViewChild,
+  effect,
+  inject
+} from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
@@ -39,6 +51,8 @@ import { HybridBadgeService, HybridUpsertEvent } from '../../services/hybrid-bad
 import { OrderAgent, OrderManagementService } from '../../../orders/order-management.service';
 import { environment } from '../../../../../environments/environment';
 
+type OrdersView = 'new' | 'done';
+
 const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
 
 @Component({
@@ -76,10 +90,12 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
   templateUrl: './hybrid-table.component.html',
   styleUrls: ['./hybrid-table.component.scss']
 })
-export class HybridTableComponent implements OnInit, OnDestroy {
+export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('dt1') dt1!: Table;
   @ViewChild('dialogBody') dialogBody?: ElementRef<HTMLDivElement>;
   @ViewChild('recordForm') dialogFormDirective?: NgForm;
+  @Input() ordersView: OrdersView | null = null;
+  @Input() showTitle = true;
 
   readonly dataService = inject(HybridTableDataService);
   readonly schemaService = inject(HybridSchemaService);
@@ -102,7 +118,6 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   HybridColumnType = HybridColumnType; // expose enum for TS helpers
   ColumnType = HybridColumnType; // backward-compatible alias for template bindings
-
   loading = false;
   searchValue?: string;
   globalFilterFields: string[] = [];
@@ -120,6 +135,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private lastLazyLoadEvent: TableLazyLoadEvent | null = null;
+  private initialized = false;
   private readonly realtimeEffectRef = effect(() => {
     const realtimeEvent = this.badgeService.upsertEvents()();
     if (realtimeEvent) {
@@ -183,9 +199,29 @@ export class HybridTableComponent implements OnInit, OnDestroy {
   get canEdit(): boolean { return this.permissionsState.edit; }
   get canDelete(): boolean { return this.permissionsState.delete; }
   get canExport(): boolean { return this.permissionsState.export; }
-  get showActionColumn(): boolean { return this.canEdit || this.canDelete; }
+  get showActionColumn(): boolean {
+    if (this.isOrdersDoneView) {
+      return false;
+    }
+    return this.canEdit || this.canDelete;
+  }
   get isOrdersContext(): boolean {
     return (this.schemaService.entityTypeName ?? '').toLowerCase() === 'orders';
+  }
+  get isOrdersDoneView(): boolean {
+    return this.isOrdersContext && this.ordersView === 'done';
+  }
+  get isOrdersNewView(): boolean {
+    return this.isOrdersContext && (!this.ordersView || this.ordersView === 'new');
+  }
+  get isOrdersScopedAgent(): boolean {
+    if (!this.isOrdersContext) {
+      return false;
+    }
+    if (!this.isConfirmationAgent) {
+      return false;
+    }
+    return !(this.auth.hasRole('ADMIN') || this.auth.hasRole('SUPERVISOR'));
   }
   get isAdsContext(): boolean {
     return (this.schemaService.entityTypeName ?? '').toLowerCase() === 'ads';
@@ -211,7 +247,13 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     return this.isOrdersContext && this.isConfirmationAgent;
   }
   get showTakeOrderButton(): boolean {
-    return this.canSelfAssignOrders;
+    return this.canSelfAssignOrders && !this.isOrdersDoneView;
+  }
+  get showPrimaryActions(): boolean {
+    if (this.isOrdersDoneView) {
+      return false;
+    }
+    return this.canAdd || this.showTakeOrderButton;
   }
   get takeOrderDisabled(): boolean {
     return this.takeOrderLoading || this.agentWorkloadLoading || this.hasOngoingOrders;
@@ -290,6 +332,13 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       filters: undefined,
       globalFilter: undefined
     });
+    this.initialized = true;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['ordersView'] && !changes['ordersView'].firstChange && this.initialized && this.isOrdersContext) {
+      this.onOrdersViewChange();
+    }
   }
 
   ngOnDestroy(): void {
@@ -303,6 +352,21 @@ export class HybridTableComponent implements OnInit, OnDestroy {
     this.rows = event.rows ?? this.rows;
     this.first = event.first ?? 0;
     this.loadData(event);
+  }
+
+  private onOrdersViewChange(): void {
+    this.first = 0;
+    if (this.dt1) {
+      this.dt1.first = 0;
+    }
+    this.loadData({
+      first: 0,
+      rows: this.rows,
+      sortField: this.sortField ?? (this.dt1 as any)?.sortField,
+      sortOrder: this.sortOrder ?? (this.dt1 as any)?.sortOrder,
+      filters: (this.dt1 as any)?.filters,
+      globalFilter: this.searchValue
+    });
   }
 
   private loadData(event: TableLazyLoadEvent) {
@@ -319,7 +383,7 @@ export class HybridTableComponent implements OnInit, OnDestroy {
       ...event,
       sortField: this.sortField,
       sortOrder: this.sortOrder
-    }).subscribe({
+    }, this.ordersView ?? null).subscribe({
       next: resp => {
         this.totalRecords = resp.totalElements ?? 0;
         // 3) once data is in memory, derive example-like options dynamically

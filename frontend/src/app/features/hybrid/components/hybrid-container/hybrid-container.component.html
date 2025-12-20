@@ -8,6 +8,38 @@
   } @else if (!schemaService.isConfigured()) {
     <app-hybrid-schema-configuration />
   } @else {
-    <app-hybrid-table />
+    @if (showOrdersTabs) {
+      <div class="page-title">{{ 'orders.title' | translate }}</div>
+    }
+    @if (showOrdersTabs) {
+      <div class="orders-tabs" role="tablist" aria-label="Orders view">
+        <button
+          type="button"
+          class="orders-tab"
+          [class.active]="activeOrdersTab === 'new'"
+          (click)="switchOrdersTab('new')"
+          role="tab"
+          [attr.aria-selected]="activeOrdersTab === 'new'"
+        >
+          <i class="pi pi-plus-circle" aria-hidden="true"></i>
+          <span>{{ 'orders.tabs.new' | translate }}</span>
+        </button>
+        <button
+          type="button"
+          class="orders-tab"
+          [class.active]="activeOrdersTab === 'done'"
+          (click)="switchOrdersTab('done')"
+          role="tab"
+          [attr.aria-selected]="activeOrdersTab === 'done'"
+        >
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          <span>{{ 'orders.tabs.done' | translate }}</span>
+        </button>
+      </div>
+    }
+    <app-hybrid-table
+      [ordersView]="showOrdersTabs ? activeOrdersTab : null"
+      [showTitle]="!showOrdersTabs"
+    />
   }
 </div>

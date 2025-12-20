@@ -15,7 +15,7 @@ import java.util.UUID;
  * Facade for CRUD and search operations over dynamically configured hybrid entities.
  */
 public interface HybridEntityService {
-  Page<HybridViewDto> search(String entityType, String q, MultiValueMap<String, String> filters, Pageable pageable);
+  Page<HybridViewDto> search(String entityType, String q, MultiValueMap<String, String> filters, Pageable pageable, String ordersView);
   List<HybridResponseDto.ColumnDto> listColumns(String entityType);
   HybridViewDto create(String entityType, HybridCreateDto dto);
   HybridViewDto update(String entityType, UUID id, HybridUpdateDto dto);

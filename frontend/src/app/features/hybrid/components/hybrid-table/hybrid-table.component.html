@@ -1,5 +1,5 @@
 <div class="card">
-    <div class="font-semibold text-xl mb-4">{{ (translationPrefix + '.title') | translate }}</div>
+    <div class="font-semibold text-xl mb-4" *ngIf="showTitle">{{ (translationPrefix + '.title') | translate }}</div>
 
     <div class="card">
         <p-table
@@ -48,7 +48,7 @@
                                     [title]="(translationPrefix + '.exportExcelTooltip') | translate"
                             ></p-button>
                         </div>
-                        <div class="caption-row__right" *ngIf="canAdd || showTakeOrderButton">
+                        <div class="caption-row__right" *ngIf="showPrimaryActions">
                             <p-button
                                     *ngIf="showTakeOrderButton"
                                     class="take-order-button"

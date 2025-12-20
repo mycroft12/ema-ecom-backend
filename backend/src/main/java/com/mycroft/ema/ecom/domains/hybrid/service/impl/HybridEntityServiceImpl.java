@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 public class HybridEntityServiceImpl implements HybridEntityService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridEntityServiceImpl.class);
+  private static final List<String> ORDER_DONE_STATUSES = List.of("shipped", "delivered");
 
   private final JdbcTemplate jdbc;
   private final DomainImportService domainImportService;
@@ -73,7 +74,11 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   }
 
   @Override
-  public Page<HybridViewDto> search(String entityType, String q, MultiValueMap<String, String> filters, Pageable pageable) {
+  public Page<HybridViewDto> search(String entityType,
+                                    String q,
+                                    MultiValueMap<String, String> filters,
+                                    Pageable pageable,
+                                    String ordersView) {
     String table = ensureConfigured(entityType);
     Map<String, ColumnMeta> columnLookup = columnMetadata(table);
     List<String> searchableColumns = columnLookup.values().stream()
@@ -108,6 +113,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     }
 
     applyOrderAgentRestriction(entityType, columnLookup, whereParts, filterArgs);
+    applyOrdersViewRestriction(entityType, ordersView, columnLookup, whereParts, filterArgs);
 
     String whereClause = whereParts.isEmpty() ? "" : " where " + String.join(" and ", whereParts);
 
@@ -422,10 +428,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     if (!"orders".equalsIgnoreCase(entityType)) {
       return;
     }
-    if (!currentUserService.hasRole("CONFIRMATION_AGENT")) {
-      return;
-    }
-    if (currentUserService.hasAnyRole("ADMIN", "SUPERVISOR")) {
+    if (!isScopedConfirmationAgent()) {
       return;
     }
     if (!columnLookup.containsKey("assigned_agent")) {
@@ -439,6 +442,49 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     }
     whereParts.add("lower(assigned_agent) = ?");
     args.add(username.trim().toLowerCase(Locale.ROOT));
+  }
+
+  private boolean isScopedConfirmationAgent() {
+    if (!currentUserService.hasRole("CONFIRMATION_AGENT")) {
+      return false;
+    }
+    return !currentUserService.hasAnyRole("ADMIN", "SUPERVISOR");
+  }
+
+  private void applyOrdersViewRestriction(String entityType,
+                                          String ordersView,
+                                          Map<String, ColumnMeta> columnLookup,
+                                          List<String> whereParts,
+                                          List<Object> args) {
+    if (!"orders".equalsIgnoreCase(entityType)) {
+      return;
+    }
+    String normalizedView = Optional.ofNullable(ordersView)
+        .map(String::trim)
+        .map(v -> v.toLowerCase(Locale.ROOT))
+        .orElse("");
+    if (normalizedView.isEmpty()) {
+      return;
+    }
+    ColumnMeta statusMeta = columnLookup.get("status");
+    if (statusMeta == null || !StringUtils.hasText(statusMeta.name())) {
+      return;
+    }
+    String statusColumn = statusMeta.name();
+    String placeholders = ORDER_DONE_STATUSES.stream().map(_v -> "?").collect(Collectors.joining(","));
+    if ("done".equals(normalizedView)) {
+      whereParts.add("lower(" + statusColumn + ") in (" + placeholders + ")");
+      ORDER_DONE_STATUSES.stream()
+          .map(v -> v.toLowerCase(Locale.ROOT))
+          .forEach(args::add);
+      return;
+    }
+    if ("new".equals(normalizedView) && isScopedConfirmationAgent()) {
+      whereParts.add("lower(" + statusColumn + ") not in (" + placeholders + ")");
+      ORDER_DONE_STATUSES.stream()
+          .map(v -> v.toLowerCase(Locale.ROOT))
+          .forEach(args::add);
+    }
   }
 
   private String resolveAgentIdentifier(User user) {

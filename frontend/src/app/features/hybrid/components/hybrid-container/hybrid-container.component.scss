@@ -1,1 +1,39 @@
 .hybrid-container {}
+
+.orders-tabs {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.orders-tab {
+  border: 1px solid #d0d7de;
+  background: #fff;
+  color: #475467;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    border-color: #52c41a;
+    color: #389e0d;
+  }
+
+  &.active {
+    background: linear-gradient(135deg, #52c41a, #389e0d);
+    border-color: #389e0d;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(82, 196, 26, 0.24);
+  }
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}

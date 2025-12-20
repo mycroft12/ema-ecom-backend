@@ -73,6 +73,10 @@
   },
   "orders": {
     "title": "Orders",
+    "tabs": {
+      "new": "New Orders",
+      "done": "Orders Done"
+    },
     "newItem": "New order",
     "editItem": "Edit order",
     "configureHeader": "Configure Orders",

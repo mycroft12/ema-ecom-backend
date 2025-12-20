@@ -273,6 +273,10 @@
   },
   "orders": {
     "title": "Commandes",
+    "tabs": {
+      "new": "Nouvelles commandes",
+      "done": "Commandes terminées"
+    },
     "configureHeader": "Configurer les commandes",
     "configureSubheader": "Téléchargez un modèle Excel ou CSV pour définir votre flux de commandes",
     "notConfigured": "Les commandes ne sont pas encore configurées. Veuillez téléverser un modèle pour commencer.",
