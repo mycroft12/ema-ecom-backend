@@ -297,7 +297,7 @@
                      }"></i>
                                 }
                                 @case (ColumnType.DATE) {
-                                    {{ record[column.name] | date:'MM/dd/yyyy' }}
+                                    {{ formatDateValue(record[column.name]) }}
                                 }
                                 @case (ColumnType.DECIMAL) {
                                     {{ record[column.name] | number:'1.2-2' }}
@@ -329,7 +329,7 @@
                                                     <p-progressbar [value]="record[column.name]" [showValue]="false"></p-progressbar>
                                                 </ng-container>
                                                 <ng-template #plainCell>
-                                                    {{ record[column.name] }}
+                                                    {{ isDateLikeColumn(column) ? formatDateValue(record[column.name]) : record[column.name] }}
                                                 </ng-template>
                                             </ng-template>
                                         </ng-template>

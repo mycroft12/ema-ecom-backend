@@ -2,6 +2,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -11,7 +12,7 @@ import {
   effect,
   inject
 } from '@angular/core';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { CommonModule, DOCUMENT, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -79,14 +80,14 @@ const DEFAULT_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
     MessageModule,
     InputNumberModule,
     InputSwitchModule,
-    DatePicker,
-    DialogModule,
-    InputTextarea,
-    SharedDialogComponent,
-    OrderListModule,
-    OverlayPanelModule
-  ],
-  providers: [MessageService, ConfirmationService],
+  DatePicker,
+  DialogModule,
+  InputTextarea,
+  SharedDialogComponent,
+  OrderListModule,
+  OverlayPanelModule
+],
+  providers: [MessageService, ConfirmationService, DatePipe],
   templateUrl: './hybrid-table.component.html',
   styleUrls: ['./hybrid-table.component.scss']
 })
@@ -101,6 +102,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
   readonly schemaService = inject(HybridSchemaService);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly datePipe = inject(DatePipe);
   readonly translate = inject(TranslateService);
   private readonly auth = inject(AuthService);
   private readonly badgeService = inject(HybridBadgeService);
@@ -865,6 +867,29 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     } catch {
       return `${value.toFixed(2)} ${currencyCode}`;
     }
+  }
+
+  formatDateValue(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+    const formatted = this.datePipe.transform(date, 'dd-MM-yyyy HH:mm:ss');
+    return formatted ?? String(value);
+  }
+
+  isDateLikeColumn(column: HybridColumnDefinition): boolean {
+    if (!column) {
+      return false;
+    }
+    if (column.type === HybridColumnType.DATE) {
+      return true;
+    }
+    const name = (column.name ?? '').toLowerCase();
+    return name === 'created_at' || name.endsWith('_at') || name.includes('date');
   }
 
   private queueFocusOnDialog(): void {
