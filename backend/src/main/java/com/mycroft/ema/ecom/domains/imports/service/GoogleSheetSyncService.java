@@ -54,6 +54,9 @@ public class GoogleSheetSyncService {
   public void syncRow(GoogleSheetSyncRequest request) {
     String domain = normalizeDomain(request.domain());
     GoogleImportConfig config = resolveConfig(domain, request);
+    String action = Optional.ofNullable(request.action())
+        .map(a -> a.trim().toUpperCase(Locale.ROOT))
+        .orElse("UPSERT");
 
     String table = domainImportService.tableForDomain(domain);
     Map<String, Object> sanitizedRow = sanitizeRow(request.row());
@@ -68,14 +71,15 @@ public class GoogleSheetSyncService {
 
     sanitizedRow.keySet().removeIf(col -> !allowedColumns.contains(col));
     handleMinioPayloads(sanitizedRow);
+    if (!"DELETE".equals(action)
+        && allowedColumns.contains("created_at")
+        && isNullOrBlank(sanitizedRow.get("created_at"))) {
+      sanitizedRow.put("created_at", Timestamp.from(Instant.now()));
+    }
     coerceColumnValues(sanitizedRow, columnTypes);
     if (!allowedColumns.contains("id")) {
       throw new IllegalStateException("Table '" + table + "' must contain an 'id' column for sync operations.");
     }
-
-    String action = Optional.ofNullable(request.action())
-        .map(a -> a.trim().toUpperCase(Locale.ROOT))
-        .orElse("UPSERT");
 
     UUID rowId = resolveRowId(sanitizedRow, action);
     sanitizedRow.put("id", rowId);
@@ -252,6 +256,16 @@ public class GoogleSheetSyncService {
       return trimmed.isEmpty() ? null : trimmed;
     }
     return value;
+  }
+
+  private boolean isNullOrBlank(Object value) {
+    if (value == null) {
+      return true;
+    }
+    if (value instanceof String str) {
+      return str.trim().isEmpty();
+    }
+    return false;
   }
 
   private UUID resolveRowId(Map<String, Object> row, String action) {
