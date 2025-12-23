@@ -293,6 +293,7 @@
       "reset": "Reset",
       "collapse": "Collapse",
       "expand": "Expand",
+      "statusLabel": "Filters ready",
       "anyAgent": "All agents",
       "anyMediaBuyer": "All media buyers",
       "anyProduct": "All products",

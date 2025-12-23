@@ -26,12 +26,14 @@ import { Subscription } from 'rxjs';
                     <h2 class="mt-0 mb-1">{{ 'dashboardPage.title' | translate }}</h2>
                     <p class="text-600 mb-0">{{ 'dashboardPage.subtitle' | translate }}</p>
                   </div>
-                  <div class="flex align-items-center gap-2 text-500 text-sm">
-                    <i class="pi pi-clock text-primary"></i>
-                    <ng-container *ngIf="statsLoading || kpisLoading; else metricsReady">
-                      {{ 'dashboardPage.stats.loading' | translate }}
-                    </ng-container>
-                    <ng-template #metricsReady>{{ 'dashboardPage.stats.updated' | translate }}</ng-template>
+                  <div class="flex align-items-center gap-3 text-500 text-sm">
+                    <span class="flex align-items-center gap-2">
+                      <i class="pi pi-clock text-primary"></i>
+                      <ng-container *ngIf="statsLoading || kpisLoading; else metricsReady">
+                        {{ 'dashboardPage.stats.loading' | translate }}
+                      </ng-container>
+                      <ng-template #metricsReady>{{ 'dashboardPage.filters.statusLabel' | translate }}</ng-template>
+                    </span>
                     <button
                       pButton
                       type="button"
