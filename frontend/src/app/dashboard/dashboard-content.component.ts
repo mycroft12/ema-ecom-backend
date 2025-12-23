@@ -14,66 +14,94 @@ import { Subscription } from 'rxjs';
     <div>
       <div class="grid mb-4">
         <div class="col-12">
-          <div class="surface-card border-round p-4 shadow-2">
-            <div class="flex align-items-start justify-content-between flex-column md:flex-row gap-3">
-              <div>
-                <h3 class="mt-0 mb-1">{{ 'dashboardPage.filters.title' | translate }}</h3>
-                <p class="text-600 mb-0">{{ 'dashboardPage.filters.subtitle' | translate }}</p>
+          <div class="surface-card border-round-xl p-4 shadow-2">
+            <div class="grid align-items-start">
+              <div class="col-12 lg:col-7 flex flex-column gap-3">
+                <div class="flex align-items-center justify-content-between flex-column sm:flex-row gap-2">
+                  <div>
+                    <p class="text-xs text-primary font-semibold mb-1">{{ 'dashboardPage.filters.title' | translate }}</p>
+                    <h2 class="mt-0 mb-1">{{ 'dashboardPage.title' | translate }}</h2>
+                    <p class="text-600 mb-0">{{ 'dashboardPage.subtitle' | translate }}</p>
+                  </div>
+                  <span class="flex align-items-center gap-2 text-500 text-sm">
+                    <i class="pi pi-clock text-primary"></i>
+                    <ng-container *ngIf="statsLoading || kpisLoading; else metricsReady">
+                      {{ 'dashboardPage.stats.loading' | translate }}
+                    </ng-container>
+                    <ng-template #metricsReady>{{ 'dashboardPage.stats.updated' | translate }}</ng-template>
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    *ngFor="let preset of timeframePresets"
+                    pButton
+                    type="button"
+                    class="p-button-sm"
+                    [ngClass]="{'p-button-outlined': filterForm.timeframe !== preset.key}"
+                    (click)="setTimeframe(preset.key)">
+                    {{ preset.labelKey | translate }}
+                  </button>
+                  <div class="inline-flex align-items-center px-3 py-2 border-1 border-200 surface-100 text-sm text-700 border-round">
+                    <i class="pi pi-calendar mr-2 text-primary"></i>
+                    <span>{{ activeDateRangeLabel }}</span>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-2" *ngIf="activeFilterBadges.length">
+                  <span
+                    *ngFor="let badge of activeFilterBadges"
+                    class="py-1 px-2 surface-100 border-round border-1 border-200 text-sm text-700">
+                    <i [class]="badge.icon" class="mr-2 text-primary"></i>{{ badge.label }}: <strong>{{ badge.value }}</strong>
+                  </span>
+                </div>
               </div>
-              <div class="flex align-items-center gap-2 flex-wrap">
-                <button pButton type="button" class="p-button-outlined" (click)="resetFilters()">
-                  {{ 'dashboardPage.filters.reset' | translate }}
-                </button>
-                <button pButton type="button" (click)="applyFilters()">
-                  {{ 'dashboardPage.filters.apply' | translate }}
-                </button>
-              </div>
-            </div>
-            <div class="grid mt-3">
-              <div class="col-12 md:col-3">
-                <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.timeframe' | translate }}</label>
-                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.timeframe" (ngModelChange)="onTimeframeChange()">
-                  <option value="all">{{ 'dashboardPage.filters.timeframes.all' | translate }}</option>
-                  <option value="daily">{{ 'dashboardPage.filters.timeframes.daily' | translate }}</option>
-                  <option value="monthly">{{ 'dashboardPage.filters.timeframes.monthly' | translate }}</option>
-                  <option value="yearly">{{ 'dashboardPage.filters.timeframes.yearly' | translate }}</option>
-                  <option value="custom">{{ 'dashboardPage.filters.timeframes.custom' | translate }}</option>
-                </select>
-              </div>
-              <div class="col-12 md:col-3">
-                <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.from' | translate }}</label>
-                <input type="date" class="p-inputtext p-component w-full" [(ngModel)]="customDateFrom" [disabled]="filterForm.timeframe !== 'custom'">
-              </div>
-              <div class="col-12 md:col-3">
-                <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.to' | translate }}</label>
-                <input type="date" class="p-inputtext p-component w-full" [(ngModel)]="customDateTo" [disabled]="filterForm.timeframe !== 'custom'">
-              </div>
-              <div class="col-12 md:col-3">
-                <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.agent' | translate }}</label>
-                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.agent">
-                  <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyAgent' | translate }}</option>
-                  <option *ngFor="let agent of agentOptions" [ngValue]="agent.label">
-                    {{ agent.label }}
-                  </option>
-                </select>
-              </div>
-              <div class="col-12 md:col-3">
-                <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.mediaBuyer' | translate }}</label>
-                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.mediaBuyer">
-                  <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyMediaBuyer' | translate }}</option>
-                  <option *ngFor="let buyer of mediaBuyerOptions" [ngValue]="buyer.label">
-                    {{ buyer.label }}
-                  </option>
-                </select>
-              </div>
-              <div class="col-12 md:col-3">
-                <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.product' | translate }}</label>
-                <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.product">
-                  <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyProduct' | translate }}</option>
-                  <option *ngFor="let product of productOptions" [ngValue]="product.label">
-                    {{ product.label }}
-                  </option>
-                </select>
+              <div class="col-12 lg:col-5">
+                <div class="surface-ground border-round p-3">
+                  <div class="grid">
+                    <div class="col-12 md:col-6">
+                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.from' | translate }}</label>
+                      <input type="date" class="p-inputtext p-component w-full" [(ngModel)]="customDateFrom" [disabled]="filterForm.timeframe !== 'custom'">
+                    </div>
+                    <div class="col-12 md:col-6">
+                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.to' | translate }}</label>
+                      <input type="date" class="p-inputtext p-component w-full" [(ngModel)]="customDateTo" [disabled]="filterForm.timeframe !== 'custom'">
+                    </div>
+                    <div class="col-12 md:col-6">
+                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.agent' | translate }}</label>
+                      <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.agent">
+                        <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyAgent' | translate }}</option>
+                        <option *ngFor="let agent of agentOptions" [ngValue]="agent.label">
+                          {{ agent.label }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-12 md:col-6">
+                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.mediaBuyer' | translate }}</label>
+                      <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.mediaBuyer">
+                        <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyMediaBuyer' | translate }}</option>
+                        <option *ngFor="let buyer of mediaBuyerOptions" [ngValue]="buyer.label">
+                          {{ buyer.label }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.product' | translate }}</label>
+                      <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.product">
+                        <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyProduct' | translate }}</option>
+                        <option *ngFor="let product of productOptions" [ngValue]="product.label">
+                          {{ product.label }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="flex align-items-center justify-content-end gap-2 mt-3">
+                    <button pButton type="button" class="p-button-text" (click)="resetFilters()">
+                      {{ 'dashboardPage.filters.reset' | translate }}
+                    </button>
+                    <button pButton type="button" (click)="applyFilters()">
+                      {{ 'dashboardPage.filters.apply' | translate }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -82,24 +110,27 @@ import { Subscription } from 'rxjs';
 
       <div class="grid mb-4">
         <div class="col-12">
-          <div class="surface-card border-round p-4 shadow-2">
-            <div class="flex align-items-end justify-content-between mb-3">
+          <div class="surface-card border-round-xl p-4 shadow-2">
+            <div class="flex align-items-center justify-content-between mb-3">
               <div>
-                <h2 class="mt-0">{{ 'dashboardPage.title' | translate }}</h2>
-                <p class="text-600 mb-0">{{ 'dashboardPage.subtitle' | translate }}</p>
+                <h3 class="mt-0 mb-1">{{ 'dashboardPage.stats.updated' | translate }}</h3>
+                <p class="text-600 mb-0">{{ 'dashboardPage.filters.subtitle' | translate }}</p>
               </div>
-              <span class="text-sm text-500">
-                <ng-container *ngIf="statsLoading || kpisLoading; else statsReady">
-                  {{ 'dashboardPage.stats.loading' | translate }}
-                </ng-container>
-                <ng-template #statsReady>{{ 'dashboardPage.stats.updated' | translate }}</ng-template>
+              <span class="text-sm text-500 flex align-items-center gap-2">
+                <i class="pi pi-calendar text-primary"></i>
+                {{ activeDateRangeLabel }}
               </span>
             </div>
             <div class="grid">
               <ng-container *ngIf="dashboardTotals; else statsLoadingTpl">
                 <div class="col-12 sm:col-6 lg:col-3" *ngFor="let stat of statCards">
-                  <div class="surface-card border-1 border-primary border-round h-full p-3 surface-ground">
-                    <div class="text-xs text-500 uppercase">{{ stat.label }}</div>
+                  <div class="border-round-xl h-full p-3 surface-100 border-1 border-200">
+                    <div class="flex align-items-center justify-content-between">
+                      <div class="text-xs text-500 uppercase">{{ stat.label }}</div>
+                      <span class="p-button p-button-rounded p-button-text p-button-sm">
+                        <i [class]="stat.icon"></i>
+                      </span>
+                    </div>
                     <div class="text-3xl font-bold mt-2">{{ stat.value }}</div>
                     <div class="text-sm text-500 mt-1">{{ stat.description }}</div>
                   </div>
@@ -117,16 +148,30 @@ import { Subscription } from 'rxjs';
 
       <div class="grid mb-4">
         <div class="col-12">
-          <div class="surface-card border-round p-4 shadow-2">
-            <h3 class="mt-0">{{ 'dashboardPage.kpis.title' | translate }}</h3>
-            <p class="text-500">{{ 'dashboardPage.kpis.subtitle' | translate }}</p>
+          <div class="surface-card border-round-xl p-4 shadow-2">
+            <div class="flex align-items-start justify-content-between flex-column md:flex-row gap-2">
+              <div>
+                <h3 class="mt-0">{{ 'dashboardPage.kpis.title' | translate }}</h3>
+                <p class="text-500 mb-0">{{ 'dashboardPage.kpis.subtitle' | translate }}</p>
+              </div>
+              <span class="text-sm text-500 flex align-items-center gap-2">
+                <i class="pi pi-filter text-primary"></i>
+                {{ activeDateRangeLabel }}
+              </span>
+            </div>
             <div class="grid mt-3">
               <ng-container *ngIf="kpis; else kpiLoadingTpl">
                 <div class="col-12 sm:col-6 md:col-4 lg:col-3" *ngFor="let kpi of kpiCards">
-                  <div class="surface-card border-1 border-300 border-round h-full p-3 surface-ground">
-                    <div class="text-xs text-500 uppercase">{{ kpi.label }}</div>
-                    <div class="text-3xl font-bold mt-2">{{ kpi.value }}</div>
-                    <div class="text-sm text-500 mt-1">{{ kpi.detail }}</div>
+                  <div class="border-round-xl h-full p-3 surface-100 border-1 border-200">
+                    <div class="flex align-items-center justify-content-between">
+                      <span class="text-xs text-500 uppercase">{{ kpi.label }}</span>
+                      <span class="px-2 py-1 text-xs border-round surface-200 text-700 inline-flex align-items-center gap-2">
+                        <i [class]="kpi.icon"></i>
+                        <span>{{ kpi.tag }}</span>
+                      </span>
+                    </div>
+                    <div class="text-3xl font-bold mt-3">{{ kpi.value }}</div>
+                    <div class="text-sm text-500 mt-2">{{ kpi.detail }}</div>
                   </div>
                 </div>
               </ng-container>
@@ -142,7 +187,7 @@ import { Subscription } from 'rxjs';
 
       <div class="grid">
         <div class="col-12 lg:col-6" *ngFor="let insight of roleInsights">
-          <div class="surface-card border-round p-4 shadow-1 mb-3">
+          <div class="surface-card border-round p-4 shadow-1 mb-3 border-1 border-200">
             <h4 class="mt-0">{{ insight.title }}</h4>
             <ul class="list-none p-0 m-0 text-sm text-500 space-y-2">
               <li *ngFor="let detail of insight.details">
@@ -168,10 +213,18 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   agentOptions: DashboardLookupOption[] = [];
   mediaBuyerOptions: DashboardLookupOption[] = [];
   productOptions: DashboardLookupOption[] = [];
+  readonly timeframePresets: Array<{ key: DashboardTimeframe; labelKey: string }> = [
+    { key: 'all', labelKey: 'dashboardPage.filters.timeframes.all' },
+    { key: 'daily', labelKey: 'dashboardPage.filters.timeframes.daily' },
+    { key: 'monthly', labelKey: 'dashboardPage.filters.timeframes.monthly' },
+    { key: 'yearly', labelKey: 'dashboardPage.filters.timeframes.yearly' },
+    { key: 'custom', labelKey: 'dashboardPage.filters.timeframes.custom' }
+  ];
   filterForm: DashboardFilterForm = { timeframe: 'all' };
   customDateFrom?: string;
   customDateTo?: string;
   appliedFilters?: DashboardFilters;
+  appliedTimeframe: DashboardTimeframe = 'all';
 
   constructor(private translate: TranslateService, private dashboardService: DashboardService) {}
 
@@ -193,6 +246,7 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     const filters = this.resolveFilters();
     this.appliedFilters = filters;
+    this.appliedTimeframe = this.filterForm.timeframe;
     this.loadStats(filters);
     this.loadKpis(filters);
   }
@@ -202,6 +256,14 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     this.customDateFrom = undefined;
     this.customDateTo = undefined;
     this.applyFilters();
+  }
+
+  setTimeframe(timeframe: DashboardTimeframe): void {
+    this.filterForm.timeframe = timeframe;
+    this.onTimeframeChange();
+    if (timeframe !== 'custom') {
+      this.applyFilters();
+    }
   }
 
   onTimeframeChange(): void {
@@ -298,6 +360,40 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  get activeDateRangeLabel(): string {
+    const filters = this.appliedFilters;
+    if (filters?.fromDate || filters?.toDate) {
+      const from = filters.fromDate ?? filters.toDate;
+      const to = filters.toDate ?? filters.fromDate;
+      if (from && to && from !== to) {
+        return `${from} → ${to}`;
+      }
+      if (from) {
+        return from;
+      }
+    }
+    const preset = this.timeframePresets.find(p => p.key === this.appliedTimeframe);
+    return preset ? this.translate.instant(preset.labelKey) : '';
+  }
+
+  get activeFilterBadges(): Array<{ label: string; value: string; icon: string }> {
+    const filters = this.appliedFilters;
+    if (!filters) {
+      return [];
+    }
+    const badges: Array<{ label: string; value: string; icon: string }> = [];
+    if (filters.agent) {
+      badges.push({ label: this.translate.instant('dashboardPage.filters.agent'), value: filters.agent, icon: 'pi pi-user' });
+    }
+    if (filters.mediaBuyer) {
+      badges.push({ label: this.translate.instant('dashboardPage.filters.mediaBuyer'), value: filters.mediaBuyer, icon: 'pi pi-megaphone' });
+    }
+    if (filters.product) {
+      badges.push({ label: this.translate.instant('dashboardPage.filters.product'), value: filters.product, icon: 'pi pi-tag' });
+    }
+    return badges;
+  }
+
   private toIsoDate(value: Date): string {
     return value.toISOString().slice(0, 10);
   }
@@ -319,22 +415,26 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
       {
         label: this.translate.instant('dashboardPage.stats.products'),
         value: this.formatCount(products),
-        description: this.translate.instant('dashboardPage.stats.productsDetail')
+        description: this.translate.instant('dashboardPage.stats.productsDetail'),
+        icon: 'pi pi-box'
       },
       {
         label: this.translate.instant('dashboardPage.stats.orders'),
         value: this.formatCount(orders),
-        description: this.translate.instant('dashboardPage.stats.ordersDetail')
+        description: this.translate.instant('dashboardPage.stats.ordersDetail'),
+        icon: 'pi pi-shopping-cart'
       },
       {
         label: this.translate.instant('dashboardPage.stats.expenses'),
         value: this.formatCount(expenses),
-        description: this.translate.instant('dashboardPage.stats.expensesDetail')
+        description: this.translate.instant('dashboardPage.stats.expensesDetail'),
+        icon: 'pi pi-wallet'
       },
       {
         label: this.translate.instant('dashboardPage.stats.ads'),
         value: this.formatCount(ads),
-        description: this.translate.instant('dashboardPage.stats.adsDetail')
+        description: this.translate.instant('dashboardPage.stats.adsDetail'),
+        icon: 'pi pi-megaphone'
       }
     ];
   }
@@ -343,51 +443,70 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     if (!this.kpis) {
       return [];
     }
+    const timeframeText = this.activeDateRangeLabel;
     return [
     {
       label: this.translate.instant('dashboardPage.kpiLabels.confirmationRate'),
       value: this.formatPercent(this.kpis.confirmationRate),
-      detail: this.translate.instant('dashboardPage.kpiDetails.confirmationRate')
+      detail: this.translate.instant('dashboardPage.kpiDetails.confirmationRate'),
+      icon: 'pi pi-check-circle',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.deliveryRate'),
       value: this.formatPercent(this.kpis.deliveryRate),
-      detail: this.translate.instant('dashboardPage.kpiDetails.deliveryRate')
+      detail: this.translate.instant('dashboardPage.kpiDetails.deliveryRate'),
+      icon: 'pi pi-send',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.profitPerProduct'),
       value: this.formatCurrency(this.kpis.profitPerProduct),
-      detail: this.translate.instant('dashboardPage.kpiDetails.profitPerProduct')
+      detail: this.translate.instant('dashboardPage.kpiDetails.profitPerProduct'),
+      icon: 'pi pi-briefcase',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.agentCommission'),
       value: this.formatCurrency(this.kpis.agentCommission),
-      detail: this.translate.instant('dashboardPage.kpiDetails.agentCommission')
+      detail: this.translate.instant('dashboardPage.kpiDetails.agentCommission'),
+      icon: 'pi pi-users',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.totalRevenue'),
       value: this.formatCurrency(this.kpis.totalRevenue),
-      detail: this.translate.instant('dashboardPage.kpiDetails.totalRevenue')
+      detail: this.translate.instant('dashboardPage.kpiDetails.totalRevenue'),
+      icon: 'pi pi-chart-line',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.totalProfit'),
       value: this.formatCurrency(this.kpis.totalProfit),
-      detail: this.translate.instant('dashboardPage.kpiDetails.totalProfit')
+      detail: this.translate.instant('dashboardPage.kpiDetails.totalProfit'),
+      icon: 'pi pi-wallet',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.avgOrderValue'),
       value: this.formatCurrency(this.kpis.averageOrderValue),
-      detail: this.translate.instant('dashboardPage.kpiDetails.avgOrderValue')
+      detail: this.translate.instant('dashboardPage.kpiDetails.avgOrderValue'),
+      icon: 'pi pi-box',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.roas'),
       value: this.formatDecimal(this.kpis.roas),
-      detail: this.translate.instant('dashboardPage.kpiDetails.roas')
+      detail: this.translate.instant('dashboardPage.kpiDetails.roas'),
+      icon: 'pi pi-bolt',
+      tag: timeframeText
     },
     {
       label: this.translate.instant('dashboardPage.kpiLabels.cac'),
       value: this.formatCurrency(this.kpis.cac),
-      detail: this.translate.instant('dashboardPage.kpiDetails.cac')
+      detail: this.translate.instant('dashboardPage.kpiDetails.cac'),
+      icon: 'pi pi-sliders-h',
+      tag: timeframeText
     }
     ];
   }
@@ -459,12 +578,15 @@ interface DashboardStatCard {
   label: string;
   value: string;
   description: string;
+  icon: string;
 }
 
 interface DashboardKpiCard {
   label: string;
   value: string;
   detail: string;
+  icon: string;
+  tag: string;
 }
 
 interface RoleInsight {

@@ -52,9 +52,9 @@ export class DashboardService {
   }
 
   getKpis(filters?: DashboardFilters): Observable<DashboardKpis> {
-    return this.getTotals(filters).pipe(
-      map((totals) => this.buildKpis(totals)),
-      catchError(() => of(this.buildKpis({ products: 0, orders: 0, expenses: 0, ads: 0 })))
+    const params = this.buildKpiParams(filters);
+    return this.http.get<DashboardKpis>(`${environment.apiBase}/api/dashboard/kpis`, { params }).pipe(
+      catchError(() => of(this.emptyKpis()))
     );
   }
 
@@ -67,29 +67,43 @@ export class DashboardService {
     );
   }
 
-  private buildKpis(totals: DashboardTotals): DashboardKpis {
-    const orders = Math.max(1, totals.orders);
-    const expenses = totals.expenses;
-    const ads = totals.ads;
-    const revenue = orders * 120;
-    const profit = revenue - expenses - ads;
-    const avgOrder = orders ? revenue / orders : 0;
-    const confirmationRate = 0.78;
-    const deliveryRate = 0.92;
-    const profitPerProduct = totals.products ? profit / totals.products : profit;
-    const agentCommission = orders * 5;
-    const roas = ads ? revenue / ads : 0;
-    const cac = orders ? 50 : 0;
+  private buildKpiParams(filters?: DashboardFilters): HttpParams {
+    let params = new HttpParams();
+    if (!filters) {
+      return params;
+    }
+    if (filters.fromDate) {
+      params = params.set('fromDate', filters.fromDate);
+    }
+    if (filters.toDate) {
+      params = params.set('toDate', filters.toDate);
+    }
+    const agent = this.trimToNull(filters.agent);
+    if (agent) {
+      params = params.set('agent', agent);
+    }
+    const mediaBuyer = this.trimToNull(filters.mediaBuyer);
+    if (mediaBuyer) {
+      params = params.set('mediaBuyer', mediaBuyer);
+    }
+    const product = this.trimToNull(filters.product);
+    if (product) {
+      params = params.set('product', product);
+    }
+    return params;
+  }
+
+  private emptyKpis(): DashboardKpis {
     return {
-      confirmationRate,
-      deliveryRate,
-      profitPerProduct,
-      agentCommission,
-      totalRevenue: revenue,
-      totalProfit: profit,
-      averageOrderValue: avgOrder,
-      roas,
-      cac
+      confirmationRate: 0,
+      deliveryRate: 0,
+      profitPerProduct: 0,
+      agentCommission: 0,
+      totalRevenue: 0,
+      totalProfit: 0,
+      averageOrderValue: 0,
+      roas: 0,
+      cac: 0
     };
   }
 
