@@ -3,20 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
 import { DashboardFilters, DashboardKpis, DashboardLookupOption, DashboardService, DashboardTotals } from './dashboard.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-content',
   standalone: true,
-  imports: [CommonModule, TranslateModule, FormsModule, ButtonModule],
+  imports: [CommonModule, TranslateModule, FormsModule, ButtonModule, SelectButtonModule, CalendarModule, DropdownModule],
   template: `
     <div>
       <div class="grid mb-4">
         <div class="col-12">
           <div class="surface-card border-round-xl p-4 shadow-2">
             <div class="grid align-items-start">
-              <div class="col-12 lg:col-7 flex flex-column gap-3">
+              <div class="col-12 flex flex-column gap-3">
                 <div class="flex align-items-center justify-content-between flex-column sm:flex-row gap-2">
                   <div>
                     <p class="text-xs text-primary font-semibold mb-1">{{ 'dashboardPage.filters.title' | translate }}</p>
@@ -31,69 +34,99 @@ import { Subscription } from 'rxjs';
                     <ng-template #metricsReady>{{ 'dashboardPage.stats.updated' | translate }}</ng-template>
                   </span>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    *ngFor="let preset of timeframePresets"
-                    pButton
-                    type="button"
-                    class="p-button-sm"
-                    [ngClass]="{'p-button-outlined': filterForm.timeframe !== preset.key}"
-                    (click)="setTimeframe(preset.key)">
-                    {{ preset.labelKey | translate }}
-                  </button>
-                  <div class="inline-flex align-items-center px-3 py-2 border-1 border-200 surface-100 text-sm text-700 border-round">
-                    <i class="pi pi-calendar mr-2 text-primary"></i>
-                    <span>{{ activeDateRangeLabel }}</span>
+
+                <p-selectButton
+                  class="w-full"
+                  [options]="timeframeOptions"
+                  [(ngModel)]="filterForm.timeframe"
+                  optionLabel="label"
+                  optionValue="key"
+                  [allowEmpty]="false"
+                  (onChange)="setTimeframe($event.value)">
+                </p-selectButton>
+
+                <div class="grid">
+                  <div class="col-12 md:col-6">
+                    <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.from' | translate }}</label>
+                    <p-calendar
+                      [(ngModel)]="customDateFrom"
+                      [disabled]="filterForm.timeframe !== 'custom'"
+                      dateFormat="yy-mm-dd"
+                      showIcon="true"
+                      class="w-full"
+                      (onSelect)="onTimeframeChange()">
+                    </p-calendar>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.to' | translate }}</label>
+                    <p-calendar
+                      [(ngModel)]="customDateTo"
+                      [disabled]="filterForm.timeframe !== 'custom'"
+                      dateFormat="yy-mm-dd"
+                      showIcon="true"
+                      class="w-full"
+                      (onSelect)="onTimeframeChange()">
+                    </p-calendar>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.agent' | translate }}</label>
+                    <p-dropdown
+                      class="w-full"
+                      [options]="agentOptions"
+                      optionLabel="label"
+                      optionValue="label"
+                      [filter]="true"
+                      filterPlaceholder="{{ 'dashboardPage.filters.anyAgent' | translate }}"
+                      [(ngModel)]="filterForm.agent"
+                      [showClear]="true"
+                      [placeholder]="('dashboardPage.filters.anyAgent' | translate)">
+                    </p-dropdown>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.mediaBuyer' | translate }}</label>
+                    <p-dropdown
+                      class="w-full"
+                      [options]="mediaBuyerOptions"
+                      optionLabel="label"
+                      optionValue="label"
+                      [filter]="true"
+                      filterPlaceholder="{{ 'dashboardPage.filters.anyMediaBuyer' | translate }}"
+                      [(ngModel)]="filterForm.mediaBuyer"
+                      [showClear]="true"
+                      [placeholder]="('dashboardPage.filters.anyMediaBuyer' | translate)">
+                    </p-dropdown>
+                  </div>
+                  <div class="col-12">
+                    <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.product' | translate }}</label>
+                    <p-dropdown
+                      class="w-full"
+                      [options]="productOptions"
+                      optionLabel="label"
+                      optionValue="label"
+                      [filter]="true"
+                      filterPlaceholder="{{ 'dashboardPage.filters.anyProduct' | translate }}"
+                      [(ngModel)]="filterForm.product"
+                      [showClear]="true"
+                      [placeholder]="('dashboardPage.filters.anyProduct' | translate)">
+                    </p-dropdown>
                   </div>
                 </div>
-                <div class="flex flex-wrap gap-2" *ngIf="activeFilterBadges.length">
-                  <span
-                    *ngFor="let badge of activeFilterBadges"
-                    class="py-1 px-2 surface-100 border-round border-1 border-200 text-sm text-700">
-                    <i [class]="badge.icon" class="mr-2 text-primary"></i>{{ badge.label }}: <strong>{{ badge.value }}</strong>
-                  </span>
-                </div>
-              </div>
-              <div class="col-12 lg:col-5">
-                <div class="surface-ground border-round p-3">
-                  <div class="grid">
-                    <div class="col-12 md:col-6">
-                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.from' | translate }}</label>
-                      <input type="date" class="p-inputtext p-component w-full" [(ngModel)]="customDateFrom" [disabled]="filterForm.timeframe !== 'custom'">
+
+                <div class="grid align-items-center">
+                  <div class="col-12 md:col-8">
+                    <div class="inline-flex align-items-center px-3 py-2 border-1 border-200 surface-100 text-sm text-700 border-round">
+                      <i class="pi pi-calendar mr-2 text-primary"></i>
+                      <span>{{ activeDateRangeLabel }}</span>
                     </div>
-                    <div class="col-12 md:col-6">
-                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.to' | translate }}</label>
-                      <input type="date" class="p-inputtext p-component w-full" [(ngModel)]="customDateTo" [disabled]="filterForm.timeframe !== 'custom'">
-                    </div>
-                    <div class="col-12 md:col-6">
-                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.agent' | translate }}</label>
-                      <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.agent">
-                        <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyAgent' | translate }}</option>
-                        <option *ngFor="let agent of agentOptions" [ngValue]="agent.label">
-                          {{ agent.label }}
-                        </option>
-                      </select>
-                    </div>
-                    <div class="col-12 md:col-6">
-                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.mediaBuyer' | translate }}</label>
-                      <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.mediaBuyer">
-                        <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyMediaBuyer' | translate }}</option>
-                        <option *ngFor="let buyer of mediaBuyerOptions" [ngValue]="buyer.label">
-                          {{ buyer.label }}
-                        </option>
-                      </select>
-                    </div>
-                    <div class="col-12">
-                      <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.product' | translate }}</label>
-                      <select class="p-inputtext p-component w-full" [(ngModel)]="filterForm.product">
-                        <option [ngValue]="undefined">{{ 'dashboardPage.filters.anyProduct' | translate }}</option>
-                        <option *ngFor="let product of productOptions" [ngValue]="product.label">
-                          {{ product.label }}
-                        </option>
-                      </select>
+                    <div class="flex flex-wrap gap-2 mt-2" *ngIf="activeFilterBadges.length">
+                      <span
+                        *ngFor="let badge of activeFilterBadges"
+                        class="py-1 px-2 surface-100 border-round border-1 border-200 text-sm text-700">
+                        <i [class]="badge.icon" class="mr-2 text-primary"></i>{{ badge.label }}: <strong>{{ badge.value }}</strong>
+                      </span>
                     </div>
                   </div>
-                  <div class="flex align-items-center justify-content-end gap-2 mt-3">
+                  <div class="col-12 md:col-4 flex align-items-center justify-content-end gap-2 mt-3 md:mt-0">
                     <button pButton type="button" class="p-button-text" (click)="resetFilters()">
                       {{ 'dashboardPage.filters.reset' | translate }}
                     </button>
@@ -221,8 +254,8 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     { key: 'custom', labelKey: 'dashboardPage.filters.timeframes.custom' }
   ];
   filterForm: DashboardFilterForm = { timeframe: 'all' };
-  customDateFrom?: string;
-  customDateTo?: string;
+  customDateFrom?: string | Date;
+  customDateTo?: string | Date;
   appliedFilters?: DashboardFilters;
   appliedTimeframe: DashboardTimeframe = 'all';
 
@@ -235,6 +268,13 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     this.langSub = new Subscription();
     this.langSub.add(this.translate.onLangChange.subscribe(() => this.roleInsights = this.buildRoleInsights()));
     this.langSub.add(this.translate.onTranslationChange.subscribe(() => this.roleInsights = this.buildRoleInsights()));
+  }
+
+  get timeframeOptions(): Array<{ key: DashboardTimeframe; label: string }> {
+    return this.timeframePresets.map(preset => ({
+      key: preset.key,
+      label: this.translate.instant(preset.labelKey)
+    }));
   }
 
   ngOnDestroy(): void {
@@ -398,9 +438,12 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     return value.toISOString().slice(0, 10);
   }
 
-  private trimToUndefined(value?: string): string | undefined {
+  private trimToUndefined(value?: string | Date): string | undefined {
     if (value === null || value === undefined) {
       return undefined;
+    }
+    if (value instanceof Date) {
+      return this.toIsoDate(value);
     }
     const trimmed = value.toString().trim();
     return trimmed ? trimmed : undefined;
