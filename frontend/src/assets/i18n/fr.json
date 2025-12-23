@@ -98,6 +98,8 @@
       "product": "Produit",
       "apply": "Appliquer les filtres",
       "reset": "Réinitialiser",
+      "collapse": "Replier",
+      "expand": "Déplier",
       "anyAgent": "Tous les agents",
       "anyMediaBuyer": "Tous les media buyers",
       "anyProduct": "Tous les produits",

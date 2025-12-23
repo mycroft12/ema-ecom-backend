@@ -26,13 +26,23 @@ import { Subscription } from 'rxjs';
                     <h2 class="mt-0 mb-1">{{ 'dashboardPage.title' | translate }}</h2>
                     <p class="text-600 mb-0">{{ 'dashboardPage.subtitle' | translate }}</p>
                   </div>
-                  <span class="flex align-items-center gap-2 text-500 text-sm">
+                  <div class="flex align-items-center gap-2 text-500 text-sm">
                     <i class="pi pi-clock text-primary"></i>
                     <ng-container *ngIf="statsLoading || kpisLoading; else metricsReady">
                       {{ 'dashboardPage.stats.loading' | translate }}
                     </ng-container>
                     <ng-template #metricsReady>{{ 'dashboardPage.stats.updated' | translate }}</ng-template>
-                  </span>
+                    <button
+                      pButton
+                      type="button"
+                      class="p-button-text p-button-rounded"
+                      (click)="filtersCollapsed = !filtersCollapsed">
+                      <span class="flex align-items-center gap-1" [ngClass]="filtersCollapsed ? 'text-green-600' : 'text-500'">
+                        <i [class]="filtersCollapsed ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"></i>
+                        <span>{{ (filtersCollapsed ? 'dashboardPage.filters.expand' : 'dashboardPage.filters.collapse') | translate }}</span>
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <p-selectButton
@@ -45,7 +55,7 @@ import { Subscription } from 'rxjs';
                   (onChange)="setTimeframe($event.value)">
                 </p-selectButton>
 
-                <div class="grid">
+                <div class="grid" *ngIf="!filtersCollapsed">
                   <div class="col-12 md:col-6">
                     <label class="text-500 text-sm mb-1 block">{{ 'dashboardPage.filters.from' | translate }}</label>
                     <p-calendar
@@ -118,7 +128,7 @@ import { Subscription } from 'rxjs';
                       <i class="pi pi-calendar mr-2 text-primary"></i>
                       <span>{{ activeDateRangeLabel }}</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-2" *ngIf="activeFilterBadges.length">
+                    <div class="flex flex-wrap gap-2 mt-2" *ngIf="activeFilterBadges.length && !filtersCollapsed">
                       <span
                         *ngFor="let badge of activeFilterBadges"
                         class="py-1 px-2 surface-100 border-round border-1 border-200 text-sm text-700">
@@ -126,7 +136,7 @@ import { Subscription } from 'rxjs';
                       </span>
                     </div>
                   </div>
-                  <div class="col-12 md:col-4 flex align-items-center justify-content-end gap-2 mt-3 md:mt-0">
+                  <div class="col-12 md:col-4 flex align-items-center justify-content-end gap-2 mt-3 md:mt-0" *ngIf="!filtersCollapsed">
                     <button pButton type="button" class="p-button-text" (click)="resetFilters()">
                       {{ 'dashboardPage.filters.reset' | translate }}
                     </button>
@@ -258,6 +268,7 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   customDateTo?: string | Date;
   appliedFilters?: DashboardFilters;
   appliedTimeframe: DashboardTimeframe = 'all';
+  filtersCollapsed = false;
 
   constructor(private translate: TranslateService, private dashboardService: DashboardService) {}
 

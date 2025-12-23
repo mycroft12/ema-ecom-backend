@@ -291,6 +291,8 @@
       "product": "Product",
       "apply": "Apply filters",
       "reset": "Reset",
+      "collapse": "Collapse",
+      "expand": "Expand",
       "anyAgent": "All agents",
       "anyMediaBuyer": "All media buyers",
       "anyProduct": "All products",
