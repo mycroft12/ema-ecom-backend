@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Locale;
@@ -229,10 +230,15 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   public List<HybridResponseDto.ColumnDto> listColumns(String entityType) {
     String table = ensureConfigured(entityType);
     boolean isOrdersDomain = "orders".equalsIgnoreCase(entityType) || "order".equalsIgnoreCase(entityType);
+    boolean isAdsDomain = "ads".equalsIgnoreCase(entityType)
+        || "ad".equalsIgnoreCase(entityType)
+        || "advertising".equalsIgnoreCase(entityType)
+        || "marketing".equalsIgnoreCase(entityType);
     List<Map<String, Object>> orderStatusOptions = isOrdersDomain ? loadOrderStatusOptions() : List.of();
+    List<Map<String, Object>> productReferenceOptions = isAdsDomain ? loadProductReferenceOptions() : List.of();
 
     List<Map<String, Object>> rows = jdbc.queryForList("""
-        select column_name, data_type, ordinal_position 
+        select column_name, data_type, ordinal_position, is_nullable
         from information_schema.columns
         where table_schema = current_schema() and table_name = ?
         order by ordinal_position
@@ -251,6 +257,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
 
       String dataType = String.valueOf(row.get("data_type"));
       int order = Integer.parseInt(String.valueOf(row.get("ordinal_position"))) - 1;
+      boolean required = !"YES".equalsIgnoreCase(String.valueOf(row.get("is_nullable")));
 
       ColumnSemantics semantic = semanticsByColumn.get(name.toLowerCase(Locale.ROOT));
       HybridResponseDto.ColumnType type = mapSqlTypeToColumnType(name, dataType, semantic);
@@ -273,11 +280,16 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         metadata.put("options", orderStatusOptions);
         metadata.putIfAbsent("input", "select");
       }
+      if (isAdsDomain && "product_reference".equalsIgnoreCase(name) && !productReferenceOptions.isEmpty()) {
+        metadata.put("options", productReferenceOptions);
+        metadata.putIfAbsent("input", "select");
+      }
 
       cols.add(new HybridResponseDto.ColumnDto(
           name,
           displayName,
           type,
+          required,
           false,
           order,
           semantic != null ? semantic.semanticType() : null,
@@ -519,6 +531,44 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       ).stream().filter(Objects::nonNull).toList();
     } catch (Exception ex) {
       log.warn("Failed to load order status options: {}", ex.getMessage());
+      return List.of();
+    }
+  }
+
+  private List<Map<String, Object>> loadProductReferenceOptions() {
+    try {
+      return jdbc.query(
+          """
+              select product_name, product_variant, sku
+              from product_config
+              order by product_name asc, product_variant asc
+              """,
+          (rs, rowNum) -> {
+            String name = firstNonBlank(rs.getString("product_name"), rs.getString("sku"), rs.getString("product_variant"));
+            if (!StringUtils.hasText(name)) {
+              return null;
+            }
+            String trimmedName = name.trim();
+            String variant = rs.getString("product_variant");
+            String sku = rs.getString("sku");
+
+            StringBuilder label = new StringBuilder(trimmedName);
+            if (StringUtils.hasText(variant)) {
+              label.append(" - ").append(variant.trim());
+            }
+            if (StringUtils.hasText(sku)) {
+              label.append(" (").append(sku.trim()).append(")");
+            }
+
+            String value = StringUtils.hasText(sku) ? sku.trim() : label.toString();
+            return Map.<String, Object>of(
+                "label", label.toString(),
+                "value", value
+            );
+          }
+      ).stream().filter(Objects::nonNull).toList();
+    } catch (Exception ex) {
+      log.warn("Failed to load product reference options: {}", ex.getMessage());
       return List.of();
     }
   }
@@ -776,6 +826,13 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     String dataType = meta.dataType() == null ? "" : meta.dataType().toLowerCase(Locale.ROOT);
 
     try {
+      if (dataType.contains("date")) {
+        java.sql.Date sqlDate = coerceToSqlDate(value);
+        if (sqlDate != null) {
+          return sqlDate;
+        }
+      }
+
       if (dataType.contains("timestamp")) {
         if (value instanceof Timestamp ts) return ts;
         if (value instanceof Instant instant) return Timestamp.from(instant);
@@ -823,6 +880,63 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     }
 
     return value;
+  }
+
+  private java.sql.Date coerceToSqlDate(Object value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      if (value instanceof java.sql.Date sqlDate) {
+        return sqlDate;
+      }
+      if (value instanceof Timestamp ts) {
+        return new java.sql.Date(ts.getTime());
+      }
+      if (value instanceof LocalDate localDate) {
+        return java.sql.Date.valueOf(localDate);
+      }
+      if (value instanceof LocalDateTime ldt) {
+        return java.sql.Date.valueOf(ldt.toLocalDate());
+      }
+      if (value instanceof Instant instant) {
+        return java.sql.Date.valueOf(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate());
+      }
+      if (value instanceof java.util.Date utilDate) {
+        return java.sql.Date.valueOf(LocalDateTime.ofInstant(utilDate.toInstant(), ZoneOffset.UTC).toLocalDate());
+      }
+      if (value instanceof CharSequence cs) {
+        String text = cs.toString().trim();
+        if (text.isEmpty()) {
+          return null;
+        }
+        try {
+          Instant instant = Instant.parse(text);
+          return java.sql.Date.valueOf(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate());
+        } catch (Exception ignored) {
+        }
+        try {
+          LocalDateTime ldt = LocalDateTime.parse(text, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+          return java.sql.Date.valueOf(ldt.toLocalDate());
+        } catch (Exception ignored) {
+        }
+        try {
+          LocalDate ld = LocalDate.parse(text, DateTimeFormatter.ISO_LOCAL_DATE);
+          return java.sql.Date.valueOf(ld);
+        } catch (Exception ignored) {
+        }
+        try {
+          LocalDate ld = LocalDate.parse(text);
+          return java.sql.Date.valueOf(ld);
+        } catch (Exception ignored) {
+        }
+      }
+    } catch (Exception ex) {
+      if (log.isDebugEnabled()) {
+        log.debug("Failed to coerce value '{}' to SQL date", value, ex);
+      }
+    }
+    return null;
   }
 
   private String buildOrderByClause(String table, Pageable pageable, Map<String, ColumnMeta> columnLookup) {

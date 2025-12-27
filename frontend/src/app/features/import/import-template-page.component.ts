@@ -397,29 +397,6 @@ interface DomainPopulationResponse {
                         size="small"
                       ></button>
                     </div>
-                    <div class="flex align-items-center justify-content-between">
-                      <div class="text-600 text-sm mr-3">
-                        {{ 'import.populateCsv.description' | translate }}
-                      </div>
-                      <div class="flex align-items-center gap-2">
-                        <input
-                          #populateInput
-                          type="file"
-                          accept=".csv,text/csv"
-                          style="display: none;"
-                          (change)="onPopulateFileSelected($event, configuredDomain.domain, populateInput)"
-                        />
-                        <button
-                          pButton
-                          type="button"
-                          icon="pi pi-upload"
-                          [label]="'import.populateCsv.cta' | translate"
-                          (click)="triggerPopulateUpload(configuredDomain.domain, populateInput)"
-                          [loading]="isPopulateLoading(configuredDomain.domain)"
-                          size="small"
-                        ></button>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

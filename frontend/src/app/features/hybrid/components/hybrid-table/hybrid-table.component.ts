@@ -1243,6 +1243,9 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
         return null;
       case HybridColumnType.DATE:
         return null;
+      case HybridColumnType.INTEGER:
+      case HybridColumnType.DECIMAL:
+        return 0;
       default:
         return '';
     }

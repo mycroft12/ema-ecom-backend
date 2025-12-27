@@ -22,6 +22,7 @@ public class HybridResponseDto {
       String name,
       String displayName,
       ColumnType type,
+      boolean required,
       boolean hidden,
       int displayOrder,
       String semanticType,
