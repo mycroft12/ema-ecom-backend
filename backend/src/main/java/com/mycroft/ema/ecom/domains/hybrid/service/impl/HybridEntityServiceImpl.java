@@ -236,6 +236,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         || "marketing".equalsIgnoreCase(entityType);
     List<Map<String, Object>> orderStatusOptions = isOrdersDomain ? loadOrderStatusOptions() : List.of();
     List<Map<String, Object>> productReferenceOptions = isAdsDomain ? loadProductReferenceOptions() : List.of();
+    List<Map<String, Object>> adPlatformOptions = isAdsDomain ? loadAdPlatformOptions() : List.of();
 
     List<Map<String, Object>> rows = jdbc.queryForList("""
         select column_name, data_type, ordinal_position, is_nullable
@@ -282,6 +283,10 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       }
       if (isAdsDomain && "product_reference".equalsIgnoreCase(name) && !productReferenceOptions.isEmpty()) {
         metadata.put("options", productReferenceOptions);
+        metadata.putIfAbsent("input", "select");
+      }
+      if (isAdsDomain && "platform".equalsIgnoreCase(name) && !adPlatformOptions.isEmpty()) {
+        metadata.put("options", adPlatformOptions);
         metadata.putIfAbsent("input", "select");
       }
 
@@ -571,6 +576,26 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       log.warn("Failed to load product reference options: {}", ex.getMessage());
       return List.of();
     }
+  }
+
+  private List<Map<String, Object>> loadAdPlatformOptions() {
+    List<String> platforms = List.of(
+        "Facebook Ads",
+        "Instagram Ads",
+        "Messenger Ads",
+        "Google Ads",
+        "YouTube Ads",
+        "TikTok Ads",
+        "Snapchat Ads",
+        "Twitter (X) Ads",
+        "LinkedIn Ads",
+        "Pinterest Ads",
+        "Reddit Ads",
+        "Quora Ads"
+    );
+    return platforms.stream()
+        .map(name -> Map.<String, Object>of("label", name, "value", name))
+        .toList();
   }
 
   private String firstNonBlank(String... candidates) {
