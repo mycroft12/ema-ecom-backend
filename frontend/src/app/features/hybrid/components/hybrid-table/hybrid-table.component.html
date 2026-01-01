@@ -409,27 +409,17 @@
                 </tr>
             </ng-template>
 
-            <ng-template pTemplate="footer" *ngIf="adsAggregates && hasRows">
-                <tr>
-                    <td
-                        *ngFor="let column of schemaService.visibleColumns(); trackBy: trackColumn"
-                        [ngClass]="{ 'ads-total-cell': true }"
-                    >
-                        @if (isCplColumn(column)) {
-                            <span class="ads-total-label">CPL</span>
-                            <span class="ads-total-value">{{ adsAggregates.spend && adsAggregates.leads ? (adsAggregates.spend / adsAggregates.leads) | number:'1.2-2' : '--' }}</span>
-                        } @else if (column.name === 'ad_spend') {
-                            <span class="ads-total-label">Ad Spend Total</span>
-                            <span class="ads-total-value">{{ adsAggregates.spend | number:'1.2-2' }}</span>
-                        } @else if (column.name === 'confirmed_orders' || column.name === 'leads' || column.displayName?.toLowerCase() === 'leads') {
-                            <span class="ads-total-label">Leads Total</span>
-                            <span class="ads-total-value">{{ adsAggregates.leads | number:'1.0-0' }}</span>
-                        }
-                    </td>
-                    <td *ngIf="showActionColumn" class="ads-total-cell"></td>
-                </tr>
-            </ng-template>
         </p-table>
+        <div *ngIf="adsAggregates && hasRows" class="ads-totals-bar">
+            <div class="ads-total">
+                <span class="ads-total__label">Ad Spend Total</span>
+                <span class="ads-total__value">{{ adsAggregates.spend | number:'1.2-2' }}</span>
+            </div>
+            <div class="ads-total">
+                <span class="ads-total__label">Leads Total</span>
+                <span class="ads-total__value">{{ adsAggregates.leads | number:'1.0-0' }}</span>
+            </div>
+        </div>
     </div>
 
 <app-shared-dialog
