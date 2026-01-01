@@ -133,6 +133,11 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     columns.add(column("AD Account Name", "campaign_name", "TEXT", "VARCHAR(255)", true));
     columns.add(column("Ad Spend ($)", "ad_spend", "DECIMAL", "NUMERIC(12,2)", false));
     columns.add(column("Leads", "confirmed_orders", "INTEGER", "BIGINT", true));
+    ColumnInfo cpl = column("CPL", "cpl", "DECIMAL", "NUMERIC(12,2)", true);
+    cpl.getMetadata().put("readOnly", true);
+    cpl.getMetadata().put("disabled", true);
+    cpl.getMetadata().put("scale", 2);
+    columns.add(cpl);
     columns.add(column("Notes", "notes", "TEXT", "TEXT", true));
 
     try {
@@ -224,9 +229,12 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     if (tableHasRows("ads_config")) {
       return;
     }
-    jdbcTemplate.update("insert into ads_config (id, spend_date, product_reference, platform, campaign_name, ad_spend, confirmed_orders, notes) " +
-        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?)",
-        LocalDate.now(), "SKU-001", "Facebook", "Spring Promo", new BigDecimal("35.00"), 8L, "Good traction, monitor CPC");
+    BigDecimal adSpend = new BigDecimal("35.00");
+    long leads = 8L;
+    BigDecimal cplValue = leads > 0 ? adSpend.divide(BigDecimal.valueOf(leads), 2, java.math.RoundingMode.HALF_UP) : null;
+    jdbcTemplate.update("insert into ads_config (id, spend_date, product_reference, platform, campaign_name, ad_spend, confirmed_orders, cpl, notes) " +
+        "values (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, ?)",
+        LocalDate.now(), "SKU-001", "Meta Ads", "Spring Promo", adSpend, leads, cplValue, "Good traction, monitor CPC");
   }
 
   private List<Map<String, String>> loadCityOptions() {

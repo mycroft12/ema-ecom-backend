@@ -17,6 +17,7 @@ import com.mycroft.ema.ecom.domains.hybrid.dto.HybridUpdateDto;
 import com.mycroft.ema.ecom.domains.hybrid.dto.HybridViewDto;
 import com.mycroft.ema.ecom.domains.hybrid.service.HybridEntityService;
 import com.mycroft.ema.ecom.domains.imports.service.DomainImportService;
+import com.mycroft.ema.ecom.auth.service.PermissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -27,10 +28,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -60,19 +63,22 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   private final MinioFileStorageService minioStorage;
   private final MinioProperties minioProperties;
   private final CurrentUserService currentUserService;
+  private final PermissionService permissionService;
 
   public HybridEntityServiceImpl(JdbcTemplate jdbc,
                                  DomainImportService domainImportService,
                                  ColumnSemanticsService semanticsService,
                                  ObjectProvider<MinioFileStorageService> minioProvider,
                                  MinioProperties minioProperties,
-                                 CurrentUserService currentUserService) {
+                                 CurrentUserService currentUserService,
+                                 PermissionService permissionService) {
     this.jdbc = jdbc;
     this.domainImportService = domainImportService;
     this.semanticsService = semanticsService;
     this.minioStorage = minioProvider == null ? null : minioProvider.getIfAvailable();
     this.minioProperties = minioProperties;
     this.currentUserService = currentUserService;
+    this.permissionService = permissionService;
   }
 
   @Override
@@ -82,6 +88,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
                                     Pageable pageable,
                                     String ordersView) {
     String table = ensureConfigured(entityType);
+    boolean isAdsDomain = isAdsEntity(entityType);
     Map<String, ColumnMeta> columnLookup = columnMetadata(table);
     List<String> searchableColumns = columnLookup.values().stream()
         .map(ColumnMeta::name)
@@ -137,6 +144,9 @@ public class HybridEntityServiceImpl implements HybridEntityService {
 
     List<HybridViewDto> content = new ArrayList<>();
     for (Map<String, Object> row : rows) {
+      if (isAdsDomain) {
+        applyAdsComputedFields(row, columnLookup);
+      }
       UUID id = row.get("id") == null ? null : UUID.fromString(row.get("id").toString());
       Map<String, Object> attrs = new LinkedHashMap<>(row);
       attrs.remove("id");
@@ -150,18 +160,28 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   @Transactional
   public HybridViewDto create(String entityType, HybridCreateDto dto) {
     String table = ensureConfigured(entityType);
+    boolean isAdsDomain = isAdsEntity(entityType);
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
     Map<String, ColumnMeta> columnLookup = columnMetadata(table);
     List<String> cols = new ArrayList<>();
     List<Object> vals = new ArrayList<>();
+    Map<String, Object> preparedValues = new LinkedHashMap<>();
     for (Map.Entry<String, Object> entry : attrs.entrySet()) {
       String col = Optional.ofNullable(entry.getKey()).orElse("");
       ColumnMeta meta = columnLookup.get(col.toLowerCase(Locale.ROOT));
       if (meta == null) continue;
       String actual = meta.name();
       if ("id".equalsIgnoreCase(actual)) continue;
+      if (isAdsDomain && "cpl".equalsIgnoreCase(actual)) continue; // always computed
       cols.add(actual);
-      vals.add(convertValue(meta, entry.getValue()));
+      Object converted = convertValue(meta, entry.getValue());
+      vals.add(converted);
+      preparedValues.put(actual, converted);
+    }
+    if (isAdsDomain && columnLookup.containsKey("cpl")) {
+      BigDecimal cpl = calculateCpl(preparedValues.get("ad_spend"), preparedValues.get("confirmed_orders"));
+      cols.add("cpl");
+      vals.add(cpl);
     }
     UUID id;
     if (cols.isEmpty()) {
@@ -179,6 +199,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   @Transactional
   public HybridViewDto update(String entityType, UUID id, HybridUpdateDto dto) {
     String table = ensureConfigured(entityType);
+    boolean isAdsDomain = isAdsEntity(entityType);
     Map<String, Object> attrs = dto.attributes() == null ? Collections.emptyMap() : dto.attributes();
     if (attrs.isEmpty()) {
       return get(entityType, id);
@@ -186,14 +207,32 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     Map<String, ColumnMeta> columnLookup = columnMetadata(table);
     List<String> sets = new ArrayList<>();
     List<Object> vals = new ArrayList<>();
+    Map<String, Object> preparedValues = new LinkedHashMap<>();
+    Map<String, Object> existingAdsMetrics = isAdsDomain ? loadAdsMetrics(table, id) : Collections.emptyMap();
     for (Map.Entry<String, Object> entry : attrs.entrySet()) {
       String col = Optional.ofNullable(entry.getKey()).orElse("");
       ColumnMeta meta = columnLookup.get(col.toLowerCase(Locale.ROOT));
       if (meta == null) continue;
       String actual = meta.name();
       if ("id".equalsIgnoreCase(actual)) continue;
+      if (isAdsDomain && "cpl".equalsIgnoreCase(actual)) continue; // always computed
       sets.add(actual + " = ?");
-      vals.add(convertValue(meta, entry.getValue()));
+      Object converted = convertValue(meta, entry.getValue());
+      vals.add(converted);
+      preparedValues.put(actual, converted);
+    }
+    if (isAdsDomain && columnLookup.containsKey("cpl")) {
+      Object adSpendValue = preparedValues.containsKey("ad_spend")
+          ? preparedValues.get("ad_spend")
+          : existingAdsMetrics.get("ad_spend");
+      Object leadsValue = preparedValues.containsKey("confirmed_orders")
+          ? preparedValues.get("confirmed_orders")
+          : existingAdsMetrics.get("confirmed_orders");
+      if (adSpendValue != null || leadsValue != null) {
+        BigDecimal cpl = calculateCpl(adSpendValue, leadsValue);
+        sets.add("cpl = ?");
+        vals.add(cpl);
+      }
     }
     if (!sets.isEmpty()) {
       String sql = "update " + table + " set " + String.join(", ", sets) + " where id = ?";
@@ -216,8 +255,12 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   @Override
   public HybridViewDto get(String entityType, UUID id) {
     String table = ensureConfigured(entityType);
+    boolean isAdsDomain = isAdsEntity(entityType);
     try {
       Map<String, Object> row = jdbc.queryForMap("select * from " + table + " where id = ?", id);
+      if (isAdsDomain) {
+        applyAdsComputedFields(row, columnMetadata(table));
+      }
       Map<String, Object> attrs = new LinkedHashMap<>(row);
       attrs.remove("id");
       normalizeMediaColumns(attrs, columnMetadata(table));
@@ -231,10 +274,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   public List<HybridResponseDto.ColumnDto> listColumns(String entityType) {
     String table = ensureConfigured(entityType);
     boolean isOrdersDomain = "orders".equalsIgnoreCase(entityType) || "order".equalsIgnoreCase(entityType);
-    boolean isAdsDomain = "ads".equalsIgnoreCase(entityType)
-        || "ad".equalsIgnoreCase(entityType)
-        || "advertising".equalsIgnoreCase(entityType)
-        || "marketing".equalsIgnoreCase(entityType);
+    boolean isAdsDomain = isAdsEntity(entityType);
     List<Map<String, Object>> orderStatusOptions = isOrdersDomain ? loadOrderStatusOptions() : List.of();
     List<Map<String, Object>> productReferenceOptions = isAdsDomain ? loadProductReferenceOptions() : List.of();
     List<Map<String, Object>> adPlatformOptions = isAdsDomain ? loadAdPlatformOptions() : List.of();
@@ -253,6 +293,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
             (first, second) -> first));
 
     List<HybridResponseDto.ColumnDto> cols = new ArrayList<>();
+    boolean hasCplColumn = false;
     for (Map<String, Object> row : rows) {
       String name = String.valueOf(row.get("column_name"));
       if ("id".equalsIgnoreCase(name)) continue;
@@ -290,6 +331,12 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         metadata.put("options", adPlatformOptions);
         metadata.putIfAbsent("input", "select");
       }
+      if (isAdsDomain && "cpl".equalsIgnoreCase(name)) {
+        hasCplColumn = true;
+        metadata.put("readOnly", true);
+        metadata.put("disabled", true);
+        metadata.putIfAbsent("scale", 2);
+      }
 
       cols.add(new HybridResponseDto.ColumnDto(
           name,
@@ -300,6 +347,22 @@ public class HybridEntityServiceImpl implements HybridEntityService {
           order,
           semantic != null ? semantic.semanticType() : null,
           metadata));
+    }
+    if (isAdsDomain && !hasCplColumn) {
+      Map<String, Object> cplMetadata = new HashMap<>();
+      cplMetadata.put("readOnly", true);
+      cplMetadata.put("disabled", true);
+      cplMetadata.put("scale", 2);
+      cols.add(new HybridResponseDto.ColumnDto(
+          "cpl",
+          "Cpl",
+          HybridResponseDto.ColumnType.DECIMAL,
+          false,
+          false,
+          cols.size(),
+          null,
+          cplMetadata
+      ));
     }
     return cols;
   }
@@ -320,6 +383,9 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         Boolean.class, table);
     if (!Boolean.TRUE.equals(exists)) {
       throw new NotFoundException("Entity '" + normalized + "' is not configured");
+    }
+    if (isAdsEntity(normalized) && !isCurrentTransactionReadOnly()) {
+      ensureAdsColumns(table);
     }
     return table;
   }
@@ -672,6 +738,118 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       log.debug("Failed to describe columns for {}: {}", table, ex.getMessage());
       return Set.of();
     }
+  }
+
+  private void ensureAdsColumns(String table) {
+    if (!StringUtils.hasText(table) || !tableExists(table)) {
+      return;
+    }
+    ensureAdsPermissions();
+    Set<String> columns = describeColumns(table);
+    if (!columns.contains("cpl")) {
+      try {
+        jdbc.execute("alter table " + table + " add column if not exists cpl numeric(12,2)");
+      } catch (Exception ex) {
+        log.warn("Failed to ensure CPL column on {}: {}", table, ex.getMessage());
+      }
+    }
+  }
+
+  private void ensureAdsPermissions() {
+    try {
+      var perm = permissionService.ensure("ads:access:cpl");
+      assignPermissionToRole("ADMIN", perm.getId());
+      assignPermissionToRole("MEDIA_BUYER", perm.getId());
+    } catch (Exception ex) {
+      log.warn("Failed to ensure CPL permission: {}", ex.getMessage());
+    }
+  }
+
+  private void assignPermissionToRole(String roleName, UUID permissionId) {
+    if (!StringUtils.hasText(roleName) || permissionId == null) {
+      return;
+    }
+    try {
+      UUID roleId = jdbc.queryForObject(
+          "select id from roles where lower(name) = ? limit 1",
+          UUID.class,
+          roleName.toLowerCase(Locale.ROOT));
+      if (roleId == null) {
+        return;
+      }
+      jdbc.update(
+          "insert into roles_permissions(role_id, permission_id) values (?, ?) on conflict do nothing",
+          roleId, permissionId);
+    } catch (Exception ex) {
+      log.debug("Failed to assign permission {} to role {}: {}", permissionId, roleName, ex.getMessage());
+    }
+  }
+
+  private boolean isCurrentTransactionReadOnly() {
+    return TransactionSynchronizationManager.isActualTransactionActive()
+        && TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+  }
+
+  private boolean isAdsEntity(String entityType) {
+    String normalized = entityType == null ? "" : entityType.trim().toLowerCase(Locale.ROOT);
+    return normalized.equals("ads") || normalized.equals("ad") || normalized.equals("advertising") || normalized.equals("marketing");
+  }
+
+  private Map<String, Object> loadAdsMetrics(String table, UUID id) {
+    try {
+      return jdbc.queryForObject(
+          "select ad_spend, confirmed_orders from " + table + " where id = ?",
+          (rs, rowNum) -> Map.<String, Object>of(
+              "ad_spend", rs.getObject("ad_spend"),
+              "confirmed_orders", rs.getObject("confirmed_orders")
+          ),
+          id
+      );
+    } catch (Exception ex) {
+      log.debug("Failed to load ads metrics for {}: {}", id, ex.getMessage());
+      return Collections.emptyMap();
+    }
+  }
+
+  private void applyAdsComputedFields(Map<String, Object> row, Map<String, ColumnMeta> columnLookup) {
+    if (row == null) {
+      return;
+    }
+    BigDecimal cpl = calculateCpl(row.get("ad_spend"), row.get("confirmed_orders"));
+    row.put("cpl", cpl);
+  }
+
+  private BigDecimal calculateCpl(Object adSpendValue, Object leadsValue) {
+    BigDecimal adSpend = toBigDecimal(adSpendValue);
+    BigDecimal leads = toBigDecimal(leadsValue);
+    if (adSpend == null || leads == null || leads.compareTo(BigDecimal.ZERO) <= 0) {
+      return null;
+    }
+    return adSpend.divide(leads, 2, RoundingMode.HALF_UP);
+  }
+
+  private BigDecimal toBigDecimal(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof BigDecimal bd) {
+      return bd;
+    }
+    if (value instanceof Number number) {
+      return BigDecimal.valueOf(number.doubleValue());
+    }
+    if (value instanceof CharSequence cs) {
+      String text = cs.toString().trim();
+      if (text.isEmpty()) {
+        return null;
+      }
+      try {
+        return new BigDecimal(text);
+      } catch (NumberFormatException ex) {
+        return null;
+      }
+    }
+    return null;
   }
 
   private String firstExistingColumn(Set<String> columns, String... candidates) {

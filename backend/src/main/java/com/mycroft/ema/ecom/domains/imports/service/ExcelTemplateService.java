@@ -720,8 +720,8 @@ public class ExcelTemplateService {
         types = List.of("uuid","bigint","text","text","text","text","text","text","text","numeric(12,2)","timestamp","text","text");
       }
       case "ad", "ads", "advertising", "marketing" -> {
-        headers = List.of("id", "spend_date","product_reference","platform","campaign_name","ad_spend","confirmed_orders","notes");
-        types = List.of("uuid","date","text","text","text","numeric(12,2)","bigint","text");
+        headers = List.of("id", "spend_date","product_reference","platform","campaign_name","ad_spend","confirmed_orders","cpl","notes");
+        types = List.of("uuid","date","text","text","text","numeric(12,2)","bigint","numeric(12,2)","text");
       }
       default -> {
         headers = List.of("id", "external_id","name","description","quantity","unit_price","active","created_at");

@@ -229,6 +229,7 @@ export class HybridSchemaService {
     const entity = this.entityTypeName.toLowerCase();
     const prefix = `${entity}:access:`;
     const hasWildcard = Array.from(normalizedPerms).some(p => p.startsWith(`${entity}:*`));
+    const hasDomainRead = normalizedPerms.has(`${entity}:read`);
     if (hasWildcard) {
       return columns;
     }
@@ -237,7 +238,14 @@ export class HybridSchemaService {
         return true;
       }
       const required = (prefix + col.name).toLowerCase();
-      return normalizedPerms.has(required);
+      if (normalizedPerms.has(required)) {
+        return true;
+      }
+      const meta = (col.metadata ?? {}) as Record<string, any>;
+      if (hasDomainRead && (meta['readOnly'] === true || meta['readonly'] === true || meta['disabled'] === true)) {
+        return true;
+      }
+      return false;
     });
     if (filtered.length > 0) {
       return filtered;

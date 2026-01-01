@@ -102,6 +102,7 @@ public class DefaultRoleSeeder implements ApplicationRunner {
           "ads:access:campaign_name",
           "ads:access:ad_spend",
           "ads:access:confirmed_orders",
+          "ads:access:cpl",
           "ads:access:notes",
           "orders:read",
           "orders:access:order_reference",

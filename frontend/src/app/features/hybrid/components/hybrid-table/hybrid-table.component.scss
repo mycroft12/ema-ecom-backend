@@ -312,6 +312,44 @@
   color: var(--primary-color, #2563eb);
 }
 
+.cpl-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: #e5e7eb;
+  color: #475569;
+}
+
+.cpl-red {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.cpl-orange {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.cpl-dark-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cpl-green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.cpl-neutral {
+  background: #e5e7eb;
+  color: #475569;
+}
+
 @media (max-width: 640px) {
   .dialog-body {
     gap: 1rem;

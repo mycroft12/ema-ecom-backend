@@ -300,7 +300,13 @@
                                     {{ formatDateValue(record[column.name], column) }}
                                 }
                                 @case (ColumnType.DECIMAL) {
-                                    {{ record[column.name] | number:'1.2-2' }}
+                                    @if (isCplColumn(column)) {
+                                        <span class="cpl-chip" [ngClass]="getCplClass(record[column.name])">
+                                            {{ formatCplValue(record[column.name]) }}
+                                        </span>
+                                    } @else {
+                                        {{ record[column.name] | number:'1.2-2' }}
+                                    }
                                 }
                                 @default {
                                     <!-- Preserve “example” visuals for known fields if present -->
@@ -464,24 +470,36 @@
                                                 [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
                                         </p-inputNumber>
 
-                                        <p-inputNumber
-                                                *ngSwitchCase="ColumnType.DECIMAL"
-                                                mode="decimal"
-                                                [minFractionDigits]="getDecimalScale(column)"
-                                                [maxFractionDigits]="getDecimalScale(column)"
-                                                [inputId]="'field-' + column.name"
-                                                [name]="'field-' + column.name"
-                                                [(ngModel)]="formModel[column.name]"
-                                                (ngModelChange)="onFieldChange(column.name)"
-                                                [min]="getNumericRule(column, 'min')"
-                                                [max]="getNumericRule(column, 'max')"
-                                                [required]="column.required"
-                                                [disabled]="isColumnDisabled(column)"
-                                                #model="ngModel"
-                                                [class.p-invalid]="isFieldInvalid(model)"
-                                                [attr.aria-invalid]="isFieldInvalid(model)"
-                                                [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
-                                        </p-inputNumber>
+                                        <ng-container *ngSwitchCase="ColumnType.DECIMAL">
+                                            @if (isCplColumn(column)) {
+                                                <div class="cpl-chip" [ngClass]="getCplClass(formModel[column.name])">
+                                                    {{ formatCplValue(formModel[column.name]) }}
+                                                </div>
+                                                <input
+                                                        type="hidden"
+                                                        [name]="'field-' + column.name"
+                                                        [(ngModel)]="formModel[column.name]"
+                                                        #model="ngModel">
+                                            } @else {
+                                                <p-inputNumber
+                                                        mode="decimal"
+                                                        [minFractionDigits]="getDecimalScale(column)"
+                                                        [maxFractionDigits]="getDecimalScale(column)"
+                                                        [inputId]="'field-' + column.name"
+                                                        [name]="'field-' + column.name"
+                                                        [(ngModel)]="formModel[column.name]"
+                                                        (ngModelChange)="onFieldChange(column.name)"
+                                                        [min]="getNumericRule(column, 'min')"
+                                                        [max]="getNumericRule(column, 'max')"
+                                                        [required]="column.required"
+                                                        [disabled]="isColumnDisabled(column)"
+                                                        #model="ngModel"
+                                                        [class.p-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-invalid]="isFieldInvalid(model)"
+                                                        [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                                </p-inputNumber>
+                                            }
+                                        </ng-container>
 
                                         <p-datepicker
                                                 *ngSwitchCase="ColumnType.DATE"

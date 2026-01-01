@@ -529,6 +529,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.dialogErrorMessage = null;
     this.dialogLoading = false;
     this.formModel = this.buildInitialFormModel();
+    this.recalculateComputedFields();
     this.setInitialFormState();
     this.formSubmitted = false;
     this.displayDialog = true;
@@ -546,6 +547,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.dialogMode = 'edit';
     this.editingRecordId = recordId;
     this.formModel = this.buildInitialFormModel();
+    this.recalculateComputedFields();
     this.formSubmitted = false;
     this.dialogErrorMessage = null;
     this.dialogLoading = true;
@@ -554,6 +556,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.dataService.getRecord(recordId).subscribe({
       next: product => {
         this.formModel = this.buildInitialFormModel(product);
+        this.recalculateComputedFields();
         this.dialogLoading = false;
         this.setInitialFormState();
         this.queueFocusOnDialog();
@@ -617,8 +620,9 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  onFieldChange(_fieldName: string): void {
+  onFieldChange(fieldName: string): void {
     this.markDialogDirty();
+    this.recalculateComputedFields(fieldName);
   }
 
   onDateFieldChange(fieldName: string, value: Date | null): void {
@@ -869,6 +873,60 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     } catch {
       return `${value.toFixed(2)} ${currencyCode}`;
     }
+  }
+
+  private recalculateComputedFields(changedField?: string): void {
+    if (!this.isAdsContext) {
+      return;
+    }
+    const relevantFields = new Set(['ad_spend', 'confirmed_orders', 'cpl']);
+    if (changedField && !relevantFields.has(changedField)) {
+      return;
+    }
+    const adSpend = this.toNumberOrNull(this.formModel?.['ad_spend']);
+    const leads = this.toNumberOrNull(this.formModel?.['confirmed_orders']);
+    this.formModel['cpl'] = this.computeCplValue(adSpend, leads);
+  }
+
+  private computeCplValue(adSpend: number | null, leads: number | null): number | null {
+    if (adSpend === null || leads === null || !Number.isFinite(adSpend) || !Number.isFinite(leads) || leads <= 0) {
+      return null;
+    }
+    const result = adSpend / leads;
+    return Number.isFinite(result) ? Number(result.toFixed(2)) : null;
+  }
+
+  private toNumberOrNull(value: any): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    const numeric = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  isCplColumn(column: HybridColumnDefinition): boolean {
+    return (column?.name ?? '').toLowerCase() === 'cpl';
+  }
+
+  formatCplValue(value: any): string {
+    const numeric = this.toNumberOrNull(value);
+    if (numeric === null) {
+      return '--';
+    }
+    return numeric.toFixed(2);
+  }
+
+  getCplClass(value: any): string {
+    const numeric = this.toNumberOrNull(value);
+    if (numeric === null) {
+      return 'cpl-neutral';
+    }
+    if (numeric > 3.5) return 'cpl-red';
+    if (numeric > 2.9) return 'cpl-red';
+    if (numeric > 2.5 && numeric < 2.8) return 'cpl-orange';
+    if (numeric > 2.1 && numeric < 2.4) return 'cpl-dark-green';
+    if (numeric < 2) return 'cpl-green';
+    return 'cpl-neutral';
   }
 
   formatDateValue(value: any, column?: HybridColumnDefinition): string {
@@ -1196,10 +1254,9 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     const availableValues = new Set(nextOptions.map(option => option.value));
-    this.selectedColumnKeys = this.selectedColumnKeys.filter(value => availableValues.has(value));
-    if (!this.selectedColumnKeys.length) {
-      this.selectedColumnKeys = nextOptions.map(option => option.value);
-    }
+    const filtered = this.selectedColumnKeys.filter(value => availableValues.has(value));
+    const missing = nextOptions.map(option => option.value).filter(value => !filtered.includes(value));
+    this.selectedColumnKeys = filtered.concat(missing);
   }
 
   private updateColumnToggleSelectedLabel(): void {
