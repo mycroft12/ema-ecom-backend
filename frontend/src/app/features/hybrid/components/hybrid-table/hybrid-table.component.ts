@@ -668,7 +668,9 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   hasColumnOptions(column: HybridColumnDefinition): boolean {
-    return this.getColumnOptions(column).length > 0;
+    const hasOptions = this.getColumnOptions(column).length > 0;
+    const prefersSelect = (column.metadata ?? {})['input'] === 'select' || (column.metadata ?? {})['component'] === 'select';
+    return hasOptions || prefersSelect;
   }
 
   getColumnOptions(column: HybridColumnDefinition): Array<{ label: string; value: any }> {
@@ -869,7 +871,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  formatDateValue(value: any): string {
+  formatDateValue(value: any, column?: HybridColumnDefinition): string {
     if (value === null || value === undefined) {
       return '';
     }
@@ -877,7 +879,10 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     if (Number.isNaN(date.getTime())) {
       return String(value);
     }
-    const formatted = this.datePipe.transform(date, 'dd-MM-yyyy HH:mm:ss');
+    const prefersDateOnly = column?.type === HybridColumnType.DATE
+      || (column?.name ?? '').toLowerCase().endsWith('_date');
+    const format = prefersDateOnly ? 'dd-MM-yyyy' : 'dd-MM-yyyy HH:mm:ss';
+    const formatted = this.datePipe.transform(date, format);
     return formatted ?? String(value);
   }
 

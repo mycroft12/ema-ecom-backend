@@ -37,6 +37,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Locale;
@@ -281,7 +282,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         metadata.put("options", orderStatusOptions);
         metadata.putIfAbsent("input", "select");
       }
-      if (isAdsDomain && "product_reference".equalsIgnoreCase(name) && !productReferenceOptions.isEmpty()) {
+      if (isAdsDomain && "product_reference".equalsIgnoreCase(name)) {
         metadata.put("options", productReferenceOptions);
         metadata.putIfAbsent("input", "select");
       }
@@ -541,61 +542,148 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   }
 
   private List<Map<String, Object>> loadProductReferenceOptions() {
-    try {
-      return jdbc.query(
-          """
-              select product_name, product_variant, sku
-              from product_config
-              order by product_name asc, product_variant asc
-              """,
-          (rs, rowNum) -> {
-            String name = firstNonBlank(rs.getString("product_name"), rs.getString("sku"), rs.getString("product_variant"));
-            if (!StringUtils.hasText(name)) {
-              return null;
-            }
-            String trimmedName = name.trim();
-            String variant = rs.getString("product_variant");
-            String sku = rs.getString("sku");
-
-            StringBuilder label = new StringBuilder(trimmedName);
-            if (StringUtils.hasText(variant)) {
-              label.append(" - ").append(variant.trim());
-            }
-            if (StringUtils.hasText(sku)) {
-              label.append(" (").append(sku.trim()).append(")");
-            }
-
-            String value = StringUtils.hasText(sku) ? sku.trim() : label.toString();
-            return Map.<String, Object>of(
-                "label", label.toString(),
-                "value", value
-            );
-          }
-      ).stream().filter(Objects::nonNull).toList();
-    } catch (Exception ex) {
-      log.warn("Failed to load product reference options: {}", ex.getMessage());
-      return List.of();
+    for (String table : resolveProductTables()) {
+      List<Map<String, Object>> options = loadProductsFromTable(table);
+      if (!options.isEmpty()) {
+        return options;
+      }
     }
+    return List.of();
   }
 
   private List<Map<String, Object>> loadAdPlatformOptions() {
     List<String> platforms = List.of(
-        "Facebook Ads",
-        "Instagram Ads",
-        "Messenger Ads",
-        "Google Ads",
-        "YouTube Ads",
-        "TikTok Ads",
-        "Snapchat Ads",
-        "Twitter (X) Ads",
-        "LinkedIn Ads",
-        "Pinterest Ads",
-        "Reddit Ads",
-        "Quora Ads"
+        "Meta Ads",
+        "Google Ads"
     );
     return platforms.stream()
         .map(name -> Map.<String, Object>of("label", name, "value", name))
         .toList();
+  }
+
+  private List<String> resolveProductTables() {
+    List<String> candidates = new ArrayList<>();
+    try {
+      String domainTable = domainImportService.tableForDomain("products");
+      if (StringUtils.hasText(domainTable)) {
+        candidates.add(domainTable);
+      }
+    } catch (Exception ex) {
+      log.debug("Failed to resolve product table from domain service: {}", ex.getMessage());
+    }
+    candidates.addAll(List.of("product_config", "products", "product"));
+    return candidates.stream()
+        .filter(StringUtils::hasText)
+        .map(name -> name.trim().toLowerCase(Locale.ROOT))
+        .distinct()
+        .filter(this::tableExists)
+        .toList();
+  }
+
+  private boolean tableExists(String table) {
+    try {
+      Boolean exists = jdbc.queryForObject(
+          """
+              select exists (
+                select 1 from information_schema.tables
+                where table_schema = current_schema() and table_name = ?
+              )
+              """,
+          Boolean.class, table);
+      return Boolean.TRUE.equals(exists);
+    } catch (Exception ex) {
+      log.debug("Table existence check failed for {}: {}", table, ex.getMessage());
+      return false;
+    }
+  }
+
+  private List<Map<String, Object>> loadProductsFromTable(String table) {
+    Set<String> columns = describeColumns(table);
+    if (columns.isEmpty()) {
+      return List.of();
+    }
+
+    String nameCol = firstExistingColumn(columns, "product_name", "name", "title");
+    String variantCol = firstExistingColumn(columns, "product_variant", "variant");
+    String skuCol = firstExistingColumn(columns, "sku", "product_reference", "reference");
+
+    if (!StringUtils.hasText(nameCol) && !StringUtils.hasText(skuCol)) {
+      return List.of();
+    }
+
+    String sql = "select "
+        + (StringUtils.hasText(nameCol) ? nameCol + " as product_name" : "null as product_name")
+        + ", "
+        + (StringUtils.hasText(variantCol) ? variantCol + " as product_variant" : "null as product_variant")
+        + ", "
+        + (StringUtils.hasText(skuCol) ? skuCol + " as sku" : "null as sku")
+        + " from " + table
+        + (StringUtils.hasText(nameCol) ? " order by " + nameCol + " asc" : "");
+
+    List<Map<String, Object>> options = jdbc.query(sql, (rs, rowNum) -> {
+      String primaryName = firstNonBlank(rs.getString("product_name"), rs.getString("sku"), rs.getString("product_variant"));
+      if (!StringUtils.hasText(primaryName)) {
+        return null;
+      }
+      String name = primaryName.trim();
+      String variant = rs.getString("product_variant");
+      String sku = rs.getString("sku");
+
+      StringBuilder label = new StringBuilder(name);
+      if (StringUtils.hasText(variant)) {
+        label.append(" - ").append(variant.trim());
+      }
+      if (StringUtils.hasText(sku) && !sku.equalsIgnoreCase(name)) {
+        label.append(" (").append(sku.trim()).append(")");
+      }
+
+      String value = StringUtils.hasText(sku) ? sku.trim() : label.toString();
+      return Map.<String, Object>of(
+          "label", label.toString(),
+          "value", value
+      );
+    }).stream().filter(Objects::nonNull).toList();
+
+    if (options.isEmpty()) {
+      return List.of();
+    }
+    Map<String, Map<String, Object>> deduped = new LinkedHashMap<>();
+    for (Map<String, Object> option : options) {
+      String key = String.valueOf(option.getOrDefault("value", option.get("label")));
+      deduped.putIfAbsent(key, option);
+    }
+    return new ArrayList<>(deduped.values());
+  }
+
+  private Set<String> describeColumns(String table) {
+    try {
+      return jdbc.queryForList(
+              """
+                  select column_name
+                  from information_schema.columns
+                  where table_schema = current_schema() and table_name = ?
+                  """,
+              String.class, table)
+          .stream()
+          .filter(Objects::nonNull)
+          .map(name -> name.trim().toLowerCase(Locale.ROOT))
+          .collect(Collectors.toSet());
+    } catch (Exception ex) {
+      log.debug("Failed to describe columns for {}: {}", table, ex.getMessage());
+      return Set.of();
+    }
+  }
+
+  private String firstExistingColumn(Set<String> columns, String... candidates) {
+    if (columns == null || columns.isEmpty() || candidates == null) {
+      return null;
+    }
+    for (String candidate : candidates) {
+      if (candidate != null && columns.contains(candidate.toLowerCase(Locale.ROOT))) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   private String firstNonBlank(String... candidates) {
@@ -911,12 +999,13 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     if (value == null) {
       return null;
     }
+    ZoneId zone = ZoneId.systemDefault();
     try {
       if (value instanceof java.sql.Date sqlDate) {
         return sqlDate;
       }
       if (value instanceof Timestamp ts) {
-        return new java.sql.Date(ts.getTime());
+        return java.sql.Date.valueOf(ts.toInstant().atZone(zone).toLocalDate());
       }
       if (value instanceof LocalDate localDate) {
         return java.sql.Date.valueOf(localDate);
@@ -925,10 +1014,10 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         return java.sql.Date.valueOf(ldt.toLocalDate());
       }
       if (value instanceof Instant instant) {
-        return java.sql.Date.valueOf(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate());
+        return java.sql.Date.valueOf(LocalDateTime.ofInstant(instant, zone).toLocalDate());
       }
       if (value instanceof java.util.Date utilDate) {
-        return java.sql.Date.valueOf(LocalDateTime.ofInstant(utilDate.toInstant(), ZoneOffset.UTC).toLocalDate());
+        return java.sql.Date.valueOf(LocalDateTime.ofInstant(utilDate.toInstant(), zone).toLocalDate());
       }
       if (value instanceof CharSequence cs) {
         String text = cs.toString().trim();
@@ -937,7 +1026,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         }
         try {
           Instant instant = Instant.parse(text);
-          return java.sql.Date.valueOf(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate());
+          return java.sql.Date.valueOf(LocalDateTime.ofInstant(instant, zone).toLocalDate());
         } catch (Exception ignored) {
         }
         try {
