@@ -904,6 +904,11 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     return Number.isFinite(numeric) ? numeric : null;
   }
 
+  private toNumberOrZero(value: any): number {
+    const n = this.toNumberOrNull(value);
+    return n === null ? 0 : n;
+  }
+
   isCplColumn(column: HybridColumnDefinition): boolean {
     return (column?.name ?? '').toLowerCase() === 'cpl';
   }
@@ -927,6 +932,16 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     if (numeric > 2.1 && numeric < 2.4) return 'cpl-dark-green';
     if (numeric < 2) return 'cpl-green';
     return 'cpl-neutral';
+  }
+
+  get adsAggregates(): { spend: number; leads: number } | null {
+    if (!this.isAdsContext) {
+      return null;
+    }
+    const rows = this.dataService.records() ?? [];
+    const spend = rows.reduce((sum, row) => sum + this.toNumberOrZero(row['ad_spend']), 0);
+    const leads = rows.reduce((sum, row) => sum + this.toNumberOrZero(row['confirmed_orders']), 0);
+    return { spend, leads };
   }
 
   formatDateValue(value: any, column?: HybridColumnDefinition): string {

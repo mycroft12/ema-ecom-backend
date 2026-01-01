@@ -350,6 +350,38 @@
   color: #475569;
 }
 
+.ads-totals-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-card, #ffffff);
+  border-top: 1px solid var(--surface-border, #e5e7eb);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.ads-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 0.5rem;
+  background: #f8fafc;
+}
+
+.ads-total__label {
+  font-weight: 600;
+  color: #334155;
+}
+
+.ads-total__value {
+  font-weight: 700;
+  color: #0f172a;
+}
+
 @media (max-width: 640px) {
   .dialog-body {
     gap: 1rem;
