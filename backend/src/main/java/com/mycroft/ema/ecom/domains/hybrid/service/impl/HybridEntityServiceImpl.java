@@ -323,6 +323,10 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         metadata.put("options", orderStatusOptions);
         metadata.putIfAbsent("input", "select");
       }
+      if (isOrdersDomain && "assigned_agent".equalsIgnoreCase(name)) {
+        metadata.put("readOnly", true);
+        metadata.put("disabled", true);
+      }
       if (isAdsDomain && "product_reference".equalsIgnoreCase(name)) {
         metadata.put("options", productReferenceOptions);
         metadata.putIfAbsent("input", "select");
@@ -384,8 +388,12 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     if (!Boolean.TRUE.equals(exists)) {
       throw new NotFoundException("Entity '" + normalized + "' is not configured");
     }
-    if (isAdsEntity(normalized) && !isCurrentTransactionReadOnly()) {
-      ensureAdsColumns(table);
+    if (!isCurrentTransactionReadOnly()) {
+      if (isAdsEntity(normalized)) {
+        ensureAdsColumns(table);
+      } else if (isOrdersEntity(normalized)) {
+        ensureOrdersColumns(table);
+      }
     }
     return table;
   }
@@ -755,6 +763,29 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     }
   }
 
+  private void ensureOrdersColumns(String table) {
+    if (!StringUtils.hasText(table) || !tableExists(table)) {
+      return;
+    }
+    ensureOrdersPermissions();
+    try {
+      jdbc.execute("alter table " + table + " add column if not exists upsell boolean");
+    } catch (Exception ex) {
+      log.warn("Failed to ensure upsell column on {}: {}", table, ex.getMessage());
+    }
+  }
+
+  private void ensureOrdersPermissions() {
+    try {
+      var perm = permissionService.ensure("orders:access:upsell");
+      assignPermissionToRole("ADMIN", perm.getId());
+      assignPermissionToRole("SUPERVISOR", perm.getId());
+      assignPermissionToRole("CONFIRMATION_AGENT", perm.getId());
+    } catch (Exception ex) {
+      log.warn("Failed to ensure orders upsell permission: {}", ex.getMessage());
+    }
+  }
+
   private void ensureAdsPermissions() {
     try {
       var perm = permissionService.ensure("ads:access:cpl");
@@ -793,6 +824,11 @@ public class HybridEntityServiceImpl implements HybridEntityService {
   private boolean isAdsEntity(String entityType) {
     String normalized = entityType == null ? "" : entityType.trim().toLowerCase(Locale.ROOT);
     return normalized.equals("ads") || normalized.equals("ad") || normalized.equals("advertising") || normalized.equals("marketing");
+  }
+
+  private boolean isOrdersEntity(String entityType) {
+    String normalized = entityType == null ? "" : entityType.trim().toLowerCase(Locale.ROOT);
+    return normalized.equals("orders") || normalized.equals("order");
   }
 
   private Map<String, Object> loadAdsMetrics(String table, UUID id) {

@@ -377,6 +377,7 @@ public class DomainImportService {
       ensureColumnExists(table, "status", "text");
       ensureColumnExists(table, "assigned_agent", "text");
       ensureColumnExists(table, "store_name", "text");
+      ensureColumnExists(table, "upsell", "boolean");
       ensureSystemColumnPermissions(normalized, List.of("status", "assigned_agent", "store_name"));
     }
   }

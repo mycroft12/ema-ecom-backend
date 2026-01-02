@@ -101,6 +101,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     columns.add(column("Status", "status", "TEXT", "VARCHAR(32)", true));
     columns.add(column("Assigned Agent", "assigned_agent", "TEXT", "VARCHAR(255)", true));
     columns.add(column("Store Name", "store_name", "TEXT", "VARCHAR(255)", true));
+    columns.add(column("Upsell", "upsell", "BOOLEAN", "BOOLEAN", true));
     ColumnInfo cityConfirmed = column("City Confirmed", "city_confirmed", "TEXT", "VARCHAR(128)", true);
     if (!cachedCityOptions.isEmpty()) {
       cityConfirmed.getMetadata().put("options", cachedCityOptions);
@@ -209,17 +210,17 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     }
     List<String> required = List.of(
         "order_reference", "customer_name", "customer_phone", "status",
-        "total_price", "created_at", "product_summary", "notes", "store_name", "city_confirmed"
+        "total_price", "created_at", "product_summary", "notes", "store_name", "city_confirmed", "upsell"
     );
     if (!tableHasAllColumns("orders_config", required)) {
       log.warn("Skipping orders sample seed: orders_config schema does not contain legacy sample columns.");
       return;
     }
     try {
-      jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes, store_name, city_confirmed) " +
-          "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?, ?, ?)",
+      jdbcTemplate.update("insert into orders_config (id, order_reference, customer_name, customer_phone, status, total_price, created_at, product_summary, notes, store_name, city_confirmed, upsell) " +
+          "values (gen_random_uuid(), ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)",
           "ORD-1001", "John Smith", "+33 6 12 34 56 78", "Pending Confirmation", new BigDecimal("89.90"),
-          "2 x Starter Pack", "Call customer tomorrow morning", "Downtown Store", "Casablanca");
+          "2 x Starter Pack", "Call customer tomorrow morning", "Downtown Store", "Casablanca", false);
     } catch (Exception ex) {
       log.warn("Skipping orders sample seed due to insert failure: {}", ex.getMessage());
     }

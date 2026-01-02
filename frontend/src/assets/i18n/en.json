@@ -262,7 +262,8 @@
     },
     "form": {
       "orderNumberHint": "Assigned automatically when an order is created"
-    }
+    },
+    "upsell": "Upsell"
   },
   "app": {
     "title": "EMA E-Commerce Panel",
