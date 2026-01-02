@@ -258,14 +258,11 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     return this.canAdd || this.showTakeOrderButton;
   }
   get takeOrderDisabled(): boolean {
-    return this.takeOrderLoading || this.agentWorkloadLoading || this.hasOngoingOrders;
+    return this.takeOrderLoading || this.hasOngoingOrders;
   }
   get takeOrderTitle(): string {
     if (this.agentWorkloadLoading && this.showTakeOrderButton) {
       return this.translate.instant('common.loading');
-    }
-    if (this.hasOngoingOrders && this.showTakeOrderButton) {
-      return this.translate.instant('orders.takeOrder.blockedActive');
     }
     return '';
   }

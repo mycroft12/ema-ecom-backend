@@ -27,7 +27,6 @@ public class OrderAssignmentService {
 
   private static final Logger log = LoggerFactory.getLogger(OrderAssignmentService.class);
   private static final String AGENT_ROLE = "CONFIRMATION_AGENT";
-  private static final Set<String> COMPLETED_STATUSES = Set.of("shipped", "confirmed");
   private static final String NEW_STATUS = "new";
 
   private final UserRepository userRepository;
@@ -80,8 +79,8 @@ public class OrderAssignmentService {
     if (!StringUtils.hasText(identifier)) {
       throw new BadRequestException("orders.assignment.invalidAgent");
     }
-    long active = countActiveOrders(identifier);
-    return new AgentOrderStatusDto(active, active > 0);
+    long newOrders = countNewOrders(identifier);
+    return new AgentOrderStatusDto(newOrders, newOrders > 0);
   }
 
   @Transactional
@@ -94,8 +93,8 @@ public class OrderAssignmentService {
     if (!StringUtils.hasText(identifier)) {
       throw new BadRequestException("orders.assignment.invalidAgent");
     }
-    long activeOrders = countActiveOrders(identifier);
-    if (activeOrders > 0) {
+    long newOrders = countNewOrders(identifier);
+    if (newOrders > 0) {
       throw new BadRequestException("orders.assignment.activeOrders");
     }
     UUID orderId = findFirstAvailableOrder()
@@ -119,18 +118,18 @@ public class OrderAssignmentService {
         .anyMatch(name -> AGENT_ROLE.toLowerCase(Locale.ROOT).equals(name));
   }
 
-  private long countActiveOrders(String agentIdentifier) {
+  private long countNewOrders(String agentIdentifier) {
     if (!StringUtils.hasText(agentIdentifier)) {
       return 0;
     }
     List<Object> args = new ArrayList<>();
     args.add(agentIdentifier.trim().toLowerCase(Locale.ROOT));
-    args.addAll(COMPLETED_STATUSES);
     String sql = """
         select count(*) from %s
          where lower(coalesce(trim(assigned_agent), '')) = ?
-           and coalesce(lower(trim(status)), '') not in (%s)
-        """.formatted(ordersTable(), placeholders(COMPLETED_STATUSES.size()));
+           and coalesce(lower(trim(status)), '') = ?
+        """.formatted(ordersTable());
+    args.add(NEW_STATUS);
     Long count = jdbcTemplate.queryForObject(sql, Long.class, args.toArray());
     return count == null ? 0L : count;
   }

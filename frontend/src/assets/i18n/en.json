@@ -175,12 +175,12 @@
       "cta": "Take an order",
       "successTitle": "Order assigned",
       "success": "You are now assigned to the next available order.",
-      "activeOrders": "Finish your current orders before taking a new one.",
+      "activeOrders": "You can take another order if your active ones aren’t in status New. Move your New order forward first.",
       "noneAvailable": "No available orders to assign right now.",
       "claimConflict": "That order was just taken by someone else. Try again.",
       "notAgent": "Only confirmation agents can take orders.",
       "error": "Could not assign a new order. Please try again.",
-      "blockedActive": "Complete or ship your current orders before taking another."
+      "blockedActive": "Clear any New-status order before taking another."
     }
   },
   "ads": {

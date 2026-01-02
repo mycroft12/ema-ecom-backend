@@ -489,11 +489,9 @@ interface DomainPopulationResponse {
                 <p-inputNumber
                   inputId="costsAgentCommission"
                   mode="decimal"
-                  [suffix]="' %'"
                   [minFractionDigits]="0"
                   [maxFractionDigits]="2"
                   [min]="0"
-                  [max]="100"
                   [(ngModel)]="costsForm.agentCommission"
                   name="costsAgentCommission"
                   class="w-full"
