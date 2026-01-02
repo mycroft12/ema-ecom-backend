@@ -792,9 +792,7 @@ export class ImportTemplatePageComponent implements OnInit {
   readonly maxCsvSizeBytes = 10 * 1024 * 1024;
 
   readonly componentOptions: Array<{ key: string; value: DomainKey }> = [
-    { key: 'import.domainProduct', value: 'product' },
-    { key: 'import.domainOrders', value: 'orders' },
-    { key: 'import.domainAds', value: 'ads' }
+    { key: 'import.domainOrders', value: 'orders' }
   ];
 
   ngOnInit(): void {
