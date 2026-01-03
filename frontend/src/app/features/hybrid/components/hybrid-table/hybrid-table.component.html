@@ -627,22 +627,56 @@
                                                         [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
                                                 </textarea>
                                                 <ng-template #defaultTextInput>
-                                                    <input
-                                                            pInputText
-                                                            type="text"
-                                                            [name]="'field-' + column.name"
-                                                            [id]="'field-' + column.name"
-                                                            [(ngModel)]="formModel[column.name]"
-                                                            (ngModelChange)="onFieldChange(column.name)"
-                                                            [required]="column.required"
-                                                            [readonly]="isColumnReadOnly(column)"
-                                                            [disabled]="isColumnDisabled(column)"
-                                                            [attr.maxLength]="column.maxLength || null"
-                                                            [attr.pattern]="getPatternRule(column)"
-                                                            #model="ngModel"
-                                                            [class.p-invalid]="isFieldInvalid(model)"
-                                                            [attr.aria-invalid]="isFieldInvalid(model)"
-                                                            [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                                    <ng-container *ngIf="column.metadata?.component === 'skuList'; else defaultTextInputPlain">
+                                                        <div class="sku-list">
+                                                            <div class="sku-row" *ngFor="let item of formModel[column.name] as items; let i = index">
+                                                                <p-select
+                                                                        [options]="productOptions"
+                                                                        optionLabel="label"
+                                                                        optionValue="value"
+                                                                        [placeholder]="'Select SKU'"
+                                                                        [(ngModel)]="items[i].sku"
+                                                                        (onChange)="onSkuItemChange(column.name)"
+                                                                        [name]="'field-' + column.name + '-sku-' + i"
+                                                                        [disabled]="isColumnDisabled(column)"
+                                                                        class="w-full">
+                                                                </p-select>
+                                                                <input pInputText type="number" min="1" class="sku-qty"
+                                                                       [(ngModel)]="items[i].qty"
+                                                                       (ngModelChange)="onSkuItemChange(column.name)"
+                                                                       [name]="'field-' + column.name + '-qty-' + i"
+                                                                       [disabled]="isColumnDisabled(column)" />
+                                                                <button type="button" pButton class="p-button-text p-button-sm sku-remove"
+                                                                        (click)="removeSkuItem(column.name, i)"
+                                                                        [disabled]="isColumnDisabled(column)">
+                                                                    <i class="pi pi-times"></i>
+                                                                </button>
+                                                            </div>
+                                                            <button type="button" pButton class="p-button-link p-button-sm sku-add"
+                                                                    (click)="addSkuItem(column.name)"
+                                                                    [disabled]="isColumnDisabled(column)">
+                                                                + add SKU
+                                                            </button>
+                                                        </div>
+                                                    </ng-container>
+                                                    <ng-template #defaultTextInputPlain>
+                                                        <input
+                                                                pInputText
+                                                                type="text"
+                                                                [name]="'field-' + column.name"
+                                                                [id]="'field-' + column.name"
+                                                                [(ngModel)]="formModel[column.name]"
+                                                                (ngModelChange)="onFieldChange(column.name)"
+                                                                [required]="column.required"
+                                                                [readonly]="isColumnReadOnly(column)"
+                                                                [disabled]="isColumnDisabled(column)"
+                                                                [attr.maxLength]="column.maxLength || null"
+                                                                [attr.pattern]="getPatternRule(column)"
+                                                                #model="ngModel"
+                                                                [class.p-invalid]="isFieldInvalid(model)"
+                                                                [attr.aria-invalid]="isFieldInvalid(model)"
+                                                                [attr.aria-describedby]="getFieldAriaDescribedBy(column.name, model)">
+                                                    </ng-template>
                                                 </ng-template>
                                             </ng-template>
                                         </ng-container>

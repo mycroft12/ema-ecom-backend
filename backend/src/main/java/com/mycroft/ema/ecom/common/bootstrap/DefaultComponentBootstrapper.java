@@ -102,6 +102,7 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     columns.add(column("Assigned Agent", "assigned_agent", "TEXT", "VARCHAR(255)", true));
     columns.add(column("Store Name", "store_name", "TEXT", "VARCHAR(255)", true));
     columns.add(column("Upsell", "upsell", "BOOLEAN", "BOOLEAN", true));
+    columns.add(column("SKUs", "sku_items", "JSON", "JSONB", true));
     ColumnInfo cityConfirmed = column("City Confirmed", "city_confirmed", "TEXT", "VARCHAR(128)", true);
     if (!cachedCityOptions.isEmpty()) {
       cityConfirmed.getMetadata().put("options", cachedCityOptions);

@@ -89,6 +89,12 @@ public class GoogleSheetSyncService {
       log.debug("Deleted row {} from {}", rowId, table);
     } else {
       Map<String, Object> previousRow = fetchRow(table, rowId);
+      if (previousRow == null && isOrdersDomain(domain) && allowedColumns.contains("status")) {
+        Object statusValue = sanitizedRow.get("status");
+        if (isNullOrBlank(statusValue)) {
+          sanitizedRow.put("status", "New");
+        }
+      }
       upsertRow(table, sanitizedRow);
       Map<String, Object> currentRow = fetchRow(table, rowId);
       if (currentRow == null) {

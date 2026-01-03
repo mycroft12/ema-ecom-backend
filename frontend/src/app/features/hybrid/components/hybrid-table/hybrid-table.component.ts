@@ -157,6 +157,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
   agentWorkloadLoading = false;
   hasOngoingOrders = false;
   takeOrderLoading = false;
+  productOptions: Array<{ label: string; value: any }> = [];
 
   // “example-like” filter models + options
   representativeOptions: Array<{ name: string; image: string }> = [];
@@ -353,6 +354,29 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.loadData(event);
   }
 
+  addSkuItem(fieldName: string): void {
+    const list = this.ensureSkuList(fieldName);
+    list.push({ sku: null, qty: 1 });
+    this.formModel[fieldName] = list;
+    this.onFieldChange(fieldName);
+  }
+
+  removeSkuItem(fieldName: string, index: number): void {
+    const list = this.ensureSkuList(fieldName);
+    list.splice(index, 1);
+    this.formModel[fieldName] = list;
+    this.onFieldChange(fieldName);
+  }
+
+  onSkuItemChange(fieldName: string): void {
+    const list = this.ensureSkuList(fieldName).map(item => ({
+      sku: item?.sku ?? null,
+      qty: this.toPositiveInt(item?.qty)
+    }));
+    this.formModel[fieldName] = list;
+    this.onFieldChange(fieldName);
+  }
+
   private onOrdersViewChange(): void {
     this.first = 0;
     if (this.dt1) {
@@ -419,6 +443,8 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
         } else {
           this.statusOptions = [];
         }
+
+        this.refreshProductOptions();
 
         // activity range (if column exists)
         const activityCol = this.schemaService.visibleColumns().find(c => this.isActivity(c));
@@ -906,6 +932,61 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     return n === null ? 0 : n;
   }
 
+  private toPositiveInt(value: any): number {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) {
+      return 1;
+    }
+    return Math.round(n);
+  }
+
+  private normalizeSkuItems(value: any): Array<{ sku: any; qty: number }> {
+    if (Array.isArray(value)) {
+      const mapped = value.map(item => ({
+        sku: item?.sku ?? item?.value ?? item?.id ?? item ?? null,
+        qty: this.toPositiveInt(item?.qty ?? 1)
+      }));
+      return mapped.length ? mapped : [{ sku: null, qty: 1 }];
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          const mapped = parsed.map(item => ({
+            sku: item?.sku ?? item?.value ?? item?.id ?? item ?? null,
+            qty: this.toPositiveInt(item?.qty ?? 1)
+          }));
+          return mapped.length ? mapped : [{ sku: null, qty: 1 }];
+        }
+      } catch {
+        return [];
+      }
+    }
+    return [{ sku: null, qty: 1 }];
+  }
+
+  private ensureSkuList(fieldName: string): Array<{ sku: any; qty: number }> {
+    const current = this.formModel[fieldName];
+    if (Array.isArray(current)) {
+        if (current.length === 0) {
+            current.push({ sku: null, qty: 1 });
+        }
+        return current;
+    }
+    const normalized = this.normalizeSkuItems(current);
+    this.formModel[fieldName] = normalized;
+    return normalized;
+  }
+
+  private refreshProductOptions(): void {
+    const skuCol = this.schemaService.visibleColumns().find(c => (c.name ?? '').toLowerCase() === 'sku_items');
+    if (!skuCol) {
+      this.productOptions = [];
+      return;
+    }
+    this.productOptions = this.getColumnOptions(skuCol);
+  }
+
   isCplColumn(column: HybridColumnDefinition): boolean {
     return (column?.name ?? '').toLowerCase() === 'cpl';
   }
@@ -1286,6 +1367,9 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private normalizeValueForInput(column: HybridColumnDefinition, value: any): any {
+    if ((column.metadata?.['component'] ?? '').toString().toLowerCase() === 'skulist') {
+      return this.normalizeSkuItems(value ?? []);
+    }
     if (value === null || value === undefined) {
       return this.defaultValueForType(column.type);
     }

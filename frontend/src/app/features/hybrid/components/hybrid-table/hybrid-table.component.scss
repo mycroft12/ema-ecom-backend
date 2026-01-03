@@ -382,6 +382,31 @@
   color: #0f172a;
 }
 
+.sku-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sku-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sku-qty {
+  width: 6rem;
+}
+
+.sku-add {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.sku-remove {
+  color: #ef4444;
+}
+
 @media (max-width: 640px) {
   .dialog-body {
     gap: 1rem;

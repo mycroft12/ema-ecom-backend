@@ -276,7 +276,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     boolean isOrdersDomain = "orders".equalsIgnoreCase(entityType) || "order".equalsIgnoreCase(entityType);
     boolean isAdsDomain = isAdsEntity(entityType);
     List<Map<String, Object>> orderStatusOptions = isOrdersDomain ? loadOrderStatusOptions() : List.of();
-    List<Map<String, Object>> productReferenceOptions = isAdsDomain ? loadProductReferenceOptions() : List.of();
+    List<Map<String, Object>> productReferenceOptions = (isAdsDomain || isOrdersDomain) ? loadProductReferenceOptions() : List.of();
     List<Map<String, Object>> adPlatformOptions = isAdsDomain ? loadAdPlatformOptions() : List.of();
 
     List<Map<String, Object>> rows = jdbc.queryForList("""
@@ -326,6 +326,17 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       if (isOrdersDomain && "assigned_agent".equalsIgnoreCase(name)) {
         metadata.put("readOnly", true);
         metadata.put("disabled", true);
+      }
+      if (isOrdersDomain && "sku_items".equalsIgnoreCase(name)) {
+        if (!productReferenceOptions.isEmpty()) {
+          metadata.put("options", productReferenceOptions);
+        }
+        metadata.put("component", "skuList");
+        metadata.put("hint", "Select SKUs and quantities");
+      }
+      if (isOrdersDomain && "sku_items".equalsIgnoreCase(name)) {
+        metadata.put("component", "skuList");
+        metadata.put("hint", "Select SKUs and quantities");
       }
       if (isAdsDomain && "product_reference".equalsIgnoreCase(name)) {
         metadata.put("options", productReferenceOptions);
@@ -1188,6 +1199,14 @@ public class HybridEntityServiceImpl implements HybridEntityService {
           if (text.isEmpty()) return null;
           return new BigDecimal(text);
         }
+      }
+
+      if (dataType.contains("json")) {
+        if (value instanceof CharSequence cs) {
+          String text = cs.toString().trim();
+          return text.isEmpty() ? null : text;
+        }
+        return OBJECT_MAPPER.writeValueAsString(value);
       }
 
       if (dataType.contains("bigint") || dataType.contains("int")) {
