@@ -552,6 +552,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.dialogErrorMessage = null;
     this.dialogLoading = false;
     this.formModel = this.buildInitialFormModel();
+    this.initializeSkuLists();
     this.recalculateComputedFields();
     this.setInitialFormState();
     this.formSubmitted = false;
@@ -570,6 +571,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.dialogMode = 'edit';
     this.editingRecordId = recordId;
     this.formModel = this.buildInitialFormModel();
+    this.initializeSkuLists();
     this.recalculateComputedFields();
     this.formSubmitted = false;
     this.dialogErrorMessage = null;
@@ -579,6 +581,7 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     this.dataService.getRecord(recordId).subscribe({
       next: product => {
         this.formModel = this.buildInitialFormModel(product);
+        this.initializeSkuLists();
         this.recalculateComputedFields();
         this.dialogLoading = false;
         this.setInitialFormState();
@@ -976,6 +979,13 @@ export class HybridTableComponent implements OnInit, OnDestroy, OnChanges {
     const normalized = this.normalizeSkuItems(current);
     this.formModel[fieldName] = normalized;
     return normalized;
+  }
+
+  private initializeSkuLists(): void {
+    const columns = this.schemaService.visibleColumns();
+    columns
+      .filter(col => (col.metadata?.['component'] ?? '').toString().toLowerCase() === 'skulist')
+      .forEach(col => this.ensureSkuList(col.name));
   }
 
   private refreshProductOptions(): void {
