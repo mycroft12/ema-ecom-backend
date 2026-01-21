@@ -27,15 +27,17 @@ export interface DashboardLookupOption {
 }
 
 export interface DashboardKpis {
+  totalLeads: number;
+  totalConfirmedLeads: number;
+  totalDeliveredLeads: number;
+  totalAdsCost: number;
+  totalDeliveredAmount: number;
+  totalCostOfGoods: number;
+  totalCpl: number;
+  costPerDelivered: number;
+  averageDeliveredOrderValue: number;
   confirmationRate: number;
   deliveryRate: number;
-  profitPerProduct: number;
-  agentCommission: number;
-  totalRevenue: number;
-  totalProfit: number;
-  averageOrderValue: number;
-  roas: number;
-  cac: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -95,15 +97,17 @@ export class DashboardService {
 
   private emptyKpis(): DashboardKpis {
     return {
+      totalLeads: 0,
+      totalConfirmedLeads: 0,
+      totalDeliveredLeads: 0,
+      totalAdsCost: 0,
+      totalDeliveredAmount: 0,
+      totalCostOfGoods: 0,
+      totalCpl: 0,
+      costPerDelivered: 0,
+      averageDeliveredOrderValue: 0,
       confirmationRate: 0,
-      deliveryRate: 0,
-      profitPerProduct: 0,
-      agentCommission: 0,
-      totalRevenue: 0,
-      totalProfit: 0,
-      averageOrderValue: 0,
-      roas: 0,
-      cac: 0
+      deliveryRate: 0
     };
   }
 

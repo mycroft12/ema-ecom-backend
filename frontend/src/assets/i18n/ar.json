@@ -105,9 +105,37 @@
       "timeframes": {
         "all": "كل الوقت",
         "daily": "اليوم",
+        "yesterday": "أمس",
         "monthly": "هذا الشهر",
         "yearly": "هذه السنة",
         "custom": "نطاق مخصص"
+      }
+    },
+    "overview": {
+      "title": "نظرة عامة على المؤشرات",
+      "subtitle": "إجماليات أساسية حسب عوامل التصفية الحالية.",
+      "loading": "جارٍ تحميل النظرة العامة...",
+      "labels": {
+        "totalLeads": "إجمالي العملاء المحتملين",
+        "totalConfirmed": "المؤكدون",
+        "totalDelivered": "المسلَّمون",
+        "totalAdsCost": "إجمالي تكلفة الإعلانات",
+        "totalDeliveredAmount": "إجمالي المبلغ المُسلَّم",
+        "totalProfit": "إجمالي الربح",
+        "totalCpl": "إجمالي CPL",
+        "cpdDelivered": "CPD للمُسلَّم",
+        "aovDelivered": "متوسط قيمة المُسلَّم"
+      },
+      "details": {
+        "totalLeads": "جميع الطلبات ضمن النطاق",
+        "totalConfirmed": "الحالات: confirmer، envoyer، livrer، saisie",
+        "totalDelivered": "طلبات بحالة livrer",
+        "totalAdsCost": "مجموع الإنفاق الإعلاني",
+        "totalDeliveredAmount": "مجموع قيم الطلبات المُسلَّمة",
+        "totalProfit": "إيراد المُسلَّم ناقص التكاليف والإعلانات",
+        "totalCpl": "مجموع قيم CPL من الإعلانات",
+        "cpdDelivered": "الإنفاق الإعلاني ÷ الطلبات المُسلَّمة",
+        "aovDelivered": "متوسط قيمة الطلبات المُسلَّمة"
       }
     },
     "stats": {
@@ -124,30 +152,24 @@
     },
     "kpis": {
       "title": "مؤشرات الأداء الرئيسية",
-      "subtitle": "مؤشرات مباشرة تشمل التأكيد، التسليم، الربح، والتكلفة.",
+      "subtitle": "لمحة عن التأكيد والتسليم والربحية.",
       "loading": "جاري تحميل المؤشرات..."
     },
     "kpiLabels": {
       "confirmationRate": "نسبة التأكيد",
       "deliveryRate": "نسبة التسليم",
-      "profitPerProduct": "الربح لكل منتج",
-      "agentCommission": "عمولة الوكيل",
-      "totalRevenue": "إجمالي الإيرادات",
-      "totalProfit": "إجمالي الربح",
-      "avgOrderValue": "متوسط قيمة الطلب",
-      "roas": "ROAS",
-      "cac": "CAC"
+      "profitPerOrder": "الربح لكل طلب",
+      "totalDeliveredQty": "إجمالي المسلَّم",
+      "totalConfirmedQty": "إجمالي المؤكد",
+      "adsPerOrderDelivered": "الإعلان لكل طلب مُسلَّم"
     },
     "kpiDetails": {
-      "confirmationRate": "المؤكدة ÷ المتصلة",
-      "deliveryRate": "المرسلة ÷ المشحونة",
-      "profitPerProduct": "المبيعات ناقص التكاليف والشحن والإعلانات",
-      "agentCommission": "عمولات الطلبات المؤكدة/المسلّمة",
-      "totalRevenue": "كل الإيرادات المسجلة",
-      "totalProfit": "الإيرادات ناقص النفقات",
-      "avgOrderValue": "الإيرادات ÷ الطلبات",
-      "roas": "العائد على الإنفاق الإعلاني",
-      "cac": "تكلفة الاستحواذ على العميل"
+      "confirmationRate": "المؤكدة ÷ إجمالي العملاء المحتملين",
+      "deliveryRate": "المسلَّمة ÷ المؤكدة",
+      "profitPerOrder": "الربح ÷ الطلبات المُسلَّمة",
+      "totalDeliveredQty": "إجمالي الطلبات المُسلَّمة",
+      "totalConfirmedQty": "إجمالي الطلبات المؤكدة",
+      "adsPerOrderDelivered": "الإنفاق الإعلاني ÷ الطلبات المُسلَّمة"
     },
     "roles": {
       "admin": {

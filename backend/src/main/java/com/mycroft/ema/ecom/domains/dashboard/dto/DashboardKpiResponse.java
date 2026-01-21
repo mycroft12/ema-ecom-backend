@@ -4,17 +4,19 @@ package com.mycroft.ema.ecom.domains.dashboard.dto;
  * KPI payload returned to the dashboard front-end.
  */
 public record DashboardKpiResponse(
+    long totalLeads,
+    long totalConfirmedLeads,
+    long totalDeliveredLeads,
+    double totalAdsCost,
+    double totalDeliveredAmount,
+    double totalCostOfGoods,
+    double totalCpl,
+    double costPerDelivered,
+    double averageDeliveredOrderValue,
     double confirmationRate,
-    double deliveryRate,
-    double profitPerProduct,
-    double agentCommission,
-    double totalRevenue,
-    double totalProfit,
-    double averageOrderValue,
-    double roas,
-    double cac
+    double deliveryRate
 ) {
   public static DashboardKpiResponse empty() {
-    return new DashboardKpiResponse(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    return new DashboardKpiResponse(0L, 0L, 0L, 0, 0, 0, 0, 0, 0, 0, 0);
   }
 }

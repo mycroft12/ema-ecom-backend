@@ -301,9 +301,37 @@
       "timeframes": {
         "all": "All time",
         "daily": "Today",
+        "yesterday": "Yesterday",
         "monthly": "This month",
         "yearly": "This year",
         "custom": "Custom range"
+      }
+    },
+    "overview": {
+      "title": "Overview KPI",
+      "subtitle": "High-level totals based on the current filters.",
+      "loading": "Loading overview...",
+      "labels": {
+        "totalLeads": "Total leads",
+        "totalConfirmed": "Total leads confirmed",
+        "totalDelivered": "Total leads delivered",
+        "totalAdsCost": "Total cost ads",
+        "totalDeliveredAmount": "Total CA delivered amount",
+        "totalProfit": "Total profit",
+        "totalCpl": "Total CPL",
+        "cpdDelivered": "CPD delivered",
+        "aovDelivered": "AOV delivered"
+      },
+      "details": {
+        "totalLeads": "All orders in the filtered range",
+        "totalConfirmed": "Orders in confirmer, envoyer, livrer, or saisie",
+        "totalDelivered": "Orders marked as livrer",
+        "totalAdsCost": "Sum of ad spend",
+        "totalDeliveredAmount": "Sum of delivered order totals",
+        "totalProfit": "Delivered revenue minus costs and ads",
+        "totalCpl": "Sum of CPL values from ads",
+        "cpdDelivered": "Ad spend per delivered order",
+        "aovDelivered": "Average delivered order value"
       }
     },
     "stats": {
@@ -320,30 +348,24 @@
     },
     "kpis": {
       "title": "Key Performance Indicators",
-      "subtitle": "Live metrics covering confirmation, delivery, profit, and cost performance.",
+      "subtitle": "Confirmation, delivery, and profitability performance at a glance.",
       "loading": "Loading KPIs..."
     },
     "kpiLabels": {
       "confirmationRate": "Confirmation Rate",
       "deliveryRate": "Delivery Rate",
-      "profitPerProduct": "Profit per Product",
-      "agentCommission": "Agent Commission",
-      "totalRevenue": "Total Revenue",
-      "totalProfit": "Total Profit",
-      "avgOrderValue": "Average Order Value",
-      "roas": "ROAS",
-      "cac": "CAC"
+      "profitPerOrder": "Profit per Order",
+      "totalDeliveredQty": "Qty total delivered",
+      "totalConfirmedQty": "Qty total confirmed",
+      "adsPerOrderDelivered": "Ads per order delivered"
     },
     "kpiDetails": {
-      "confirmationRate": "Confirmed ÷ contacted orders",
-      "deliveryRate": "Delivered ÷ shipped orders",
-      "profitPerProduct": "Sales minus costs, shipping, and ads",
-      "agentCommission": "Confirmed/delivered order commissions",
-      "totalRevenue": "All revenue recorded",
-      "totalProfit": "Revenue minus total expenses",
-      "avgOrderValue": "Revenue ÷ orders",
-      "roas": "Return on ad spend",
-      "cac": "Customer acquisition cost"
+      "confirmationRate": "Confirmed ÷ total leads",
+      "deliveryRate": "Delivered ÷ confirmed orders",
+      "profitPerOrder": "Profit divided by delivered orders",
+      "totalDeliveredQty": "Total delivered orders",
+      "totalConfirmedQty": "Total confirmed orders",
+      "adsPerOrderDelivered": "Ad spend ÷ delivered orders"
     },
     "roles": {
       "admin": {

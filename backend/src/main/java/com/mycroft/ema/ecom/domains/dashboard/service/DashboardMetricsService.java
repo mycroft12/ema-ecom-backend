@@ -15,14 +15,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class DashboardMetricsService {
 
-  private static final List<String> CONFIRMED_STATUSES = List.of("confirmed", "pending confirmation", "delivered");
-  private static final List<String> SHIPPED_STATUSES = List.of("shipped", "delivered");
-  private static final List<String> DELIVERED_STATUSES = List.of("delivered");
+  private static final List<String> CONFIRMED_STATUSES = List.of(
+      "confirmer", "envoyer", "livrer", "saisie",
+      "confirmed", "shipped", "delivered"
+  );
+  private static final List<String> DELIVERED_STATUSES = List.of("livrer", "delivered");
 
   private final DomainImportService domainImportService;
   private final JdbcTemplate jdbcTemplate;
@@ -38,73 +39,50 @@ public class DashboardMetricsService {
       return DashboardKpiResponse.empty();
     }
     Optional<String> adsTable = tableForDomain("ads");
-    Optional<String> productsTable = tableForDomain("products");
-    Optional<String> expensesTable = findExpensesTable();
 
     OrderMetrics orderMetrics = loadOrderMetrics(ordersTable.get(), filters);
     BigDecimal adSpend = adsTable.map(table -> loadAdSpend(table, filters)).orElse(BigDecimal.ZERO);
-    BigDecimal expenses = expensesTable.map(table -> loadExpenses(table, filters)).orElse(BigDecimal.ZERO);
-    BigDecimal revenue = orderMetrics.revenue();
-    BigDecimal totalProfit = revenue.subtract(adSpend).subtract(expenses);
+    BigDecimal totalCpl = adsTable.map(table -> loadTotalCpl(table, filters)).orElse(BigDecimal.ZERO);
 
-    long productCount = productsTable.map(table -> countProducts(table, filters)).orElse(0L);
-    BigDecimal profitPerProduct = productCount > 0
-        ? totalProfit.divide(BigDecimal.valueOf(productCount), 2, RoundingMode.HALF_UP)
+    BigDecimal costPerDelivered = orderMetrics.deliveredOrders() > 0
+        ? adSpend.divide(BigDecimal.valueOf(orderMetrics.deliveredOrders()), 2, RoundingMode.HALF_UP)
         : BigDecimal.ZERO;
-
-    BigDecimal averageOrderValue = orderMetrics.totalOrders() > 0
-        ? revenue.divide(BigDecimal.valueOf(orderMetrics.totalOrders()), 2, RoundingMode.HALF_UP)
-        : BigDecimal.ZERO;
-
-    long commissionableOrders = orderMetrics.confirmedOrders();
-    BigDecimal agentCommission = BigDecimal.valueOf(commissionableOrders)
-        .multiply(new BigDecimal("5.00"));
-
-    BigDecimal roas = adSpend.compareTo(BigDecimal.ZERO) > 0
-        ? revenue.divide(adSpend, 2, RoundingMode.HALF_UP)
-        : BigDecimal.ZERO;
-    BigDecimal cac = commissionableOrders > 0
-        ? adSpend.divide(BigDecimal.valueOf(commissionableOrders), 2, RoundingMode.HALF_UP)
+    BigDecimal averageDelivered = orderMetrics.deliveredOrders() > 0
+        ? orderMetrics.deliveredRevenue().divide(BigDecimal.valueOf(orderMetrics.deliveredOrders()), 2, RoundingMode.HALF_UP)
         : BigDecimal.ZERO;
 
     double confirmationRate = orderMetrics.totalOrders() > 0
         ? (double) orderMetrics.confirmedOrders() / (double) orderMetrics.totalOrders()
         : 0d;
-    double deliveryRate = orderMetrics.shippedOrders() > 0
-        ? (double) orderMetrics.deliveredOrders() / (double) orderMetrics.shippedOrders()
+    double deliveryRate = orderMetrics.confirmedOrders() > 0
+        ? (double) orderMetrics.deliveredOrders() / (double) orderMetrics.confirmedOrders()
         : 0d;
 
     return new DashboardKpiResponse(
+        orderMetrics.totalOrders(),
+        orderMetrics.confirmedOrders(),
+        orderMetrics.deliveredOrders(),
+        adSpend.doubleValue(),
+        orderMetrics.deliveredRevenue().doubleValue(),
+        orderMetrics.deliveredCostOfGoods().doubleValue(),
+        totalCpl.doubleValue(),
+        costPerDelivered.doubleValue(),
+        averageDelivered.doubleValue(),
         confirmationRate,
-        deliveryRate,
-        profitPerProduct.doubleValue(),
-        agentCommission.doubleValue(),
-        revenue.doubleValue(),
-        totalProfit.doubleValue(),
-        averageOrderValue.doubleValue(),
-        roas.doubleValue(),
-        cac.doubleValue()
+        deliveryRate
     );
   }
 
   private OrderMetrics loadOrderMetrics(String table, DashboardKpiFilters filters) {
     SqlClause base = buildOrdersWhere(table, filters);
     long totalOrders = queryForLong("select count(*) from " + table + base.where(), base.args());
-    BigDecimal revenue = hasColumn(table, "total_price")
-        ? queryForBigDecimal("select coalesce(sum(total_price), 0) from " + table + base.where(), base.args())
-        : BigDecimal.ZERO;
+    long confirmed = hasColumn(table, "status") ? countStatuses(table, base, CONFIRMED_STATUSES) : 0L;
+    long delivered = hasColumn(table, "status") ? countStatuses(table, base, DELIVERED_STATUSES) : 0L;
 
-    long confirmed = hasColumn(table, "status")
-        ? countStatuses(table, base, CONFIRMED_STATUSES)
-        : 0L;
-    long shipped = hasColumn(table, "status")
-        ? countStatuses(table, base, SHIPPED_STATUSES)
-        : 0L;
-    long delivered = hasColumn(table, "status")
-        ? countStatuses(table, base, DELIVERED_STATUSES)
-        : 0L;
+    BigDecimal deliveredRevenue = sumStatusColumn(table, base, "total_price", DELIVERED_STATUSES);
+    BigDecimal costOfGoods = sumStatusColumn(table, base, resolveCostOfGoodsColumn(table), DELIVERED_STATUSES);
 
-    return new OrderMetrics(totalOrders, confirmed, shipped, delivered, revenue);
+    return new OrderMetrics(totalOrders, confirmed, delivered, deliveredRevenue, costOfGoods);
   }
 
   private BigDecimal loadAdSpend(String table, DashboardKpiFilters filters) {
@@ -115,18 +93,12 @@ public class DashboardMetricsService {
     return queryForBigDecimal("select coalesce(sum(ad_spend), 0) from " + table + base.where(), base.args());
   }
 
-  private BigDecimal loadExpenses(String table, DashboardKpiFilters filters) {
-    String amountColumn = firstExistingColumn(table, "amount", "total_amount", "cost", "value", "expense_amount");
-    if (amountColumn == null) {
+  private BigDecimal loadTotalCpl(String table, DashboardKpiFilters filters) {
+    if (!hasColumn(table, "cpl")) {
       return BigDecimal.ZERO;
     }
-    SqlClause base = buildExpensesWhere(table, filters);
-    return queryForBigDecimal("select coalesce(sum(" + amountColumn + "), 0) from " + table + base.where(), base.args());
-  }
-
-  private long countProducts(String table, DashboardKpiFilters filters) {
-    SqlClause base = buildProductsWhere(table, filters);
-    return queryForLong("select count(*) from " + table + base.where(), base.args());
+    SqlClause base = buildAdsWhere(table, filters);
+    return queryForBigDecimal("select coalesce(sum(cpl), 0) from " + table + base.where(), base.args());
   }
 
   private SqlClause buildOrdersWhere(String table, DashboardKpiFilters filters) {
@@ -161,24 +133,6 @@ public class DashboardMetricsService {
     return new SqlClause(where.toString(), args);
   }
 
-  private SqlClause buildExpensesWhere(String table, DashboardKpiFilters filters) {
-    StringBuilder where = new StringBuilder(" where 1=1");
-    List<Object> args = new ArrayList<>();
-    String dateColumn = firstExistingColumn(table, "expense_date", "date", "created_at");
-    appendDateRange(where, args, table, dateColumn, filters.fromDate(), filters.toDate());
-    return new SqlClause(where.toString(), args);
-  }
-
-  private SqlClause buildProductsWhere(String table, DashboardKpiFilters filters) {
-    StringBuilder where = new StringBuilder(" where 1=1");
-    List<Object> args = new ArrayList<>();
-    if (StringUtils.hasText(filters.product()) && hasColumn(table, "product_name")) {
-      where.append(" and lower(product_name) like ?");
-      args.add(like(filters.product()));
-    }
-    return new SqlClause(where.toString(), args);
-  }
-
   private void appendDateRange(StringBuilder where, List<Object> args, String table, String column, LocalDate from, LocalDate to) {
     if (!StringUtils.hasText(column) || !hasColumn(table, column)) {
       return;
@@ -206,6 +160,23 @@ public class DashboardMetricsService {
     return queryForLong(sql, args);
   }
 
+  private BigDecimal sumStatusColumn(String table, SqlClause base, String column, List<String> statuses) {
+    if (!StringUtils.hasText(column)
+        || !hasColumn(table, column)
+        || !hasColumn(table, "status")
+        || statuses == null
+        || statuses.isEmpty()) {
+      return BigDecimal.ZERO;
+    }
+    String placeholders = String.join(", ", statuses.stream().map(s -> "?").toList());
+    String sql = "select coalesce(sum(" + column + "), 0) from " + table + base.where() + " and lower(status) in (" + placeholders + ")";
+    List<Object> args = new ArrayList<>(base.args());
+    statuses.stream()
+        .map(status -> status == null ? "" : status.toLowerCase(Locale.ROOT))
+        .forEach(args::add);
+    return queryForBigDecimal(sql, args);
+  }
+
   private BigDecimal queryForBigDecimal(String sql, List<Object> args) {
     try {
       BigDecimal result = jdbcTemplate.queryForObject(sql, args.toArray(), BigDecimal.class);
@@ -229,26 +200,6 @@ public class DashboardMetricsService {
       return Optional.ofNullable(domainImportService.tableForDomain(domain));
     } catch (Exception ex) {
       return Optional.empty();
-    }
-  }
-
-  private Optional<String> findExpensesTable() {
-    return Stream.of("expenses_config", "expense_config", "expenses")
-        .filter(this::tableExists)
-        .findFirst();
-  }
-
-  private boolean tableExists(String table) {
-    try {
-      Boolean exists = jdbcTemplate.queryForObject("""
-          select exists (
-            select 1 from information_schema.tables 
-            where table_schema = current_schema() and table_name = ?
-          )
-          """, Boolean.class, table);
-      return Boolean.TRUE.equals(exists);
-    } catch (Exception ex) {
-      return false;
     }
   }
 
@@ -281,6 +232,10 @@ public class DashboardMetricsService {
         .orElse(null);
   }
 
+  private String resolveCostOfGoodsColumn(String table) {
+    return firstExistingColumn(table, "cost_of_goods", "cost_product", "product_cost", "cogs", "cost_goods");
+  }
+
   private String like(String value) {
     return "%" + value.trim().toLowerCase(Locale.ROOT) + "%";
   }
@@ -288,9 +243,13 @@ public class DashboardMetricsService {
   private record SqlClause(String where, List<Object> args) {
   }
 
-  private record OrderMetrics(long totalOrders, long confirmedOrders, long shippedOrders, long deliveredOrders, BigDecimal revenue) {
+  private record OrderMetrics(long totalOrders,
+                              long confirmedOrders,
+                              long deliveredOrders,
+                              BigDecimal deliveredRevenue,
+                              BigDecimal deliveredCostOfGoods) {
     public static OrderMetrics empty() {
-      return new OrderMetrics(0L, 0L, 0L, 0L, BigDecimal.ZERO);
+      return new OrderMetrics(0L, 0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO);
     }
   }
 }

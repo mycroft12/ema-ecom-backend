@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { CalendarModule } from 'primeng/calendar';
 import { DropdownModule } from 'primeng/dropdown';
-import { DashboardFilters, DashboardKpis, DashboardLookupOption, DashboardService, DashboardTotals } from './dashboard.service';
+import { DashboardFilters, DashboardKpis, DashboardLookupOption, DashboardService } from './dashboard.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -29,8 +29,8 @@ import { Subscription } from 'rxjs';
                   <div class="flex align-items-center gap-3 text-500 text-sm">
                     <span class="flex align-items-center gap-2">
                       <i class="pi pi-clock text-primary"></i>
-                      <ng-container *ngIf="statsLoading || kpisLoading; else metricsReady">
-                        {{ 'dashboardPage.stats.loading' | translate }}
+                      <ng-container *ngIf="kpisLoading; else metricsReady">
+                        {{ 'dashboardPage.overview.loading' | translate }}
                       </ng-container>
                       <ng-template #metricsReady>{{ 'dashboardPage.filters.statusLabel' | translate }}</ng-template>
                     </span>
@@ -158,8 +158,8 @@ import { Subscription } from 'rxjs';
           <div class="surface-card border-round-xl p-4 shadow-2">
             <div class="flex align-items-center justify-content-between mb-3">
               <div>
-                <h3 class="mt-0 mb-1">{{ 'dashboardPage.stats.updated' | translate }}</h3>
-                <p class="text-600 mb-0">{{ 'dashboardPage.filters.subtitle' | translate }}</p>
+                <h3 class="mt-0 mb-1">{{ 'dashboardPage.overview.title' | translate }}</h3>
+                <p class="text-600 mb-0">{{ 'dashboardPage.overview.subtitle' | translate }}</p>
               </div>
               <span class="text-sm text-500 flex align-items-center gap-2">
                 <i class="pi pi-calendar text-primary"></i>
@@ -167,8 +167,8 @@ import { Subscription } from 'rxjs';
               </span>
             </div>
             <div class="grid">
-              <ng-container *ngIf="dashboardTotals; else statsLoadingTpl">
-                <div class="col-12 sm:col-6 lg:col-3" *ngFor="let stat of statCards">
+              <ng-container *ngIf="kpis; else overviewLoadingTpl">
+                <div class="col-12 sm:col-6 lg:col-4" *ngFor="let stat of overviewCards">
                   <div class="border-round-xl h-full p-3 surface-100 border-1 border-200">
                     <div class="flex align-items-center justify-content-between">
                       <div class="text-xs text-500 uppercase">{{ stat.label }}</div>
@@ -181,9 +181,9 @@ import { Subscription } from 'rxjs';
                   </div>
                 </div>
               </ng-container>
-              <ng-template #statsLoadingTpl>
+              <ng-template #overviewLoadingTpl>
                 <div class="col-12">
-                  <div class="text-sm text-500 text-center">{{ 'dashboardPage.stats.loading' | translate }}</div>
+                  <div class="text-sm text-500 text-center">{{ 'dashboardPage.overview.loading' | translate }}</div>
                 </div>
               </ng-template>
             </div>
@@ -247,11 +247,8 @@ import { Subscription } from 'rxjs';
   `
 })
 export class DashboardContentComponent implements OnInit, OnDestroy {
-  private statsSub?: Subscription;
   private kpisSub?: Subscription;
   private langSub?: Subscription;
-  dashboardTotals?: DashboardTotals;
-  statsLoading = true;
   kpisLoading = true;
   kpis?: DashboardKpis;
   roleInsights: RoleInsight[] = [];
@@ -261,6 +258,7 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   readonly timeframePresets: Array<{ key: DashboardTimeframe; labelKey: string }> = [
     { key: 'all', labelKey: 'dashboardPage.filters.timeframes.all' },
     { key: 'daily', labelKey: 'dashboardPage.filters.timeframes.daily' },
+    { key: 'yesterday', labelKey: 'dashboardPage.filters.timeframes.yesterday' },
     { key: 'monthly', labelKey: 'dashboardPage.filters.timeframes.monthly' },
     { key: 'yearly', labelKey: 'dashboardPage.filters.timeframes.yearly' },
     { key: 'custom', labelKey: 'dashboardPage.filters.timeframes.custom' }
@@ -291,7 +289,6 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.statsSub?.unsubscribe();
     this.kpisSub?.unsubscribe();
     this.langSub?.unsubscribe();
   }
@@ -300,7 +297,6 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     const filters = this.resolveFilters();
     this.appliedFilters = filters;
     this.appliedTimeframe = this.filterForm.timeframe;
-    this.loadStats(filters);
     this.loadKpis(filters);
   }
 
@@ -330,21 +326,6 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     this.dashboardService.getAgentOptions().subscribe(options => this.agentOptions = options ?? []);
     this.dashboardService.getMediaBuyerOptions().subscribe(options => this.mediaBuyerOptions = options ?? []);
     this.dashboardService.getProductOptions().subscribe(options => this.productOptions = options ?? []);
-  }
-
-  private loadStats(filters?: DashboardFilters): void {
-    this.statsLoading = true;
-    this.statsSub?.unsubscribe();
-    this.statsSub = this.dashboardService.getTotals(filters ?? this.appliedFilters).subscribe({
-      next: (totals) => {
-        this.dashboardTotals = totals;
-        this.statsLoading = false;
-      },
-      error: () => {
-        this.dashboardTotals = undefined;
-        this.statsLoading = false;
-      }
-    });
   }
 
   private loadKpis(filters?: DashboardFilters): void {
@@ -389,6 +370,12 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     const today = new Date();
     if (timeframe === 'daily') {
       const iso = this.toIsoDate(today);
+      return { from: iso, to: iso };
+    }
+    if (timeframe === 'yesterday') {
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const iso = this.toIsoDate(yesterday);
       return { from: iso, to: iso };
     }
     if (timeframe === 'monthly') {
@@ -462,35 +449,65 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     return trimmed ? trimmed : undefined;
   }
 
-  get statCards(): DashboardStatCard[] {
-    if (!this.dashboardTotals) {
+  get overviewCards(): DashboardStatCard[] {
+    if (!this.kpis) {
       return [];
     }
-    const { products, orders, expenses, ads } = this.dashboardTotals;
+    const profitSnapshot = this.computeProfitMetrics(this.kpis);
     return [
       {
-        label: this.translate.instant('dashboardPage.stats.products'),
-        value: this.formatCount(products),
-        description: this.translate.instant('dashboardPage.stats.productsDetail'),
-        icon: 'pi pi-box'
+        label: this.translate.instant('dashboardPage.overview.labels.totalLeads'),
+        value: this.formatCount(this.kpis.totalLeads),
+        description: this.translate.instant('dashboardPage.overview.details.totalLeads'),
+        icon: 'pi pi-users'
       },
       {
-        label: this.translate.instant('dashboardPage.stats.orders'),
-        value: this.formatCount(orders),
-        description: this.translate.instant('dashboardPage.stats.ordersDetail'),
+        label: this.translate.instant('dashboardPage.overview.labels.totalConfirmed'),
+        value: this.formatCount(this.kpis.totalConfirmedLeads),
+        description: this.translate.instant('dashboardPage.overview.details.totalConfirmed'),
+        icon: 'pi pi-check-circle'
+      },
+      {
+        label: this.translate.instant('dashboardPage.overview.labels.totalDelivered'),
+        value: this.formatCount(this.kpis.totalDeliveredLeads),
+        description: this.translate.instant('dashboardPage.overview.details.totalDelivered'),
+        icon: 'pi pi-truck'
+      },
+      {
+        label: this.translate.instant('dashboardPage.overview.labels.totalAdsCost'),
+        value: this.formatCurrency(this.kpis.totalAdsCost),
+        description: this.translate.instant('dashboardPage.overview.details.totalAdsCost'),
+        icon: 'pi pi-megaphone'
+      },
+      {
+        label: this.translate.instant('dashboardPage.overview.labels.totalDeliveredAmount'),
+        value: this.formatCurrency(this.kpis.totalDeliveredAmount),
+        description: this.translate.instant('dashboardPage.overview.details.totalDeliveredAmount'),
         icon: 'pi pi-shopping-cart'
       },
       {
-        label: this.translate.instant('dashboardPage.stats.expenses'),
-        value: this.formatCount(expenses),
-        description: this.translate.instant('dashboardPage.stats.expensesDetail'),
+        label: this.translate.instant('dashboardPage.overview.labels.totalProfit'),
+        value: this.formatCurrency(profitSnapshot.totalProfit),
+        description: this.translate.instant('dashboardPage.overview.details.totalProfit'),
         icon: 'pi pi-wallet'
       },
       {
-        label: this.translate.instant('dashboardPage.stats.ads'),
-        value: this.formatCount(ads),
-        description: this.translate.instant('dashboardPage.stats.adsDetail'),
-        icon: 'pi pi-megaphone'
+        label: this.translate.instant('dashboardPage.overview.labels.totalCpl'),
+        value: this.formatCurrency(this.kpis.totalCpl),
+        description: this.translate.instant('dashboardPage.overview.details.totalCpl'),
+        icon: 'pi pi-chart-line'
+      },
+      {
+        label: this.translate.instant('dashboardPage.overview.labels.cpdDelivered'),
+        value: this.formatCurrency(this.kpis.costPerDelivered),
+        description: this.translate.instant('dashboardPage.overview.details.cpdDelivered'),
+        icon: 'pi pi-percentage'
+      },
+      {
+        label: this.translate.instant('dashboardPage.overview.labels.aovDelivered'),
+        value: this.formatCurrency(this.kpis.averageDeliveredOrderValue),
+        description: this.translate.instant('dashboardPage.overview.details.aovDelivered'),
+        icon: 'pi pi-box'
       }
     ];
   }
@@ -500,6 +517,7 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
       return [];
     }
     const timeframeText = this.activeDateRangeLabel;
+    const profitSnapshot = this.computeProfitMetrics(this.kpis);
     return [
     {
       label: this.translate.instant('dashboardPage.kpiLabels.confirmationRate'),
@@ -516,52 +534,31 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
       tag: timeframeText
     },
     {
-      label: this.translate.instant('dashboardPage.kpiLabels.profitPerProduct'),
-      value: this.formatCurrency(this.kpis.profitPerProduct),
-      detail: this.translate.instant('dashboardPage.kpiDetails.profitPerProduct'),
-      icon: 'pi pi-briefcase',
-      tag: timeframeText
-    },
-    {
-      label: this.translate.instant('dashboardPage.kpiLabels.agentCommission'),
-      value: this.formatCurrency(this.kpis.agentCommission),
-      detail: this.translate.instant('dashboardPage.kpiDetails.agentCommission'),
-      icon: 'pi pi-users',
-      tag: timeframeText
-    },
-    {
-      label: this.translate.instant('dashboardPage.kpiLabels.totalRevenue'),
-      value: this.formatCurrency(this.kpis.totalRevenue),
-      detail: this.translate.instant('dashboardPage.kpiDetails.totalRevenue'),
-      icon: 'pi pi-chart-line',
-      tag: timeframeText
-    },
-    {
-      label: this.translate.instant('dashboardPage.kpiLabels.totalProfit'),
-      value: this.formatCurrency(this.kpis.totalProfit),
-      detail: this.translate.instant('dashboardPage.kpiDetails.totalProfit'),
+      label: this.translate.instant('dashboardPage.kpiLabels.profitPerOrder'),
+      value: this.formatCurrency(profitSnapshot.profitPerOrder),
+      detail: this.translate.instant('dashboardPage.kpiDetails.profitPerOrder'),
       icon: 'pi pi-wallet',
       tag: timeframeText
     },
     {
-      label: this.translate.instant('dashboardPage.kpiLabels.avgOrderValue'),
-      value: this.formatCurrency(this.kpis.averageOrderValue),
-      detail: this.translate.instant('dashboardPage.kpiDetails.avgOrderValue'),
-      icon: 'pi pi-box',
+      label: this.translate.instant('dashboardPage.kpiLabels.totalDeliveredQty'),
+      value: this.formatCount(this.kpis.totalDeliveredLeads),
+      detail: this.translate.instant('dashboardPage.kpiDetails.totalDeliveredQty'),
+      icon: 'pi pi-truck',
       tag: timeframeText
     },
     {
-      label: this.translate.instant('dashboardPage.kpiLabels.roas'),
-      value: this.formatDecimal(this.kpis.roas),
-      detail: this.translate.instant('dashboardPage.kpiDetails.roas'),
-      icon: 'pi pi-bolt',
+      label: this.translate.instant('dashboardPage.kpiLabels.totalConfirmedQty'),
+      value: this.formatCount(this.kpis.totalConfirmedLeads),
+      detail: this.translate.instant('dashboardPage.kpiDetails.totalConfirmedQty'),
+      icon: 'pi pi-check',
       tag: timeframeText
     },
     {
-      label: this.translate.instant('dashboardPage.kpiLabels.cac'),
-      value: this.formatCurrency(this.kpis.cac),
-      detail: this.translate.instant('dashboardPage.kpiDetails.cac'),
-      icon: 'pi pi-sliders-h',
+      label: this.translate.instant('dashboardPage.kpiLabels.adsPerOrderDelivered'),
+      value: this.formatCurrency(this.kpis.costPerDelivered),
+      detail: this.translate.instant('dashboardPage.kpiDetails.adsPerOrderDelivered'),
+      icon: 'pi pi-megaphone',
       tag: timeframeText
     }
     ];
@@ -604,6 +601,74 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
     ];
   }
 
+  private computeProfitMetrics(kpis: DashboardKpis): { totalProfit: number; profitPerOrder: number } {
+    const deliveredCount = kpis.totalDeliveredLeads ?? 0;
+    const confirmedCount = kpis.totalConfirmedLeads ?? 0;
+    const deliveredAmount = this.safeNumber(kpis.totalDeliveredAmount);
+    const adsCost = this.safeNumber(kpis.totalAdsCost);
+    const costOfGoods = this.safeNumber(kpis.totalCostOfGoods);
+    const costs = this.loadCostsConfiguration();
+    const agentCommissionCost = this.safeNumber(costs.agentCommission) * confirmedCount;
+    const packageCost = this.safeNumber(costs.packageCost) * deliveredCount;
+    const fulfillmentCost = this.safeNumber(costs.fulfillmentCost) * deliveredCount;
+    const otherCostPerOrder = (costs.otherCosts ?? []).reduce((sum, entry) => sum + this.safeNumber(entry.amount), 0);
+    const otherCosts = otherCostPerOrder * deliveredCount;
+
+    const totalProfit = deliveredAmount
+      - costOfGoods
+      - adsCost
+      - agentCommissionCost
+      - packageCost
+      - fulfillmentCost
+      - otherCosts;
+
+    const profitPerOrder = deliveredCount > 0 ? totalProfit / deliveredCount : 0;
+    return { totalProfit, profitPerOrder };
+  }
+
+  private loadCostsConfiguration(): CostsConfiguration {
+    const fallback = this.defaultCostsConfiguration();
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return fallback;
+    }
+    try {
+      const raw = window.localStorage.getItem('ema.costsConfiguration');
+      if (!raw) {
+        return fallback;
+      }
+      const parsed = JSON.parse(raw);
+      const otherCosts = Array.isArray(parsed?.otherCosts)
+        ? parsed.otherCosts.map((entry: any) => ({
+          id: String(entry?.id ?? ''),
+          name: String(entry?.name ?? ''),
+          amount: this.safeNumber(entry?.amount)
+        }))
+        : [];
+      return {
+        agentCommission: this.safeNumber(parsed?.agentCommission),
+        packageCost: this.safeNumber(parsed?.packageCost),
+        fulfillmentCost: this.safeNumber(parsed?.fulfillmentCost),
+        otherCosts
+      };
+    } catch {
+      return fallback;
+    }
+  }
+
+  private defaultCostsConfiguration(): CostsConfiguration {
+    return {
+      agentCommission: 0,
+      packageCost: 0,
+      fulfillmentCost: 0,
+      otherCosts: []
+    };
+  }
+
+  private safeNumber(value: any): number {
+    const num = Number(value ?? 0);
+    return Number.isFinite(num) ? num : 0;
+  }
+
   private formatCount(value: number): string {
     return new Intl.NumberFormat().format(value);
   }
@@ -613,21 +678,24 @@ export class DashboardContentComponent implements OnInit, OnDestroy {
   }
 
   private formatCurrency(value: number): string {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
-  }
-
-  private formatDecimal(value: number): string {
-    return value.toFixed(2);
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(value);
   }
 }
 
-type DashboardTimeframe = 'all' | 'daily' | 'monthly' | 'yearly' | 'custom';
+type DashboardTimeframe = 'all' | 'daily' | 'yesterday' | 'monthly' | 'yearly' | 'custom';
 
 interface DashboardFilterForm {
   timeframe: DashboardTimeframe;
   agent?: string;
   mediaBuyer?: string;
   product?: string;
+}
+
+interface CostsConfiguration {
+  agentCommission: number | null;
+  packageCost: number | null;
+  fulfillmentCost: number | null;
+  otherCosts: Array<{ id: string; name: string; amount: number }>;
 }
 
 interface DashboardStatCard {
