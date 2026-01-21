@@ -100,6 +100,10 @@ public class DefaultComponentBootstrapper implements ApplicationRunner {
     columns.add(column("Customer Phone", "customer_phone", "TEXT", "VARCHAR(32)", true));
     columns.add(column("Status", "status", "TEXT", "VARCHAR(32)", true));
     columns.add(column("Assigned Agent", "assigned_agent", "TEXT", "VARCHAR(255)", true));
+    ColumnInfo productCount = column("Number of Products per Order", "number_of_products_per_order", "INTEGER", "BIGINT", true);
+    productCount.getMetadata().put("readOnly", true);
+    productCount.getMetadata().put("disabled", true);
+    columns.add(productCount);
     columns.add(column("Store Name", "store_name", "TEXT", "VARCHAR(255)", true));
     columns.add(column("Upsell", "upsell", "BOOLEAN", "BOOLEAN", true));
     columns.add(column("SKUs", "sku_items", "JSON", "JSONB", true));

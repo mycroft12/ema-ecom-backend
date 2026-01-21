@@ -376,10 +376,17 @@ public class DomainImportService {
     if ("orders".equals(normalized) || "order".equals(normalized)) {
       ensureColumnExists(table, "status", "text");
       ensureColumnExists(table, "assigned_agent", "text");
+      ensureColumnExists(table, "number_of_products_per_order", "bigint");
       ensureColumnExists(table, "store_name", "text");
       ensureColumnExists(table, "upsell", "boolean");
       ensureColumnExists(table, "sku_items", "jsonb");
-      ensureSystemColumnPermissions(normalized, List.of("status", "assigned_agent", "store_name", "upsell", "sku_items"));
+      ensureSystemColumnPermissions(normalized, List.of(
+          "status",
+          "assigned_agent",
+          "number_of_products_per_order",
+          "store_name",
+          "upsell",
+          "sku_items"));
     }
   }
 
@@ -403,6 +410,14 @@ public class DomainImportService {
     }
     if (!existing.contains("assigned_agent")) {
       current.add(new ColumnInfo("Assigned Agent", "assigned_agent", "TEXT", "TEXT", true, null));
+    }
+    if (!existing.contains("number_of_products_per_order")) {
+      ColumnInfo productCount = new ColumnInfo("Number of Products per Order", "number_of_products_per_order", "INTEGER", "BIGINT", true, null);
+      java.util.Map<String, Object> metadata = new java.util.HashMap<>();
+      metadata.put("readOnly", true);
+      metadata.put("disabled", true);
+      productCount.setMetadata(metadata);
+      current.add(productCount);
     }
     return current;
   }

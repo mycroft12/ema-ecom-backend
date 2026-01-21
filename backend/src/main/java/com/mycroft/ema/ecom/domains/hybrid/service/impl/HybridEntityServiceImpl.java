@@ -305,6 +305,9 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       ColumnSemantics semantic = semanticsByColumn.get(name.toLowerCase(Locale.ROOT));
       HybridResponseDto.ColumnType type = mapSqlTypeToColumnType(name, dataType, semantic);
       String displayName = prettify(name);
+      if (isOrdersDomain && "number_of_products_per_order".equalsIgnoreCase(name)) {
+        displayName = "Number of Products per Order";
+      }
 
       Map<String, Object> metadata = new HashMap<>();
       if (semantic != null && semantic.metadata() != null) {
@@ -324,6 +327,10 @@ public class HybridEntityServiceImpl implements HybridEntityService {
         metadata.putIfAbsent("input", "select");
       }
       if (isOrdersDomain && "assigned_agent".equalsIgnoreCase(name)) {
+        metadata.put("readOnly", true);
+        metadata.put("disabled", true);
+      }
+      if (isOrdersDomain && "number_of_products_per_order".equalsIgnoreCase(name)) {
         metadata.put("readOnly", true);
         metadata.put("disabled", true);
       }

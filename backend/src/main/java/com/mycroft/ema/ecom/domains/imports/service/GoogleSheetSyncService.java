@@ -6,6 +6,7 @@ import com.mycroft.ema.ecom.domains.imports.domain.GoogleImportConfig;
 import com.mycroft.ema.ecom.domains.imports.dto.GoogleSheetSyncRequest;
 import com.mycroft.ema.ecom.domains.imports.repo.GoogleImportConfigRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.postgresql.util.PGobject;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,16 @@ public class GoogleSheetSyncService {
     Map<String, Object> sanitizedRow = sanitizeRow(request.row());
     if (isOrdersDomain(domain) && config.getTabName() != null) {
       sanitizedRow.put("store_name", config.getTabName());
+    }
+    if (isOrdersDomain(domain)) {
+      List<Map<String, Object>> skuItems = deriveSkuItems(sanitizedRow);
+      if (!skuItems.isEmpty()) {
+        sanitizedRow.put("sku_items", skuItems);
+      }
+      Integer productCount = resolveNumberOfProducts(sanitizedRow);
+      if (productCount != null) {
+        sanitizedRow.put("number_of_products_per_order", productCount);
+      }
     }
     Set<String> allowedColumns = allowedColumnsForTable(table);
     Map<String, String> columnTypes = columnTypesForTable(table);
@@ -239,6 +250,205 @@ public class GoogleSheetSyncService {
       sanitized.put(column, value);
     }
     return sanitized;
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<Map<String, Object>> deriveSkuItems(Map<String, Object> row) {
+    if (row == null) {
+      return List.of();
+    }
+    Object existing = row.get("sku_items");
+    List<Map<String, Object>> normalizedExisting = normalizeSkuItems(existing);
+    if (!normalizedExisting.isEmpty()) {
+      return normalizedExisting;
+    }
+
+    List<String> skus = splitMultilineValues(firstNonNull(row, "sku", "product_sku", "product_reference"));
+    if (skus.isEmpty()) {
+      return List.of();
+    }
+    List<String> qtysRaw = splitMultilineValues(firstNonNull(row, "qty", "qt", "quantity", "quantity_ordered"));
+    int size = Math.max(skus.size(), qtysRaw.size());
+    List<Map<String, Object>> items = new ArrayList<>();
+    for (int i = 0; i < size; i++) {
+      String rawSku = skus.size() > i ? skus.get(i) : skus.get(skus.size() - 1);
+      if (rawSku == null || rawSku.isBlank()) {
+        continue;
+      }
+      String rawQty = qtysRaw.size() > i ? qtysRaw.get(i) : (qtysRaw.isEmpty() ? null : qtysRaw.get(qtysRaw.size() - 1));
+      int qty = parsePositiveInt(rawQty, 1);
+      Map<String, Object> item = new LinkedHashMap<>();
+      item.put("sku", rawSku.trim());
+      item.put("qty", qty);
+      items.add(item);
+    }
+    return items;
+  }
+
+  private List<Map<String, Object>> normalizeSkuItems(Object value) {
+    if (value == null) {
+      return List.of();
+    }
+    try {
+      if (value instanceof Collection<?> col) {
+        return col.stream()
+            .map(this::mapSkuItem)
+            .filter(Objects::nonNull)
+            .toList();
+      }
+      if (value instanceof String str) {
+        String trimmed = str.trim();
+        if (trimmed.isEmpty()) {
+          return List.of();
+        }
+        if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+          List<Map<String, Object>> parsed = JSON_MAPPER.readValue(trimmed, List.class);
+          if (parsed != null) {
+            return parsed.stream()
+                .map(this::mapSkuItem)
+                .filter(Objects::nonNull)
+                .toList();
+          }
+        }
+      }
+    } catch (Exception ignored) {
+      return List.of();
+    }
+    return List.of();
+  }
+
+  private Map<String, Object> mapSkuItem(Object raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw instanceof Map<?, ?> map) {
+      Object sku = map.get("sku") != null ? map.get("sku") : map.get("value");
+      if (sku == null) {
+        return null;
+      }
+      int qty = parsePositiveInt(map.get("qty"), 1);
+      Map<String, Object> item = new LinkedHashMap<>();
+      item.put("sku", sku.toString().trim());
+      item.put("qty", qty);
+      return item;
+    }
+    String text = raw.toString().trim();
+    if (text.isEmpty()) {
+      return null;
+    }
+    Map<String, Object> item = new LinkedHashMap<>();
+    item.put("sku", text);
+    item.put("qty", 1);
+    return item;
+  }
+
+  private List<String> splitMultilineValues(Object raw) {
+    if (raw == null) {
+      return List.of();
+    }
+    List<String> values = new ArrayList<>();
+    collectWhitespaceValues(raw, values);
+    return values;
+  }
+
+  private Integer resolveNumberOfProducts(Map<String, Object> row) {
+    if (row == null || row.isEmpty()) {
+      return null;
+    }
+    int maxCount = 0;
+    int skuItemsCount = normalizeSkuItems(row.get("sku_items")).size();
+    maxCount = Math.max(maxCount, skuItemsCount);
+    maxCount = Math.max(maxCount, countWhitespaceSeparatedValues(
+        firstNonNull(row, "sku", "product_sku", "product_reference")));
+    maxCount = Math.max(maxCount, countWhitespaceSeparatedValues(
+        firstNonNull(row, "qty", "qt", "quantity", "quantity_ordered")));
+    maxCount = Math.max(maxCount, countNewlineSeparatedValues(
+        firstNonNull(row, "product_name", "product_names", "product", "product_summary", "item_name", "item_names")));
+    return maxCount > 0 ? maxCount : null;
+  }
+
+  private int countWhitespaceSeparatedValues(Object raw) {
+    if (raw == null) {
+      return 0;
+    }
+    List<String> values = new ArrayList<>();
+    collectWhitespaceValues(raw, values);
+    return values.size();
+  }
+
+  private void collectWhitespaceValues(Object raw, List<String> values) {
+    if (raw == null) {
+      return;
+    }
+    if (raw instanceof Collection<?> col) {
+      for (Object item : col) {
+        collectWhitespaceValues(item, values);
+      }
+      return;
+    }
+    String text = raw.toString();
+    if (text == null) {
+      return;
+    }
+    String[] parts = text.trim().split("\\s+");
+    for (String part : parts) {
+      String trimmed = part == null ? "" : part.trim();
+      if (!trimmed.isEmpty()) {
+        values.add(trimmed);
+      }
+    }
+  }
+
+  private int countNewlineSeparatedValues(Object raw) {
+    if (raw == null) {
+      return 0;
+    }
+    List<String> values = new ArrayList<>();
+    collectNewlineValues(raw, values);
+    return values.size();
+  }
+
+  private void collectNewlineValues(Object raw, List<String> values) {
+    if (raw == null) {
+      return;
+    }
+    if (raw instanceof Collection<?> col) {
+      for (Object item : col) {
+        collectNewlineValues(item, values);
+      }
+      return;
+    }
+    String text = raw.toString();
+    if (text == null) {
+      return;
+    }
+    String[] parts = text.split("\\r?\\n");
+    for (String part : parts) {
+      String trimmed = part == null ? "" : part.trim();
+      if (!trimmed.isEmpty()) {
+        values.add(trimmed);
+      }
+    }
+  }
+
+  private Object firstNonNull(Map<String, Object> row, String... keys) {
+    if (row == null || keys == null) return null;
+    for (String key : keys) {
+      if (key == null) continue;
+      Object val = row.get(key);
+      if (val != null) return val;
+    }
+    return null;
+  }
+
+  private int parsePositiveInt(Object raw, int fallback) {
+    if (raw == null) return fallback;
+    try {
+      int parsed = Integer.parseInt(raw.toString().trim());
+      return parsed > 0 ? parsed : fallback;
+    } catch (NumberFormatException ex) {
+      return fallback;
+    }
   }
 
   private String normalizeColumnName(String name) {
@@ -437,6 +647,7 @@ public class GoogleSheetSyncService {
         case "timestamp without time zone", "timestamp with time zone", "timestamp" ->
             entry.setValue(convertToTimestamp(value));
         case "date" -> entry.setValue(convertToDate(value));
+        case "json", "jsonb" -> entry.setValue(convertToJsonb(value));
         default -> {
           // leave as-is for text/timestamp/date/etc.
         }
@@ -592,6 +803,17 @@ public class GoogleSheetSyncService {
       }
     }
     return value;
+  }
+
+  private PGobject convertToJsonb(Object value) {
+    try {
+      PGobject obj = new PGobject();
+      obj.setType("jsonb");
+      obj.setValue(JSON_MAPPER.writeValueAsString(value));
+      return obj;
+    } catch (Exception ex) {
+      throw new IllegalArgumentException("Cannot convert value to jsonb", ex);
+    }
   }
 
   private void deleteRow(String table, UUID rowId) {
