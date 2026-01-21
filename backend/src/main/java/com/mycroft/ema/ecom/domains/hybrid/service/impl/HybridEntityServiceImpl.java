@@ -297,6 +297,7 @@ public class HybridEntityServiceImpl implements HybridEntityService {
     for (Map<String, Object> row : rows) {
       String name = String.valueOf(row.get("column_name"));
       if ("id".equalsIgnoreCase(name)) continue;
+      if (isOrdersDomain && "sku_items".equalsIgnoreCase(name)) continue;
 
       String dataType = String.valueOf(row.get("data_type"));
       int order = Integer.parseInt(String.valueOf(row.get("ordinal_position"))) - 1;
@@ -333,17 +334,6 @@ public class HybridEntityServiceImpl implements HybridEntityService {
       if (isOrdersDomain && "number_of_products_per_order".equalsIgnoreCase(name)) {
         metadata.put("readOnly", true);
         metadata.put("disabled", true);
-      }
-      if (isOrdersDomain && "sku_items".equalsIgnoreCase(name)) {
-        if (!productReferenceOptions.isEmpty()) {
-          metadata.put("options", productReferenceOptions);
-        }
-        metadata.put("component", "skuList");
-        metadata.put("hint", "Select SKUs and quantities");
-      }
-      if (isOrdersDomain && "sku_items".equalsIgnoreCase(name)) {
-        metadata.put("component", "skuList");
-        metadata.put("hint", "Select SKUs and quantities");
       }
       if (isAdsDomain && "product_reference".equalsIgnoreCase(name)) {
         metadata.put("options", productReferenceOptions);

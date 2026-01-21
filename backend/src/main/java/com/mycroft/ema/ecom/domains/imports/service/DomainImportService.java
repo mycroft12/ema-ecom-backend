@@ -379,14 +379,12 @@ public class DomainImportService {
       ensureColumnExists(table, "number_of_products_per_order", "bigint");
       ensureColumnExists(table, "store_name", "text");
       ensureColumnExists(table, "upsell", "boolean");
-      ensureColumnExists(table, "sku_items", "jsonb");
       ensureSystemColumnPermissions(normalized, List.of(
           "status",
           "assigned_agent",
           "number_of_products_per_order",
           "store_name",
-          "upsell",
-          "sku_items"));
+          "upsell"));
     }
   }
 

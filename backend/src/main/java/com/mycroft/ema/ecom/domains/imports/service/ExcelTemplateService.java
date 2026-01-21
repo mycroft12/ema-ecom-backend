@@ -716,8 +716,10 @@ public class ExcelTemplateService {
         types = List.of("uuid","minio:image","text","text","text","text","numeric(12,2)","bigint","numeric(12,2)","bigint");
       }
       case "order", "orders" -> {
-        headers = List.of("id", "order_number","order_reference","customer_name","customer_phone","status","assigned_agent","store_name","city_confirmed","upsell","sku_items","total_price","created_at","product_summary","notes");
-        types = List.of("uuid","bigint","text","text","text","text","text","text","text","boolean","json","numeric(12,2)","timestamp","text","text");
+        headers = List.of("id", "order_number","order_reference","customer_name","customer_phone","status","assigned_agent",
+            "number_of_products_per_order","store_name","city_confirmed","upsell","total_price","created_at","product_summary","notes");
+        types = List.of("uuid","bigint","text","text","text","text","text",
+            "bigint","text","text","boolean","numeric(12,2)","timestamp","text","text");
       }
       case "ad", "ads", "advertising", "marketing" -> {
         headers = List.of("id", "spend_date","product_reference","platform","campaign_name","ad_spend","confirmed_orders","cpl","notes");
