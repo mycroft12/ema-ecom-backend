@@ -2,6 +2,8 @@
 # 1) Build Angular frontend
 FROM node:20-alpine AS frontend
 WORKDIR /workspace
+ENV NODE_OPTIONS="--max_old_space_size=2048"
+ENV NG_BUILD_MAX_WORKERS=2
 COPY frontend ./frontend
 RUN if [ -f ./frontend/package.json ]; then \
       cd ./frontend; \

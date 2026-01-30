@@ -108,3 +108,35 @@ Add these in the Coolify env var panel for the compose service.
 
 - If you want `www.dashkod.com`, add that domain in Coolify too and enable SSL.
 - If you want MinIO behind its own subdomain (e.g., `minio.dashkod.com`), set it up in Coolify and update `APP_MINIO_PUBLIC_BASE_URL`.
+
+---
+
+## 9) If HTTPS does not work (Coolify Proxy routing fix)
+
+If the proxy logs show:
+
+```
+Host(``) && PathPrefix(`dashkod.com`)
+```
+
+Coolify is treating the domain as a path. Fix it by forcing host/path in compose.
+
+**Update docker-compose.yml (app service env):**
+
+```
+SERVICE_FQDN_APP: ${SERVICE_FQDN_APP:-dashkod.com}
+SERVICE_URL_APP: ${SERVICE_URL_APP:-/}
+```
+
+Then:
+
+1) Commit + push the change
+2) Coolify → App → **Reload Compose File**
+3) **Redeploy**
+4) Servers → localhost → Proxy → **Restart**
+
+Expected proxy rule after fix:
+
+```
+Host(`dashkod.com`) && PathPrefix(`/`)
+```
