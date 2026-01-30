@@ -40,7 +40,7 @@ services:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-emaecom}
+      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/${DB_NAME:-emaecom}}
       DB_USER: ${DB_USER:-ema}
       DB_PASSWORD: ${DB_PASSWORD:-ema}
 
