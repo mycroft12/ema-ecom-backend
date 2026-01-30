@@ -55,10 +55,6 @@ services:
       # REQUIRED (Coolify will force you to set it if you use :?)
       APP_MASTER_KEY: ${APP_MASTER_KEY:?}
 
-      # Coolify routing (explicit host/path)
-      SERVICE_FQDN_APP: ${SERVICE_FQDN_APP:-dashkod.com}
-      SERVICE_URL_APP: ${SERVICE_URL_APP:-/}
-
       APP_MINIO_ENDPOINT: http://minio:9000
       APP_MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
       APP_MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
