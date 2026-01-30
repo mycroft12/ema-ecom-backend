@@ -6,6 +6,7 @@ spring:
     username: ${DB_USER:ema}
     password: ${DB_PASSWORD:ema}
     hikari:
+      auto-commit: false
       maximum-pool-size: 10
   jpa:
     hibernate:
