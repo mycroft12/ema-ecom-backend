@@ -60,7 +60,12 @@ services:
       APP_MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       APP_MINIO_BUCKET: ${APP_MINIO_BUCKET:-ema-ecom}
       APP_MINIO_PUBLIC_BASE_URL: ${APP_MINIO_PUBLIC_BASE_URL:-https://s3.yourdomain.com/${APP_MINIO_BUCKET:-ema-ecom}}
-
+    labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.dashkod.rule=Host(`dashkod.com`) || Host(`www.dashkod.com`)"
+          - "traefik.http.routers.dashkod.entrypoints=http,https"
+          - "traefik.http.routers.dashkod.tls=true"
+          - "traefik.http.routers.dashkod.tls.certresolver=letsencrypt"
     expose:
       - "8080"
 
