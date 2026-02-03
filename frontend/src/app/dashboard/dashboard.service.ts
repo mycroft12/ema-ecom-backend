@@ -55,7 +55,7 @@ export class DashboardService {
 
   getKpis(filters?: DashboardFilters): Observable<DashboardKpis> {
     const params = this.buildKpiParams(filters);
-    return this.http.get<DashboardKpis>(`${environment.apiBase}/api/dashboard/kpis`, { params }).pipe(
+    return this.http.get<DashboardKpis>(`${environment.apiBaseUrl}/dashboard/kpis`, { params }).pipe(
       catchError(() => of(this.emptyKpis()))
     );
   }
@@ -203,21 +203,21 @@ export class DashboardService {
   }
 
   getAgentOptions(): Observable<DashboardLookupOption[]> {
-    return this.http.get<Array<{ id: string; username: string; email?: string }>>(`${environment.apiBase}/api/dashboard/lookups/agents`).pipe(
+    return this.http.get<Array<{ id: string; username: string; email?: string }>>(`${environment.apiBaseUrl}/dashboard/lookups/agents`).pipe(
       map(options => (options ?? []).map(opt => ({ id: opt.id, label: opt.username, detail: opt.email }))),
       catchError(() => of([]))
     );
   }
 
   getMediaBuyerOptions(): Observable<DashboardLookupOption[]> {
-    return this.http.get<Array<{ id: string; username: string; email?: string }>>(`${environment.apiBase}/api/dashboard/lookups/media-buyers`).pipe(
+    return this.http.get<Array<{ id: string; username: string; email?: string }>>(`${environment.apiBaseUrl}/dashboard/lookups/media-buyers`).pipe(
       map(options => (options ?? []).map(opt => ({ id: opt.id, label: opt.username, detail: opt.email }))),
       catchError(() => of([]))
     );
   }
 
   getProductOptions(): Observable<DashboardLookupOption[]> {
-    return this.http.get<Array<{ id: string; name: string }>>(`${environment.apiBase}/api/dashboard/lookups/products`).pipe(
+    return this.http.get<Array<{ id: string; name: string }>>(`${environment.apiBaseUrl}/dashboard/lookups/products`).pipe(
       map(options => (options ?? []).map(opt => ({ id: opt.id, label: opt.name }))),
       catchError(() => of([]))
     );

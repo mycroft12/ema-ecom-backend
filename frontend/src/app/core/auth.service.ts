@@ -27,7 +27,7 @@ export class AuthService {
   }
 
   login(username: string, password: string){
-    return this.http.post<LoginResponse>(`${environment.apiBase}/api/auth/login`, { username, password });
+    return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/auth/login`, { username, password });
   }
 
   saveLoginResponse(response: LoginResponse) {
@@ -173,7 +173,7 @@ export class AuthService {
     }
 
     return this.http.post<LoginResponse>(
-      `${environment.apiBase}/api/auth/refresh`, 
+      `${environment.apiBaseUrl}/auth/refresh`, 
       { refreshToken }
     );
   }
@@ -211,7 +211,7 @@ export class AuthService {
   logout(messageKey?: string){
     const refreshToken = this.getRefreshToken();
     if (refreshToken) {
-      this.http.post(`${environment.apiBase}/api/auth/logout`, { refreshToken }).subscribe({
+      this.http.post(`${environment.apiBaseUrl}/auth/logout`, { refreshToken }).subscribe({
         next: () => {},
         error: () => {}
       });

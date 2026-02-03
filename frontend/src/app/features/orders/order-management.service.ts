@@ -26,37 +26,37 @@ export interface AgentOrderStatus {
 @Injectable({ providedIn: 'root' })
 export class OrderManagementService {
   private readonly http = inject(HttpClient);
-  private readonly apiBase = environment.apiBase;
+  private readonly apiBase = environment.apiBaseUrl;
 
   listAgents(): Observable<OrderAgent[]> {
-    return this.http.get<OrderAgent[]>(`${this.apiBase}/api/orders/agents`);
+    return this.http.get<OrderAgent[]>(`${this.apiBase}/orders/agents`);
   }
 
   assignAgent(orderId: string, agentId: string): Observable<HybridEntityRecord> {
-    return this.http.post<HybridEntityRecord>(`${this.apiBase}/api/orders/${orderId}/assignment`, { agentId });
+    return this.http.post<HybridEntityRecord>(`${this.apiBase}/orders/${orderId}/assignment`, { agentId });
   }
 
   listStatuses(): Observable<OrderStatus[]> {
-    return this.http.get<OrderStatus[]>(`${this.apiBase}/api/orders/statuses`);
+    return this.http.get<OrderStatus[]>(`${this.apiBase}/orders/statuses`);
   }
 
   createStatus(payload: { labelFr: string; labelEn: string; displayOrder: number }): Observable<OrderStatus> {
-    return this.http.post<OrderStatus>(`${this.apiBase}/api/orders/statuses`, payload);
+    return this.http.post<OrderStatus>(`${this.apiBase}/orders/statuses`, payload);
   }
 
   updateStatus(id: string, payload: { labelFr: string; labelEn: string; displayOrder: number }): Observable<OrderStatus> {
-    return this.http.put<OrderStatus>(`${this.apiBase}/api/orders/statuses/${id}`, payload);
+    return this.http.put<OrderStatus>(`${this.apiBase}/orders/statuses/${id}`, payload);
   }
 
   deleteStatus(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBase}/api/orders/statuses/${id}`);
+    return this.http.delete<void>(`${this.apiBase}/orders/statuses/${id}`);
   }
 
   currentAgentStatus(): Observable<AgentOrderStatus> {
-    return this.http.get<AgentOrderStatus>(`${this.apiBase}/api/orders/agents/me/active-orders`);
+    return this.http.get<AgentOrderStatus>(`${this.apiBase}/orders/agents/me/active-orders`);
   }
 
   claimNextOrder(): Observable<HybridRawEntityDto> {
-    return this.http.post<HybridRawEntityDto>(`${this.apiBase}/api/orders/claim`, {});
+    return this.http.post<HybridRawEntityDto>(`${this.apiBase}/orders/claim`, {});
   }
 }

@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  apiBase: '', // set to your backend base URL when deploying behind Nginx reverse proxy
-  apiBaseUrl: '',
+  // Base URL for the API (relative; proxied via /api)
+  apiBaseUrl: '/api',
   googlePickerClientId: '',
   googlePickerApiKey: '',
   googleDriveMimeTypes: 'application/vnd.google-apps.spreadsheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv',

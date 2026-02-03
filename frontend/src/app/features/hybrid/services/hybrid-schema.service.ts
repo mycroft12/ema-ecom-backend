@@ -22,7 +22,7 @@ interface HybridContext {
 @Injectable({ providedIn: 'root' })
 export class HybridSchemaService {
   private readonly http = inject(HttpClient);
-  private readonly apiBase = environment.apiBase;
+  private readonly apiBase = environment.apiBaseUrl;
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
 
@@ -85,7 +85,7 @@ export class HybridSchemaService {
     const context = this.contextSignal();
     const entityType = context.entityType;
 
-    this.http.get<any>(`${this.apiBase}/api/hybrid/${entityType}`, {
+    this.http.get<any>(`${this.apiBase}/hybrid/${entityType}`, {
       params: { includeSchema: true, page: 0, size: 1 } as any
     }).pipe(
       tap(resp => {
@@ -137,7 +137,7 @@ export class HybridSchemaService {
 
     this.uploadProgressSignal.set(0);
 
-    return this.http.post<any>(`${this.apiBase}/api/import/configure`, formData, { observe: 'events', reportProgress: true }).pipe(
+    return this.http.post<any>(`${this.apiBase}/import/configure`, formData, { observe: 'events', reportProgress: true }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
           const total = (event as any).total || 0;

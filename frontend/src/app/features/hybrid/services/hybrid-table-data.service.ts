@@ -111,7 +111,7 @@ export class HybridTableDataService {
     let params = new HttpParams()
       .set('domain', entity)
       .set('field', field);
-    return this.http.post<HybridMinioUploadResponse>(`${environment.apiBase}/api/files/upload`, formData, { params });
+    return this.http.post<HybridMinioUploadResponse>(`${environment.apiBaseUrl}/files/upload`, formData, { params });
   }
 
   deleteRecord(id: string): Observable<void> {
@@ -277,7 +277,7 @@ export class HybridTableDataService {
   }
 
   private apiUrlFor(entity: string): string {
-    return `${environment.apiBase}/api/hybrid/${entity}`;
+    return `${environment.apiBaseUrl}/hybrid/${entity}`;
   }
 
   private download(blob: Blob, filename: string): void {

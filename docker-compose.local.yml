@@ -3,7 +3,9 @@ services:
     environment:
       # Keep local Postgres aligned with the existing emaecom DB.
       POSTGRES_DB: emaecom
-
+  frontend:
+      ports:
+        - "8080:80"
   backend:
     environment:
       # Keep DB name consistent with the existing Postgres volume.

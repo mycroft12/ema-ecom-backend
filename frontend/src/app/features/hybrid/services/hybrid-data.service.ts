@@ -39,7 +39,7 @@ export class HybridDataService {
       const values = filters.getAll(key) ?? [];
       values.forEach(value => { params = params.append(key, value); });
     });
-    return this.http.get<HybridSearchResponse>(`${environment.apiBase}/api/hybrid/${entityType}`, { params }).pipe(
+    return this.http.get<HybridSearchResponse>(`${environment.apiBaseUrl}/hybrid/${entityType}`, { params }).pipe(
       map(resp => {
         const records: HybridEntity[] = (resp.content ?? []).map(row => {
           const id = row['id'] ?? '';
@@ -79,7 +79,7 @@ export class HybridDataService {
   }
 
   get(entityType: string, id: string): Observable<HybridEntity> {
-    return this.http.get<Record<string, any>>(`${environment.apiBase}/api/hybrid/${entityType}/${id}`).pipe(
+    return this.http.get<Record<string, any>>(`${environment.apiBaseUrl}/hybrid/${entityType}/${id}`).pipe(
       map(response => {
         const attrs = { ...response };
         const entityId = attrs['id'] ?? id;
@@ -90,7 +90,7 @@ export class HybridDataService {
   }
 
   create(entityType: string, payload: Record<string, any>): Observable<HybridEntity> {
-    return this.http.post<Record<string, any>>(`${environment.apiBase}/api/hybrid/${entityType}`, { attributes: payload }).pipe(
+    return this.http.post<Record<string, any>>(`${environment.apiBaseUrl}/hybrid/${entityType}`, { attributes: payload }).pipe(
       map(response => {
         const attrs = { ...response };
         const id = attrs['id'];
@@ -101,7 +101,7 @@ export class HybridDataService {
   }
 
   update(entityType: string, id: string, payload: Record<string, any>): Observable<HybridEntity> {
-    return this.http.put<Record<string, any>>(`${environment.apiBase}/api/hybrid/${entityType}/${id}`, { attributes: payload }).pipe(
+    return this.http.put<Record<string, any>>(`${environment.apiBaseUrl}/hybrid/${entityType}/${id}`, { attributes: payload }).pipe(
       map(response => {
         const attrs = { ...response };
         const entityId = attrs['id'] ?? id;
@@ -112,6 +112,6 @@ export class HybridDataService {
   }
 
   delete(entityType: string, id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.apiBase}/api/hybrid/${entityType}/${id}`);
+    return this.http.delete<void>(`${environment.apiBaseUrl}/hybrid/${entityType}/${id}`);
   }
 }

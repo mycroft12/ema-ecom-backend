@@ -6,7 +6,7 @@ import { NotificationEntryDto } from '../models/notification.model';
 
 @Injectable({ providedIn: 'root' })
 export class HybridNotificationApiService {
-  private readonly baseUrl = `${environment.apiBase}/api/notifications`;
+  private readonly baseUrl = `${environment.apiBaseUrl}/notifications`;
 
   constructor(private http: HttpClient) {}
 
