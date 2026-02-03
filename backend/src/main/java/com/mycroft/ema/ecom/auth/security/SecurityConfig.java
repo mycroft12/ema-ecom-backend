@@ -1,9 +1,9 @@
 package com.mycroft.ema.ecom.auth.security;
 
+import com.mycroft.ema.ecom.auth.domain.User;
 import com.mycroft.ema.ecom.auth.repo.UserRepository;
 import com.mycroft.ema.ecom.auth.service.AccessControlService;
 import com.mycroft.ema.ecom.auth.service.JwtService;
-import com.mycroft.ema.ecom.auth.domain.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +12,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,8 +23,16 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException; import java.util.Collection;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Central Spring Security configuration wiring stateless JWT authentication and endpoint authorization rules.
@@ -30,27 +40,60 @@ import java.io.IOException; import java.util.Collection;
 @Configuration
 @EnableAutoConfiguration(exclude = UserDetailsServiceAutoConfiguration.class)
 public class SecurityConfig {
-  @Bean PasswordEncoder passwordEncoder(){ return new BCryptPasswordEncoder(); }
+  @Bean
+  PasswordEncoder passwordEncoder(){
+    return new BCryptPasswordEncoder();
+  }
 
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable);
-    http.cors(cors -> {});
+    http.cors(Customizer.withDefaults());
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     http.authorizeHttpRequests(auth -> auth
-        .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/swagger","/swagger-ui","/actuator/health").permitAll()
-        .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/refresh","/api/import/google/sync").permitAll()
-        .requestMatchers(HttpMethod.GET, "/api/hybrid/*/upserts/stream").permitAll()
-        .requestMatchers(HttpMethod.GET, "/api/notifications").authenticated()
-        .requestMatchers(HttpMethod.POST, "/api/notifications/**").authenticated()
+        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        .requestMatchers("/", "/error", "/actuator/health",
+            "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+        .requestMatchers("/api/auth/**").permitAll()
+        .requestMatchers("/api/**").authenticated()
         .anyRequest().authenticated());
-    http.addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 
   @Bean
   JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwt, UserRepository users, AccessControlService ac){
     return new JwtAuthenticationFilter(jwt, users, ac);
+  }
+
+  @Bean
+  CorsConfigurationSource corsConfigurationSource(Environment env){
+    var raw = env.getProperty("CORS_ALLOWED_ORIGINS", "");
+    var origins = Arrays.stream(raw.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toList();
+    var config = new CorsConfiguration();
+    var hasWildcard = origins.stream().anyMatch(o -> o.equals("*") || o.contains("*"));
+    if(hasWildcard){
+      config.setAllowedOriginPatterns(List.of("*"));
+      config.setAllowCredentials(false);
+    }else{
+      config.setAllowedOrigins(origins);
+      config.setAllowCredentials(true);
+    }
+    config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+    config.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With","Accept","Origin","Cache-Control","Pragma"));
+    config.setExposedHeaders(List.of("Location"));
+    config.setMaxAge(3600L);
+    var source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+  }
+
+  @Bean
+  ForwardedHeaderFilter forwardedHeaderFilter(){
+    return new ForwardedHeaderFilter();
   }
 
   /**
