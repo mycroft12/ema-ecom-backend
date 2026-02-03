@@ -1,0 +1,17 @@
+# ===== Backend Dockerfile (Spring Boot only) =====
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+WORKDIR /workspace
+ENV MAVEN_CONFIG=/tmp/.m2
+RUN mkdir -p /tmp/.m2
+COPY pom.xml ./
+COPY backend/pom.xml ./backend/pom.xml
+RUN mvn -q -e -DskipTests -Dmaven.repo.local=/tmp/.m2/repository dependency:go-offline
+COPY backend/src ./backend/src
+RUN mvn -q -e -DskipTests -Dmaven.repo.local=/tmp/.m2/repository -pl backend -am package
+
+FROM eclipse-temurin:21-jre
+ENV JAVA_OPTS=""
+WORKDIR /app
+COPY --from=build /workspace/backend/target/*.jar /app/app.jar
+EXPOSE 8080
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
