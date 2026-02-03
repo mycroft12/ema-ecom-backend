@@ -18,6 +18,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -59,6 +60,12 @@ public class SecurityConfig {
         .anyRequest().authenticated());
     http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
+  }
+
+  @Bean
+  WebSecurityCustomizer webSecurityCustomizer(Environment env){
+    var debug = env.getProperty("spring.security.debug", Boolean.class, false);
+    return (web) -> web.debug(debug);
   }
 
   @Bean
