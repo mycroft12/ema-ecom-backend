@@ -1,0 +1,11 @@
+.git
+.gitignore
+**/.DS_Store
+**/.idea
+**/.vscode
+**/.angular
+**/.cache
+**/node_modules
+**/dist
+**/coverage
+**/target

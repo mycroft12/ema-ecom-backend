@@ -52,7 +52,7 @@ services:
       SERVER_FORWARD_HEADERS_STRATEGY: framework
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://dashkod.com,https://www.dashkod.com}
 
-      APP_MASTER_KEY: ${APP_MASTER_KEY:?}
+      APP_MASTER_KEY: ${APP_MASTER_KEY:-local-dev-master-key}
 
       APP_MINIO_ENDPOINT: http://minio:9000
       APP_MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
@@ -62,7 +62,7 @@ services:
 
     # IMPORTANT: expose is enough for Traefik (it routes internally)
     expose:
-      - "8080"
+      - "80"
 
     # IMPORTANT: connect the app to BOTH networks:
     # - internal: db/minio
@@ -73,20 +73,23 @@ services:
 
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
 
       # ROUTER RULES
       - "traefik.http.routers.dashkod.rule=Host(`dashkod.com`) || Host(`www.dashkod.com`)"
       - "traefik.http.routers.dashkod.entrypoints=https"
       - "traefik.http.routers.dashkod.tls=true"
       - "traefik.http.routers.dashkod.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashkod.service=dashkod"
 
-      # FORCE TRAEFIK TO USE PORT 8080 INSIDE CONTAINER
-      - "traefik.http.services.dashkod.loadbalancer.server.port=8080"
+      # FORCE TRAEFIK TO USE PORT 80 INSIDE CONTAINER (Nginx)
+      - "traefik.http.services.dashkod.loadbalancer.server.port=80"
 
       # OPTIONAL: redirect http -> https (only if you also want port 80 routing)
       - "traefik.http.routers.dashkod-http.rule=Host(`dashkod.com`) || Host(`www.dashkod.com`)"
       - "traefik.http.routers.dashkod-http.entrypoints=http"
       - "traefik.http.routers.dashkod-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.dashkod-http.service=dashkod"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
 volumes:

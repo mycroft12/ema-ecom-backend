@@ -9,6 +9,6 @@ RUN npm run build
 
 # Runtime stage (Nginx)
 FROM nginx:1.27-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.frontend.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/ema-ecom-frontend /usr/share/nginx/html
 EXPOSE 80

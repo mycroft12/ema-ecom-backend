@@ -1,0 +1,7 @@
+services:
+  app:
+    environment:
+      # Local-only override to satisfy required variable in base compose.
+      APP_MASTER_KEY: local-dev-master-key
+      # Optional: local frontend origins for CORS.
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:5173
