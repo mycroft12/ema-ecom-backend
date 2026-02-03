@@ -3,16 +3,24 @@ services:
     environment:
       # Keep local Postgres aligned with the existing emaecom DB.
       POSTGRES_DB: emaecom
+    ports:
+      - "5432:5432"
   frontend:
     ports:
       - "8080:80"
   backend:
     environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/emaecom
+      SPRING_DATASOURCE_USERNAME: ema
+      SPRING_DATASOURCE_PASSWORD: ema
       # Keep DB name consistent with the existing Postgres volume.
       DB_NAME: emaecom
       DB_URL: jdbc:postgresql://db:5432/emaecom
       # Local-only override to satisfy required variable in base compose (32 bytes, base64).
       APP_MASTER_KEY: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+      APP_AUTH_ADMIN_USERNAME: admin
+      APP_AUTH_ADMIN_PASSWORD: Admin123@
       # Optional: local frontend origins for CORS.
       CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:5173,http://localhost:8080
 networks:
