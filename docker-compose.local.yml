@@ -1,6 +1,14 @@
 services:
+  db:
+    environment:
+      # Keep local Postgres aligned with the existing emaecom DB.
+      POSTGRES_DB: emaecom
+
   backend:
     environment:
+      # Keep DB name consistent with the existing Postgres volume.
+      DB_NAME: emaecom
+      DB_URL: jdbc:postgresql://db:5432/emaecom
       # Local-only override to satisfy required variable in base compose (32 bytes, base64).
       APP_MASTER_KEY: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
       # Optional: local frontend origins for CORS.
