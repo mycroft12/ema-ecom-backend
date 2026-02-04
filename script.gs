@@ -1,4 +1,4 @@
-const WEBHOOK_URL = 'https://kathe-untoured-malika.ngrok-free.dev/api/import/google/sync';
+const WEBHOOK_URL = 'https://dashkod.com/api/import/google/sync';
 const WEBHOOK_SECRET = 'super-long-random-token';
 const DOMAIN = 'orders';
 

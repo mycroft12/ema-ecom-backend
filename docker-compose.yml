@@ -41,6 +41,7 @@ services:
         condition: service_started
 
     environment:
+      JAVA_OPTS: "-XX:MaxRAMPercentage=60 -XX:ActiveProcessorCount=1"
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/${DB_NAME:-emaecom}}
       DB_USER: ${DB_USER:-ema}
