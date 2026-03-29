@@ -33,6 +33,9 @@ app:
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.jdbc.core: WARN
 
 debug: false
